@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('address_id')->nullable()->constrained('address_users')->nullOnDelete();
             $table->decimal('sub_total', 10, 2);
@@ -25,7 +24,6 @@ return new class extends Migration
             $table->enum('payment_status', ['paid', 'unpaid'])->default('unpaid');
             $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->string('transaction_id')->nullable();
-            $table->timestamps();
             $table->timestamps();
         });
     }

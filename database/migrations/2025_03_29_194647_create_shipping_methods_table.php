@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shipping_methods', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('provider_id')->constrained('shipping_providers')->onDelete('cascade');
+            $table->foreignId('provider_id')->constrained('shippings')->onDelete('cascade');
             $table->string('method_name'); // e.g., Overnight, 2-Day, Economy
             $table->decimal('cost', 10, 2)->default(0.00);
             $table->integer('estimated_days')->nullable();

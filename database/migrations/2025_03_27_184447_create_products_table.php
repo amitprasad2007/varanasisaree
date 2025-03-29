@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name'); // Product name
             $table->string('slug')->unique(); // SEO-friendly slug
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-            $table->foreignId('subcategory_id')->nullable()->constrained('subcategories')->nullOnDelete();
+            $table->foreignId('subcategory_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('brand_id')->nullable()->constrained('brands')->nullOnDelete();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
