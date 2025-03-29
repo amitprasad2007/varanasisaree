@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banners', function (Blueprint $table) {
+        Schema::create('aboutus_sections', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->nullable();
-            $table->string('image');
-            $table->text('description')->nullable();
-            $table->string('link')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('inactive');
+            $table->foreignId('aboutus_id')->constrained('aboutus')->onDelete('cascade');
+            $table->string('section_title');
+            $table->text('section_content');
+            $table->string('image')->nullable();
             $table->integer('order')->default(0);
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('banners');
+        Schema::dropIfExists('aboutus_sections');
     }
 };

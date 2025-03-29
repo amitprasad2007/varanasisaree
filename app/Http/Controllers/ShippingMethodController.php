@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Testomonial;
-use App\Http\Requests\StoreTestomonialRequest;
-use App\Http\Requests\UpdateTestomonialRequest;
+use App\Models\ShippingMethod;
+use App\Http\Requests\StoreShippingMethodRequest;
+use App\Http\Requests\UpdateShippingMethodRequest;
 
-class TestomonialController extends Controller
+class ShippingMethodController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class TestomonialController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTestomonialRequest $request)
+    public function store(StoreShippingMethodRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class TestomonialController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Testomonial $testomonial)
+    public function show(ShippingMethod $shippingMethod)
     {
         //
     }
@@ -43,7 +43,7 @@ class TestomonialController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Testomonial $testomonial)
+    public function edit(ShippingMethod $shippingMethod)
     {
         //
     }
@@ -51,7 +51,7 @@ class TestomonialController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTestomonialRequest $request, Testomonial $testomonial)
+    public function update(UpdateShippingMethodRequest $request, ShippingMethod $shippingMethod)
     {
         //
     }
@@ -59,7 +59,7 @@ class TestomonialController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Testomonial $testomonial)
+    public function destroy(ShippingMethod $shippingMethod)
     {
         //
     }

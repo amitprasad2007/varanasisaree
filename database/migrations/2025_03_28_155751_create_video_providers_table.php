@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('video_providers', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique(); // Provider name (e.g., YouTube, Vimeo)
+            $table->string('base_url'); // Base URL for embedding videos
+            $table->string('logo')->nullable(); // Logo of the provider
+            $table->enum('status', ['active', 'inactive'])->default('active'); // Status control
             $table->timestamps();
         });
     }

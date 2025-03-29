@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Testomonial;
+use App\Models\ShippingMethod;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class TestomonialPolicy
+class ShippingMethodPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class TestomonialPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Testomonial $testomonial): bool
+    public function view(User $user, ShippingMethod $shippingMethod): bool
     {
         return false;
     }
@@ -35,7 +35,7 @@ class TestomonialPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Testomonial $testomonial): bool
+    public function update(User $user, ShippingMethod $shippingMethod): bool
     {
         return false;
     }
@@ -43,7 +43,7 @@ class TestomonialPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Testomonial $testomonial): bool
+    public function delete(User $user, ShippingMethod $shippingMethod): bool
     {
         return false;
     }
@@ -51,7 +51,7 @@ class TestomonialPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Testomonial $testomonial): bool
+    public function restore(User $user, ShippingMethod $shippingMethod): bool
     {
         return false;
     }
@@ -59,7 +59,7 @@ class TestomonialPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Testomonial $testomonial): bool
+    public function forceDelete(User $user, ShippingMethod $shippingMethod): bool
     {
         return false;
     }

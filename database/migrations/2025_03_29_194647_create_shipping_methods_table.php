@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aboutuses', function (Blueprint $table) {
+        Schema::create('shipping_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('page_title');
-            $table->text('description')->nullable();
-            $table->string('image')->nullable();
+            $table->foreignId('provider_id')->constrained('shipping_providers')->onDelete('cascade');
+            $table->string('method_name'); // e.g., Overnight, 2-Day, Economy
+            $table->decimal('cost', 10, 2)->default(0.00);
+            $table->integer('estimated_days')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aboutuses');
+        Schema::dropIfExists('shipping_methods');
     }
 };

@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('contactuses', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('icon');
+            $table->string('fisrtvalue');
+            $table->string('secondvalue');
+            $table->integer('order')->default(0);
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

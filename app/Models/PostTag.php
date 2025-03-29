@@ -9,4 +9,9 @@ class PostTag extends Model
 {
     /** @use HasFactory<\Database\Factories\PostTagFactory> */
     use HasFactory;
+    protected $fillable = ['name', 'slug'];
+
+    public function posts() {
+        return $this->belongsToMany(Post::class, 'post_tag');
+    }
 }

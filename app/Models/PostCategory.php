@@ -9,4 +9,9 @@ class PostCategory extends Model
 {
     /** @use HasFactory<\Database\Factories\PostCategoryFactory> */
     use HasFactory;
+    protected $fillable = ['name', 'slug'];
+
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
 }

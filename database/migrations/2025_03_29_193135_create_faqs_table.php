@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('image_products', function (Blueprint $table) {
+        Schema::create('faqs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('image_url'); // URL of the product image
-            $table->integer('sort_order')->default(0); // Order of images
+            $table->string('question'); // Stores the FAQ question
+            $table->text('answer'); // Stores the FAQ answer
+            $table->integer('order')->default(0); // Order for sorting FAQs
+            $table->enum('status', ['active', 'inactive'])->default('active'); // FAQ visibility status
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('image_products');
+        Schema::dropIfExists('faqs');
     }
 };

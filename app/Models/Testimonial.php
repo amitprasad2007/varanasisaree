@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Testomonial extends Model
+class Testimonial extends Model
 {
-    /** @use HasFactory<\Database\Factories\TestomonialFactory> */
+    /** @use HasFactory<\Database\Factories\TestimonialFactory> */
     use HasFactory;
 }

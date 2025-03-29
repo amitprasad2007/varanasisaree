@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_reviews', function (Blueprint $table) {
+        Schema::create('product_specifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->text('review');
-            $table->integer('rating')->default(0)->comment('Rating value from 1 to 5');
-            $table->boolean('is_approved')->default(false);
+            $table->string('name'); // Specification name (e.g., Material, Length, Weight)
+            $table->string('value'); // Specification value (e.g., Silk, 5.5 meters, 750g)
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_reviews');
+        Schema::dropIfExists('product_specifications');
     }
 };

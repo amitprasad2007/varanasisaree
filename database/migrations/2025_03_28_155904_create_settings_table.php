@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
+            $table->string('key')->unique(); // e.g., footer_about_text, footer_social_links
+            $table->json('value')->nullable(); // JSON or string data
             $table->timestamps();
         });
     }
