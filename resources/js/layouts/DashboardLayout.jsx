@@ -2,7 +2,7 @@
 import { Toaster } from "@/Components/ui/toaster";
 import { Toaster as Sonner } from "@/Components/ui/sonner";
 import { TooltipProvider } from "@/Components/ui/tooltip";
-import Sidebar from "@/Components/Sidebar";
+import Sidebar from "@/components/Sidebar.js";
 import { Head } from '@inertiajs/react';
 
 export default function DashboardLayout({ children, title }) {

@@ -1,7 +1,7 @@
 
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Bell, Moon, Globe, Lock, Shield } from "lucide-react";
-import { Switch } from "@/Components/ui/switch";
+import { Switch } from "@/components/ui/switch";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 
 const Settings = () => {

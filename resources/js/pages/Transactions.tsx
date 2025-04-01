@@ -1,5 +1,5 @@
 
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { PieChart } from "lucide-react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 

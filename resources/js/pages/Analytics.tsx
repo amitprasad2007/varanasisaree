@@ -1,5 +1,5 @@
 
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 

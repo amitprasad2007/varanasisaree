@@ -1,5 +1,5 @@
 
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { User, Mail, Phone, MapPin } from "lucide-react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 
@@ -23,7 +23,7 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground">Your basic profile details</p>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <User className="h-5 w-5 text-muted-foreground" />
@@ -32,7 +32,7 @@ const Profile = () => {
                   <p className="font-medium">John Doe</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-muted-foreground" />
                 <div>
@@ -40,7 +40,7 @@ const Profile = () => {
                   <p className="font-medium">john.doe@example.com</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-muted-foreground" />
                 <div>
@@ -48,7 +48,7 @@ const Profile = () => {
                   <p className="font-medium">+1 (555) 123-4567</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <MapPin className="h-5 w-5 text-muted-foreground" />
                 <div>

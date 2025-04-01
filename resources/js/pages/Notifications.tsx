@@ -1,5 +1,5 @@
 
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Bell, Check, X } from "lucide-react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 
