@@ -4,6 +4,9 @@ use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
@@ -31,7 +34,8 @@ Route::get('/profile', function () {
 Route::get('/settings', function () {
     return Inertia::render('Settings');
 });
-Route::resource('categories', CategoryController::class);
 
 // Subcategories
+Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
 
+Route::resource('categories', CategoryController::class);

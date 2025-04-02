@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -15,7 +17,6 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::with('subcategories')->get();
-
         return Inertia::render('Admin/Categories/Index', [
             'categories' => $categories
         ]);
@@ -35,14 +36,24 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $request->validated();
 
-        $validated['slug'] = Str::slug($validated['name']);
+        // Format slug: replace spaces and special characters with hyphens
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
 
+        // Add authenticated user ID
+        $validated['added_by'] = auth()->id();
+
+        // Convert boolean status to enum value
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('categories', 'public');
+            $validated['photo'] = $path;
+        }
+        
         Category::create($validated);
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
@@ -71,14 +82,31 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+       // dd($request);
+        $validated = $request->validated();
 
-        $validated['slug'] = Str::slug($validated['name']);
+        // Format slug: replace spaces and special characters with hyphens
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
 
+        // Convert boolean status to enum value
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($category->photo) {
+                Storage::disk('public')->delete($category->photo);
+            }
+            // Store new photo
+            $path = $request->file('photo')->store('categories', 'public');
+            $validated['photo'] = $path;
+        } else {
+            // If no new photo is uploaded, keep the existing photo
+            unset($validated['photo']);
+        }
+        
         $category->update($validated);
 
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');

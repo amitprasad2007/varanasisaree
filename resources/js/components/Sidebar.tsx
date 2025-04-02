@@ -5,7 +5,8 @@ import { Link, usePage } from '@inertiajs/react';
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/" },
-  { icon: PieChart, label: "Analytics", path: "/analytics" },
+  { icon: CreditCard, label: "Categories", path: "/categories" },
+  // { icon: PieChart, label: "Analytics", path: "/analytics" },
   { icon: CreditCard, label: "Transactions", path: "/transactions" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: User, label: "Profile", path: "/profile" },

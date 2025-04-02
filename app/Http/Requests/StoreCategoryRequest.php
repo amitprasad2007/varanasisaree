@@ -11,7 +11,7 @@ class StoreCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => ['required', 'string', 'max:255', 'unique:categories,title'],
+            'slug' => ['required', 'string', 'max:255', 'unique:categories,slug'],
+            'summary' => ['nullable', 'string', 'max:1000'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'status' => ['required', 'boolean'],
         ];
     }
 }

@@ -4,70 +4,135 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/Components/ui/textarea";
-import { Checkbox } from "@/Components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+
+type CheckedState = boolean | "indeterminate";
 
 const CategoryCreate = () => {
     const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        description: '',
-        is_active: true,
+        title: '',
+        slug:'',
+        summary: '',
+        photo: null as File | null,
+        status: true as CheckedState,
     });
 
-    const handleSubmit = (e) => {
+    const [preview, setPreview] = React.useState<string | null>(null);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Categories', href: route('categories.index') },
+        { title: 'Create Category', href: route('categories.create') },
+    ];
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         post(route('categories.store'));
     };
 
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        //setData('photo', file);
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPreview(null);
+        }
+    };
+
     return (
         <DashboardLayout title="Create Category">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Create Category</h1>
-                <Button
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                >
-                    Cancel
-                </Button>
+            <div className="space-y-4">
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">Create Category</h1>
+                    <Button
+                        variant="outline"
+                        onClick={() => window.history.back()}
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                        Cancel
+                    </Button>
+                </div>
             </div>
 
-            <div className="bg-white rounded-md shadow p-6">
+            <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="title">Title</Label>
                         <Input
-                            id="name"
-                            value={data.name}
-                            onChange={e => setData('name', e.target.value)}
+                            id="title"
+                            value={data.title}
+                            onChange={e => setData('title', e.target.value)}
                         />
-                        {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                        {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="slug">Slug</Label>
+                        <Input
+                            id="slug"
+                            value={data.slug}
+                            onChange={e => setData('slug', e.target.value)}
+                        />
+                        {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="summary">Description</Label>
                         <Textarea
-                            id="description"
-                            value={data.description}
-                            onChange={e => setData('description', e.target.value)}
+                            id="summary"
+                            value={data.summary}
+                            onChange={e => setData('summary', e.target.value)}
                         />
-                        {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+                        {errors.summary && <p className="text-sm text-red-600">{errors.summary}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="photo">Photo</Label>
+                        <div className="space-y-4">
+                            <Input
+                                id="photo"
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoChange}
+                            />
+                            {preview && (
+                                <div className="relative group">
+                                    <img 
+                                        src={preview} 
+                                        alt="Preview" 
+                                        className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        {errors.photo && <p className="text-sm text-red-600">{errors.photo}</p>}
                     </div>
 
                     <div className="flex items-center space-x-2">
+                        <Label htmlFor="status">Status</Label>
                         <Checkbox
-                            id="is_active"
-                            checked={data.is_active}
-                            onCheckedChange={(checked) => setData('is_active', checked)}
+                            id="status"
+                            checked={data.status}
+                            onCheckedChange={(checked) => setData('status', checked)}
                         />
                         <label
-                            htmlFor="is_active"
+                            htmlFor="status"
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                             Active
                         </label>
                     </div>
 
-                    <Button type="submit" disabled={processing}>
+                    <Button variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}>
                         Create Category
                     </Button>
                 </form>
