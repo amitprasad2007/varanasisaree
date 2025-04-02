@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,5 +14,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::get('/analytics', function () {
+    return Inertia::render('Analytics');
+});
+
+Route::get('/transactions', function () {
+    return Inertia::render('Transactions');
+});
+Route::get('/notifications', function () {
+    return Inertia::render('Notifications');
+});
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+});
+
+Route::get('/settings', function () {
+    return Inertia::render('Settings');
+});
+Route::resource('categories', CategoryController::class);
+
+// Subcategories
+
