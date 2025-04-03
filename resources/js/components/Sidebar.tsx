@@ -1,12 +1,17 @@
-
-import { Home, PieChart, Settings, User, CreditCard, Bell } from "lucide-react";
+import { Home, PieChart, Settings, User, CreditCard, Bell,Captions } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", path: "/" },
-  { icon: CreditCard, label: "Categories", path: "/categories" },
-  // { icon: PieChart, label: "Analytics", path: "/analytics" },
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
+  {
+    icon: CreditCard,
+    label: "Categories",
+    path: "/categories",
+    subItems: [
+      { icon:Captions, label: "SubCategories", path: "/subcategories" }
+    ]
+  },
   { icon: CreditCard, label: "Transactions", path: "/transactions" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: User, label: "Profile", path: "/profile" },
@@ -28,6 +33,9 @@ const Sidebar = () => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = url.startsWith(item.path);
+              const isSubItemActive = item.subItems?.some(subItem =>
+                url.startsWith(subItem.path)
+              );
 
               return (
                 <li key={item.path}>
@@ -42,6 +50,24 @@ const Sidebar = () => {
                     <Icon className="h-5 w-5" />
                     <span>{item.label}</span>
                   </Link>
+                  {item.subItems && (
+                    <ul className="ml-9 mt-1 space-y-1">
+                      {item.subItems.map((subItem) => (
+                        <li key={subItem.path}>
+                          <Link
+                            href={subItem.path}
+                            className={cn(
+                              "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 text-sm",
+                              "hover:bg-white/35",
+                              url.startsWith(subItem.path) ? "bg-white/35" : "text-secondary"
+                            )}
+                          > <subItem.icon className="h-5 w-5" />
+                            {subItem.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               );
             })}

@@ -1,6 +1,8 @@
 import React, { FormEvent, ChangeEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
+import { LoaderCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface FormData {
   email: string;
@@ -18,7 +20,7 @@ export default function Login() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    post('/admin/login');
+    post(route('login'));
   };
 
   return (
@@ -91,13 +93,14 @@ export default function Login() {
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
                 disabled={processing}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="cursor-pointer group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {processing ? 'Logging in...' : 'Sign in'}
-              </button>
+                {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                Log in
+              </Button>
             </div>
           </form>
         </div>

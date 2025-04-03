@@ -1,7 +1,6 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +35,8 @@ const CategoryCreate = () => {
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        //setData('photo', file);
-        
+        setData('photo', file);
+
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -51,8 +50,7 @@ const CategoryCreate = () => {
 
     return (
         <DashboardLayout title="Create Category">
-            <div className="space-y-4">
-                <Breadcrumbs breadcrumbs={breadcrumbs} />
+            <div className="space-y-4 pb-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Create Category</h1>
                     <Button
@@ -63,6 +61,7 @@ const CategoryCreate = () => {
                         Cancel
                     </Button>
                 </div>
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
             <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
@@ -107,9 +106,9 @@ const CategoryCreate = () => {
                             />
                             {preview && (
                                 <div className="relative group">
-                                    <img 
-                                        src={preview} 
-                                        alt="Preview" 
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
                                         className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
                                     />
                                 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\StoreSubCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -24,8 +25,8 @@ class CategoryController extends Controller
 
     public function subcatindex()
     {
-        $subcategories = Subcategory::with('category')->get();
-        
+        $subcategories = Category::with('parent')->whereNotNull('parent_id' )->get();
+
         return Inertia::render('Admin/Subcategories/Index', [
             'subcategories' => $subcategories
         ]);
@@ -38,6 +39,15 @@ class CategoryController extends Controller
     public function create()
     {
         return Inertia::render('Admin/Categories/Create');
+    }
+
+    public function createsubcate()
+    {
+        $categories = Category::where('status', 'active')->get();
+
+        return Inertia::render('Admin/Subcategories/Create', [
+            'categories' => $categories
+        ]);
     }
 
 
@@ -63,11 +73,40 @@ class CategoryController extends Controller
             $path = $request->file('photo')->store('categories', 'public');
             $validated['photo'] = $path;
         }
-        
+
         Category::create($validated);
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
+
+
+    public function substore(StoreSubCategoryRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Format slug: replace spaces and special characters with hyphens
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
+
+        $validated['is_parent'] = 0 ;
+        // Add authenticated user ID
+        $validated['added_by'] = auth()->id();
+
+        // Convert boolean status to enum value
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('categories', 'public');
+            $validated['photo'] = $path;
+        }
+
+        Category::create($validated);
+
+        return redirect()->route('subcatindex')->with('success', 'Category created successfully.');
+    }
+
+
 
     /**
      * Display the specified resource.
@@ -86,6 +125,17 @@ class CategoryController extends Controller
             'category' => $category,
         ]);
     }
+
+    public function subedit($id)
+    {
+        $subcategory = Category::find($id);
+        $categories = Category::all();
+        return Inertia::render('Admin/Subcategories/Edit', [
+            'subcategory' => $subcategory,
+            'categories' => $categories,
+        ]);
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -116,7 +166,7 @@ class CategoryController extends Controller
             // If no new photo is uploaded, keep the existing photo
             unset($validated['photo']);
         }
-        
+
         $category->update($validated);
 
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');

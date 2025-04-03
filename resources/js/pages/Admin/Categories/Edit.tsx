@@ -1,7 +1,6 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +47,7 @@ const CategoryEdit = ({ category }: Props) => {
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         setData('photo', file);
-        
+
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -62,18 +61,18 @@ const CategoryEdit = ({ category }: Props) => {
 
     return (
         <DashboardLayout title="Edit Category">
-             <div className="space-y-4">
-            <Breadcrumbs breadcrumbs={breadcrumbs} />
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Edit Category</h1>
-                <Button
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    variant="outline"
-                    onClick={() => window.history.back()}
-                >
-                    Cancel
-                </Button>
-            </div>
+             <div className="space-y-4 pb-6">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold">Edit Category</h1>
+                    <Button
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        variant="outline"
+                        onClick={() => window.history.back()}
+                    >
+                        Cancel
+                    </Button>
+                </div>
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,9 +117,9 @@ const CategoryEdit = ({ category }: Props) => {
                             />
                             {preview && (
                                 <div className="relative group">
-                                    <img 
-                                        src={preview} 
-                                        alt="Preview" 
+                                    <img
+                                        src={preview}
+                                        alt="Preview"
                                         className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
                                     />
                                 </div>

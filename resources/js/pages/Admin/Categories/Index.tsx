@@ -1,12 +1,12 @@
 import React from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, useForm } from '@inertiajs/react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash, Edit, Plus } from "lucide-react";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+
 
 interface Category {
   id: number;
@@ -37,8 +37,7 @@ const CategoriesIndex = ({ categories }: Props) => {
 
   return (
     <DashboardLayout title="Categories">
-      <div className="space-y-4">
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Categories</h1>
           <Link href={route('categories.create')}>
@@ -48,6 +47,7 @@ const CategoriesIndex = ({ categories }: Props) => {
             </Button>
           </Link>
         </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
       <div className="bg-white rounded-md shadow-lg border border-gray-100">
@@ -68,10 +68,10 @@ const CategoriesIndex = ({ categories }: Props) => {
                 <TableCell>
                   {category.photo ? (
                     <div className="relative group">
-                      <img 
-                        src={`/storage/${category.photo}`} 
+                      <img
+                        src={`/storage/${category.photo}`}
                         alt={category.title}
-                        className="w-12 h-12 object-cover rounded-md transition-all duration-300 group-hover:w-20 group-hover:h-20 group-hover:shadow-lg group-hover:z-20 group-hover:relative"                     
+                        className="w-12 h-12 object-cover rounded-md transition-all duration-300 group-hover:w-20 group-hover:h-20 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
                       />
                     </div>
                   ) : (
