@@ -5,10 +5,24 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Button } from "@/Components/ui/button";
 import { Trash, Edit, Plus } from "lucide-react";
 
-const SubcategoriesIndex = ({ subcategories }) => {
+interface Subcategory {
+  id: number;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  category: {
+    name: string;
+  };
+}
+
+interface SubcategoriesIndexProps {
+  subcategories: Subcategory[];
+}
+
+const SubcategoriesIndex = ({ subcategories }: SubcategoriesIndexProps) => {
     const { delete: destroy } = useForm();
 
-    const handleDelete = (id) => {
+    const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this subcategory?')) {
             destroy(route('subcategories.destroy', id));
         }

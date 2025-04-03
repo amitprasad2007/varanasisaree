@@ -22,6 +22,16 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function subcatindex()
+    {
+        $subcategories = Subcategory::with('category')->get();
+        
+        return Inertia::render('Admin/Subcategories/Index', [
+            'subcategories' => $subcategories
+        ]);
+    }
+
+
     /**
      * Show the form for creating a new resource.
      */

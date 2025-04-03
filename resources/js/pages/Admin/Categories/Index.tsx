@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
+import AdminLayout from '@/Layouts/AdminLayout';
+import { Link, useForm } from '@inertiajs/react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash, Edit, Plus } from "lucide-react";
