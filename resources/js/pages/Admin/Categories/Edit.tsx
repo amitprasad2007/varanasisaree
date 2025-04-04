@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 interface Category {
     id: number;
@@ -36,7 +37,17 @@ const CategoryEdit = ({ category }: Props) => {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('categories.update', category.id));
+        post(route('categories.update', category.id), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Category updated successfully',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            }
+        });
     };
 
     const breadcrumbs: BreadcrumbItem[] = [

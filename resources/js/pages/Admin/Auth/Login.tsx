@@ -1,8 +1,9 @@
-import React, { FormEvent, ChangeEvent } from 'react';
+import React, { FormEvent, ChangeEvent,useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import Swal from 'sweetalert2';
 
 interface FormData {
   email: string;
@@ -20,9 +21,30 @@ export default function Login() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    post(route('login'));
+    post(route('login'), {
+      onSuccess: () => {
+          Swal.fire({
+              title: 'Success!',
+              text: 'You have successfully logged in',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+          });
+      },      
+  });
   };
-
+   // Show success message if status is provided (e.g., after password reset)
+   useEffect(() => {
+    if (status) {
+        Swal.fire({
+            title: 'Success!',
+            text: status,
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    }
+}, [status]);
   return (
     <>
       <Head title="Admin Login" />

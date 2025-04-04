@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -31,9 +32,31 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'You have successfully logged in',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
             onFinish: () => reset('password'),
         });
     };
+
+    // Show success message if status is provided (e.g., after password reset)
+    useEffect(() => {
+        if (status) {
+            Swal.fire({
+                title: 'Success!',
+                text: status,
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    }, [status]);
 
     return (
         <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">

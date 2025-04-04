@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -13,7 +16,13 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        $products = Product::with(['category', 'subcategory', 'brand'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return Inertia::render('Admin/Products/Index', [
+            'products' => $products
+        ]);
     }
 
     /**
@@ -21,7 +30,15 @@ class ProductController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::where('is_active', true)->get();
+        $subcategories = Subcategory::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
+        
+        return Inertia::render('Admin/Products/Create', [
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'brands' => $brands
+        ]);
     }
 
     /**
@@ -29,7 +46,16 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        //
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
+
+        // Add authenticated user ID
+        $validated['added_by'] = auth()->id();
+
+        Product::create($validated);
+
+        return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
     /**
@@ -37,7 +63,11 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        $product->load(['category', 'subcategory', 'brand']);
+        
+        return Inertia::render('Admin/Products/Show', [
+            'product' => $product
+        ]);
     }
 
     /**
@@ -45,7 +75,16 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+        $categories = Category::whereNull('parent_id' )->get();
+        $subcategories = Category::whereNotNull('parent_id' )->get();
+        $brands = Brand::where('is_active', true)->get();
+        
+        return Inertia::render('Admin/Products/Edit', [
+            'product' => $product,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'brands' => $brands
+        ]);
     }
 
     /**
@@ -53,7 +92,11 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        //
+        $validated['slug'] = Str::slug($validated['name']);
+
+        $product->update($validated);
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -61,6 +104,18 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        $product->delete();
+
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+    }
+
+    // Get subcategories for a specific category (for dynamic dropdown)
+    public function getSubcategories($categoryId)
+    {
+        $subcategories = Subcategory::where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->get();
+        
+        return response()->json($subcategories);
     }
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Trash, Edit, Plus } from "lucide-react";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 interface Subcategory {
     id: number;
@@ -30,9 +31,29 @@ const SubcategoriesIndex = ({ subcategories }: SubcategoriesIndexProps) => {
       ];
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this subcategory?')) {
-            destroy(route('subcategories.destroy', id));
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              destroy(route('subcategories.destroy', id), {
+                onSuccess: () => {
+                  Swal.fire({
+                    title: 'Deleted!',
+                    text: 'Your Subcategory has been deleted.',
+                    icon: 'success',
+                    timer: 3000,
+                    showConfirmButton: false
+                  });
+                }
+              });
+            }
+          });
     };
     return (
         <DashboardLayout title="Subcategories">

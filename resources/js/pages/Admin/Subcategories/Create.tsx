@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 import {
     Select,
     SelectContent,
@@ -47,7 +48,17 @@ const SubcategoryCreate: React.FC<SubcategoryCreateProps> = ({ categories }) => 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('subcategories.store'));
+        post(route('subcategories.store'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'SubCategory created successfully',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            }
+        });
     };
     const [preview, setPreview] = React.useState<string | null>(null);
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

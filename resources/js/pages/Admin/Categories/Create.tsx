@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 type CheckedState = boolean | "indeterminate";
 
@@ -30,7 +31,17 @@ const CategoryCreate = () => {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('categories.store'));
+        post(route('categories.store'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Category created successfully',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            }
+        });
     };
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

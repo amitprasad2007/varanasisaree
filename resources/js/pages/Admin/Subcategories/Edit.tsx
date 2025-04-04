@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 import {
     Select,
     SelectContent,
@@ -57,7 +58,17 @@ const SubcategoryEdit: React.FC<SubcategoryEditProps> = ({ subcategory, categori
     ];
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('subcategories.update', subcategory.id));
+        post(route('subcategories.update', subcategory.id), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'SubCategory updated successfully',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            }
+        });
     };
     const [preview, setPreview] = React.useState<string | null>(subcategory.photo ? `/storage/${subcategory.photo}` : null);
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

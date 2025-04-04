@@ -1,8 +1,9 @@
-
-import { Card } from "@/components/ui/card";
+import { Card } from "@/Components/ui/card";
 import { DollarSign, PieChart, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import DashboardLayout from "@/Layouts/DashboardLayout";
+import { useEffect } from "react";
+import Swal from "sweetalert2";
 
 const data = [
   { name: "Jan", value: 2400 },
@@ -14,6 +15,25 @@ const data = [
 ];
 
 const Dashboard = () => {
+  useEffect(() => {
+    // Check if this is the first visit to the dashboard in this session
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    
+    if (!hasSeenWelcome) {
+      // Show welcome message
+      Swal.fire({
+        title: 'Welcome to Dashboard!',
+        text: 'You have successfully logged in to your account',
+        icon: 'success',
+        timer: 5000,
+        showConfirmButton: false
+      });
+      
+      // Mark that we've shown the welcome message
+      sessionStorage.setItem('hasSeenWelcome', 'true');
+    }
+  }, []);
+
   return (
     <DashboardLayout title="Dashboard">
       <div className="space-y-8">
