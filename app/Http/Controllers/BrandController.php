@@ -17,7 +17,7 @@ class BrandController extends Controller
     public function index()
     {
         $brands = Brand::all();
-        
+
         return Inertia::render('Admin/Brands/Index', [
             'brands' => $brands
         ]);
@@ -36,17 +36,28 @@ class BrandController extends Controller
      */
     public function store(StoreBrandRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+        $validated = $request->validated();
+
+        // Format slug: replace spaces and special characters with hyphens
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
+
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+
+        if ($request->hasFile('images')) {
+            $path = $request->file('images')->store('brands', 'public');
+            $validated['images'] = $path;
+        }
+        if ($request->hasFile('logo')) {
+            $pathlogo = $request->file('logo')->store('brands', 'public');
+            $validated['logo'] = $pathlogo;
+        }
 
         Brand::create($validated);
 
-        return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
+        return redirect()->route('brands.index');
     }
 
     /**
@@ -72,13 +83,40 @@ class BrandController extends Controller
      */
     public function update(UpdateBrandRequest $request, Brand $brand)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $request->validated();
+       // Format slug: replace spaces and special characters with hyphens
+       $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+       $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+       $validated['slug'] = strtolower($validated['slug']);
 
-        $validated['slug'] = Str::slug($validated['name']);
+       $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+
+       // Handle photo upload
+       if ($request->hasFile('images')) {
+            // Delete old photo if exists
+            if ($brand->images) {
+                Storage::disk('public')->delete($brand->images);
+            }
+            // Store new photo
+            $path = $request->file('images')->store('brands', 'public');
+            $validated['images'] = $path;
+        } else {
+            // If no new photo is uploaded, keep the existing photo
+            unset($validated['images']);
+        }
+        // Handle photo upload
+       if ($request->hasFile('logo')) {
+        // Delete old photo if exists
+            if ($brand->logo) {
+                Storage::disk('public')->delete($brand->logo);
+            }
+            // Store new photo
+            $path = $request->file('logo')->store('brands', 'public');
+            $validated['logo'] = $path;
+        } else {
+            // If no new photo is uploaded, keep the existing photo
+            unset($validated['logo']);
+        }
 
         $brand->update($validated);
 

@@ -24,12 +24,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/subcategories/{id}/edit', [CategoryController::class, 'subedit'] )->name('subcategories.edit');
     Route::post('/subcategories/{subcategory}', [CategoryController::class, 'subupdate'])->name('subcategories.update');
     Route::delete('/subcategories/{subcategory}', [CategoryController::class, 'subdestroy'])->name('subcategories.destroy');
+
     // Brands
+    Route::post('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
     Route::resource('brands', BrandController::class);
-    
+
     // Products
     Route::resource('products', ProductController::class);
-    
+
     // Dynamic subcategories dropdown
     Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
 });

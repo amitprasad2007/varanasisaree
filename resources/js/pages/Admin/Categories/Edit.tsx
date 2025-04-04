@@ -33,7 +33,7 @@ const CategoryEdit = ({ category }: Props) => {
         photo: null as File | null,
     });
 
-    const [preview, setPreview] = React.useState<string | null>(category.photo ? `/storage/${category.photo}` : null);
+
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -55,6 +55,7 @@ const CategoryEdit = ({ category }: Props) => {
         { title: 'Categories', href: route('categories.index') },
         { title: 'Edit Category', href: route('categories.edit', category.id) },
     ];
+    const [preview, setPreview] = React.useState<string | null>(category.photo ? `/storage/${category.photo}` : null);
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
         setData('photo', file);
