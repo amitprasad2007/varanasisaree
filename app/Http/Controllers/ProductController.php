@@ -21,7 +21,7 @@ class ProductController extends Controller
         $products = Product::with(['category', 'subcategory', 'brand'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return Inertia::render('Admin/Products/Index', [
             'products' => $products
         ]);
@@ -35,7 +35,7 @@ class ProductController extends Controller
         $categories = Category::where('status', 'active')->whereNull('parent_id' )->get();
         $subcategories = Category::where('status', 'active')->whereNotNull('parent_id' )->get();
         $brands = Brand::where('status', 'active')->get();
-        
+
         return Inertia::render('Admin/Products/Create', [
             'categories' => $categories,
             'subcategories' => $subcategories,
@@ -48,10 +48,13 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
+        $validated = $request->validated();
+        
         $validated['slug'] = str_replace(' ', '-', $validated['slug']);
         $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
         $validated['slug'] = strtolower($validated['slug']);
-
+        // Convert boolean status to enum value
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
         // Add authenticated user ID
         $validated['added_by'] = auth()->id();
 
@@ -66,7 +69,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'subcategory', 'brand']);
-        
+
         return Inertia::render('Admin/Products/Show', [
             'product' => $product
         ]);
@@ -79,8 +82,8 @@ class ProductController extends Controller
     {
         $categories = Category::whereNull('parent_id' )->get();
         $subcategories = Category::whereNotNull('parent_id' )->get();
-        $brands = Brand::where('is_active', true)->get();
-        
+        $brands = Brand::where('status', 'active')->get();
+
         return Inertia::render('Admin/Products/Edit', [
             'product' => $product,
             'categories' => $categories,
@@ -114,10 +117,10 @@ class ProductController extends Controller
     // Get subcategories for a specific category (for dynamic dropdown)
     public function getSubcategories($categoryId)
     {
-        $subcategories = Subcategory::where('category_id', $categoryId)
-            ->where('is_active', true)
+        $subcategories = Category::where('parent_id', $categoryId)
+            ->where('status', 'active')
             ->get();
-        
+
         return response()->json($subcategories);
     }
 }

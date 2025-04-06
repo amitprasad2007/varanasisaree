@@ -32,9 +32,11 @@ Route::middleware('auth')->group(function () {
     // Products
     Route::resource('products', ProductController::class);
 
-    // Dynamic subcategories dropdown
-    Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
+
 });
+
+// Dynamic subcategories dropdown
+Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

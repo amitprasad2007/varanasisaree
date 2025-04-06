@@ -4,8 +4,35 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-export default function Show({ product }) {
-  const renderProductAttribute = (label, value, suffix = '') => {
+interface product {
+    id: number;
+    name:string;
+    slug:string;
+    category:{title:string};
+    subcategory:{title:string};
+    brand:{name:string};
+    price:string;
+    discount:number;
+    stock_quantity:number;
+    status:string;
+    is_bestseller:boolean;
+    created_at:string;
+    updated_at:string;
+    description:string;
+    fabric:string;
+    color:string;
+    size:number;
+    weight:number;
+    work_type:string;
+    occasion:string;
+  }
+
+  interface Props {
+    product: product;
+  }
+
+export default function Show({ product }: Props) {
+  const renderProductAttribute = (label: string, value: any, suffix: string = '') => {
     return value ? (
       <div className="grid grid-cols-3 gap-4 py-3 border-b">
         <span className="text-gray-600 font-medium">{label}</span>
@@ -23,16 +50,16 @@ export default function Show({ product }) {
         </div>
         <div className="space-x-2">
           <Link href={route('products.edit', product.id)}>
-            <Button variant="outline">Edit Product</Button>
+            <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">Edit Product</Button>
           </Link>
           <Link href={route('products.index')}>
-            <Button variant="ghost">Back to Products</Button>
+            <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">Back to Products</Button>
           </Link>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
           </CardHeader>
@@ -40,13 +67,13 @@ export default function Show({ product }) {
             <div className="space-y-1">
               {renderProductAttribute("Name", product.name)}
               {renderProductAttribute("Slug", product.slug)}
-              {renderProductAttribute("Category", product.category?.name || 'N/A')}
-              {renderProductAttribute("Subcategory", product.subcategory?.name || 'N/A')}
+              {renderProductAttribute("Category", product.category?.title || 'N/A')}
+              {renderProductAttribute("Subcategory", product.subcategory?.title || 'N/A')}
               {renderProductAttribute("Brand", product.brand?.name || 'N/A')}
               {renderProductAttribute("Status", (
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  product.status === 'active' 
-                    ? 'bg-green-100 text-green-800' 
+                  product.status === 'active'
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
                   {product.status}
@@ -59,27 +86,27 @@ export default function Show({ product }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
           <CardHeader>
             <CardTitle>Pricing & Inventory</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {renderProductAttribute("Price", `$${parseFloat(product.price).toFixed(2)}`)}
+              {renderProductAttribute("Price", `₹${parseFloat(product.price).toFixed(2)}`)}
               {renderProductAttribute("Discount", product.discount > 0 ? `${product.discount}%` : "No discount")}
               {renderProductAttribute("Stock Quantity", product.stock_quantity)}
-              
+
               {product.discount > 0 && (
                 renderProductAttribute(
-                  "Sale Price", 
-                  `$${(parseFloat(product.price) * (1 - parseFloat(product.discount) / 100)).toFixed(2)}`
+                  "Sale Price",
+                  `₹${(parseFloat(product.price) * (1 - product.discount / 100)).toFixed(2)}`
                 )
               )}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6 lg:col-span-2">
           <CardHeader>
             <CardTitle>Product Description</CardTitle>
           </CardHeader>
@@ -94,7 +121,7 @@ export default function Show({ product }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
           <CardHeader>
             <CardTitle>Product Attributes</CardTitle>
           </CardHeader>

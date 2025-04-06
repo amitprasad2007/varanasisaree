@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('logo')->nullable(); // Stores logo image path
             $table->string('images')->nullable();
             $table->text('description')->nullable();
-            $table->boolean('status')->default(true);
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

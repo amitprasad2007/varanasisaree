@@ -27,7 +27,7 @@ export default function Index({ brands }: Props) {
       { title: 'Dashboard', href: route('dashboard') },
       { title: 'Brands', href: route('brands.index') },
     ];
-    const { delete: destroy } = useForm();   
+    const { delete: destroy } = useForm();
     const handleDelete = (id: number) => {
     Swal.fire({
         title: 'Are you sure?',
@@ -69,7 +69,7 @@ export default function Index({ brands }: Props) {
         </div>
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
-      <div className="bg-white rounded-md shadow overflow-x-auto">
+      <div className="bg-white rounded-md shadow-lg border border-gray-100">
         <Table>
           <TableHeader>
             <TableRow>

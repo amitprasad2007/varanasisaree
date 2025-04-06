@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link,useForm } from '@inertiajs/react';
-import { Trash, Edit, Plus } from "lucide-react";
+import { Trash, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
@@ -77,7 +77,7 @@ export default function Index({ products }: Props) {
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
-      <div className="bg-white rounded-md shadow overflow-x-auto">
+      <div className="bg-white rounded-md shadow-lg border border-gray-100">
         <Table>
           <TableHeader>
             <TableRow>
@@ -103,35 +103,34 @@ export default function Index({ products }: Props) {
                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      product.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
+                      product.status === 'active'
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
                       {product.status}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          Actions
+                  <TableCell className="text-left">
+                    <div className="flex  space-x-2">
+                        <Link href={route('products.show', product.id)}>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
+                            <View className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={route('products.show', product.id)}>View</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={route('products.edit', product.id)}>Edit</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDelete(product.id)}
+                        </Link>
+                        <Link href={route('products.edit', product.id)}>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        </Link>
+                        <Button
+                        variant="outline"
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        size="sm"
+                        onClick={() => handleDelete(product.id)}
                         >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        <Trash className=" h-4 w-4" />
+                        </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
