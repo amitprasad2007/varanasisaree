@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
+import { Label } from "@/components/ui/label";t
 import {
   Form,
   FormControl,
@@ -10,20 +11,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from '@/Components/ui/form';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Textarea } from '@/Components/ui/textarea';
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/Components/ui/select';
-import { Checkbox } from '@/Components/ui/checkbox';
-import axios from 'axios';
-import { toast } from 'sonner';
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 export default function Create({ categories, brands }) {
   const [subcategories, setSubcategories] = useState([]);
@@ -45,7 +47,10 @@ export default function Create({ categories, brands }) {
     is_bestseller: false,
     status: 'active'
   });
-
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('Products.index') },
+  ];
   useEffect(() => {
     if (data.category_id) {
       fetchSubcategories(data.category_id);
@@ -77,6 +82,36 @@ export default function Create({ categories, brands }) {
 
   return (
     <DashboardLayout title="Create Product">
+    <div className="space-y-4 pb-6">
+      <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Create New Product</h1>
+          <Button
+              variant="outline"
+              onClick={() => window.history.back()}
+              className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+              Cancel
+          </Button>
+      </div>
+      <Breadcrumbs breadcrumbs={breadcrumbs} />
+    </div>
+    <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+            <Label htmlFor="name">Brand Name</Label>
+            <Input
+                id="name"
+                value={data.name}
+                onChange={e => setData('name', e.target.value)}
+            />
+            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+        </div>
+      </form>
+    </div>
+
+
+
+
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
 

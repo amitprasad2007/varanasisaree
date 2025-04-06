@@ -23,13 +23,12 @@ interface Props {
 }
 
 const CategoriesIndex = ({ categories }: Props) => {
-  const { delete: destroy } = useForm();
-
+ 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Categories', href: route('categories.index') },
   ];
-
+  const { delete: destroy } = useForm();
   const handleDelete = (id: number) => {
     Swal.fire({
       title: 'Are you sure?',

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Button } from '@/Components/ui/button';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default function Show({ product }) {
   const renderProductAttribute = (label, value, suffix = '') => {
@@ -15,7 +15,7 @@ export default function Show({ product }) {
   };
 
   return (
-    <AdminLayout title={`Product: ${product.name}`}>
+    <DashboardLayout title={`Product: ${product.name}`}>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">{product.name}</h1>
@@ -110,6 +110,6 @@ export default function Show({ product }) {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }

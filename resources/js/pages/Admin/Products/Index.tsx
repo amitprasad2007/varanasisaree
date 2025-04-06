@@ -1,38 +1,80 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link,useForm } from '@inertiajs/react';
+import { Trash, Edit, Plus } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/Components/ui/table';
-import { Button } from '@/Components/ui/button';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger 
-} from '@/Components/ui/dropdown-menu';
-import { toast } from 'sonner';
+} from '@/components/ui/dropdown-menu';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
-export default function Index({ products }) {
-  const handleDelete = (productId) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      axios.delete(`/admin/products/${productId}`)
-        .then(response => {
-          toast.success('Product deleted successfully');
-          window.location.reload();
-        })
-        .catch(error => {
-          toast.error('Error deleting product');
-          console.error(error);
+interface Product {
+  id: number;
+  name:string;
+  category:{title:string};
+  subcategory:{title:string};
+  brand:{name:string};
+  price:number;
+  stock_quantity:number;
+  status:string;
+}
+
+interface Props {
+  products: Product[];
+}
+
+
+export default function Index({ products }: Props) {
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+  ];
+  const { delete: destroy } = useForm();
+  const handleDelete = (id: number) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        destroy(route('products.destroy', id), {
+          onSuccess: () => {
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Your product has been deleted.',
+              icon: 'success',
+              timer: 3000,
+              showConfirmButton: false
+            });
+          }
         });
-    }
+      }
+    });
   };
 
   return (
     <DashboardLayout title="Products">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Products</h1>
-        <Link href={route('products.create')}>
-          <Button>Add New Product</Button>
-        </Link>
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Products</h1>
+          <Link href={route('products.create')}>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+              <Plus className="h-4 w-4" />
+              Add Products
+            </Button>
+          </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
       <div className="bg-white rounded-md shadow overflow-x-auto">
@@ -54,8 +96,8 @@ export default function Index({ products }) {
               products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category?.name || 'N/A'}</TableCell>
-                  <TableCell>{product.subcategory?.name || 'N/A'}</TableCell>
+                  <TableCell>{product.category?.title || 'N/A'}</TableCell>
+                  <TableCell>{product.subcategory?.title || 'N/A'}</TableCell>
                   <TableCell>{product.brand?.name || 'N/A'}</TableCell>
                   <TableCell>${product.price}</TableCell>
                   <TableCell>{product.stock_quantity}</TableCell>

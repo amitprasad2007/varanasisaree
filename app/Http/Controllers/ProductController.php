@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Inertia\Inertia;
@@ -30,9 +32,9 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $categories = Category::where('is_active', true)->get();
-        $subcategories = Subcategory::where('is_active', true)->get();
-        $brands = Brand::where('is_active', true)->get();
+        $categories = Category::where('status', 'active')->whereNull('parent_id' )->get();
+        $subcategories = Category::where('status', 'active')->whereNotNull('parent_id' )->get();
+        $brands = Brand::where('status', 'active')->get();
         
         return Inertia::render('Admin/Products/Create', [
             'categories' => $categories,

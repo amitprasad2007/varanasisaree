@@ -23,13 +23,11 @@ interface Props {
   }
 
 export default function Index({ brands }: Props) {
-   // console.log(brands);
-    const { delete: destroy } = useForm();
-
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: route('dashboard') },
-        { title: 'Brands', href: route('brands.index') },
-      ];
+      { title: 'Dashboard', href: route('dashboard') },
+      { title: 'Brands', href: route('brands.index') },
+    ];
+    const { delete: destroy } = useForm();   
     const handleDelete = (id: number) => {
     Swal.fire({
         title: 'Are you sure?',
@@ -71,7 +69,6 @@ export default function Index({ brands }: Props) {
         </div>
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
-
       <div className="bg-white rounded-md shadow overflow-x-auto">
         <Table>
           <TableHeader>
