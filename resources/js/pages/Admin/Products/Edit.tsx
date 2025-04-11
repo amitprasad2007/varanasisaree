@@ -22,10 +22,50 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 import axios from 'axios';
 import { toast } from 'sonner';
 
-export default function Edit({ product, categories, brands }) {
+interface product {
+    id: number;
+    name:string;
+    slug:string;
+    category:{title:string};
+    category_id:number;
+    subcategory_id:number;
+    brand_id:number;
+    subcategory:{title:string};
+    brand:{name:string};
+    price:string;
+    discount:number;
+    stock_quantity:number;
+    status:string;
+    is_bestseller:boolean;
+    created_at:string;
+    updated_at:string;
+    description:string;
+    fabric:string;
+    color:string;
+    size:number;
+    weight:number;
+    work_type:string;
+    occasion:string;
+  }
+  interface brands {
+
+  }
+  interface category{
+
+  }
+  interface Props {
+    product: product;
+    brands:brands;
+    category:category;
+  }
+
+export default function Edit({ category ,product,brands}: Props) {
   const [subcategories, setSubcategories] = useState([]);
   const { data, setData, put, processing, errors } = useForm({
     name: product.name || '',
@@ -48,35 +88,50 @@ export default function Edit({ product, categories, brands }) {
 
   useEffect(() => {
     if (data.category_id) {
-      fetchSubcategories(data.category_id);
+      fetchSubcategories(String(data.category_id));
     }
   }, [data.category_id]);
 
-  const fetchSubcategories = async (categoryId) => {
+  const fetchSubcategories = async (categoryId: string) => {
     try {
-      const response = await axios.get(`/admin/get-subcategories/${categoryId}`);
+      const response = await axios.get(`/get-subcategories/${categoryId}`);
       setSubcategories(response.data);
+      setData('subcategory_id', ''); // Reset subcategory when category changes
     } catch (error) {
-      console.error('Error fetching subcategories:', error);
-      toast.error('Failed to load subcategories');
+
+      Swal.fire({
+        title: 'Error!',
+        text: 'Error fetching subcategories'+error,
+        icon: 'error',
+        timer: 3000,
+        showConfirmButton: false
+    });
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    put(route('products.update', product.id), {
-      onSuccess: () => {
-        toast.success('Product updated successfully');
-      },
-      onError: () => {
-        toast.error('Failed to update product');
-      }
-    });
-  };
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Edit Product', href: route('products.edit', product.id) },
+];
 
   return (
     <DashboardLayout title="Edit Product">
-      <div className="max-w-3xl mx-auto">
+        <div className="space-y-4 pb-6">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold">Edit Product: {product.name}</h1>
+                <Button
+                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        variant="outline"
+                    onClick={() => window.history.back()}
+                >
+                    Cancel
+                </Button>
+            </div>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
+        <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Edit Product: {product.name}</h1>
 
         <div className="bg-white rounded-md shadow p-6">
@@ -87,10 +142,10 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       value={data.name}
                       onChange={e => setData('name', e.target.value)}
-                      placeholder="Product name" 
+                      placeholder="Product name"
                     />
                   </FormControl>
                   {errors.name && <FormMessage>{errors.name}</FormMessage>}
@@ -100,7 +155,7 @@ export default function Edit({ product, categories, brands }) {
                   <FormLabel>Category <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Select
-                      value={data.category_id.toString()} 
+                      value={data.category_id.toString()}
                       onValueChange={(value) => setData('category_id', value)}
                     >
                       <SelectTrigger>
@@ -128,8 +183,8 @@ export default function Edit({ product, categories, brands }) {
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={
-                          !data.category_id ? "Select a category first" : 
-                          subcategories.length === 0 ? "No subcategories available" : 
+                          !data.category_id ? "Select a category first" :
+                          subcategories.length === 0 ? "No subcategories available" :
                           "Select a subcategory"
                         } />
                       </SelectTrigger>
@@ -173,7 +228,7 @@ export default function Edit({ product, categories, brands }) {
                     <Textarea
                       value={data.description || ''}
                       onChange={e => setData('description', e.target.value)}
-                      placeholder="Product description" 
+                      placeholder="Product description"
                       rows={4}
                     />
                   </FormControl>
@@ -186,7 +241,7 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       value={data.price}
                       onChange={e => setData('price', e.target.value)}
@@ -201,7 +256,7 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Discount (%)</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       value={data.discount}
                       onChange={e => setData('discount', e.target.value)}
@@ -216,7 +271,7 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Stock Quantity <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       value={data.stock_quantity}
                       onChange={e => setData('stock_quantity', e.target.value)}
@@ -232,7 +287,7 @@ export default function Edit({ product, categories, brands }) {
                   <FormItem>
                     <FormLabel>Fabric</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         value={data.fabric || ''}
                         onChange={e => setData('fabric', e.target.value)}
                         placeholder="Cotton, Silk, etc."
@@ -244,7 +299,7 @@ export default function Edit({ product, categories, brands }) {
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         value={data.color || ''}
                         onChange={e => setData('color', e.target.value)}
                         placeholder="Red, Blue, etc."
@@ -256,7 +311,7 @@ export default function Edit({ product, categories, brands }) {
                   <FormItem>
                     <FormLabel>Size</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         value={data.size || ''}
                         onChange={e => setData('size', e.target.value)}
                         placeholder="S, M, L, XL, etc."
@@ -268,7 +323,7 @@ export default function Edit({ product, categories, brands }) {
                   <FormItem>
                     <FormLabel>Weight (kg)</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="number"
                         value={data.weight || ''}
                         onChange={e => setData('weight', e.target.value)}
@@ -284,7 +339,7 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Work Type</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       value={data.work_type || ''}
                       onChange={e => setData('work_type', e.target.value)}
                       placeholder="Embroidery, Print, etc."
@@ -296,7 +351,7 @@ export default function Edit({ product, categories, brands }) {
                 <FormItem>
                   <FormLabel>Occasion</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       value={data.occasion || ''}
                       onChange={e => setData('occasion', e.target.value)}
                       placeholder="Casual, Formal, Party, etc."
@@ -312,7 +367,7 @@ export default function Edit({ product, categories, brands }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Checkbox 
+                    <Checkbox
                       checked={data.is_bestseller}
                       onCheckedChange={(checked) => setData('is_bestseller', checked)}
                     />
