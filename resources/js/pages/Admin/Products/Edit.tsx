@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
@@ -14,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -54,21 +54,32 @@ interface product {
     occasion:string;
   }
   interface brands {
-
+    id: number;
+    name: string;
   }
-  interface category{
-
+  interface Category{
+    id: number;
+    title: string;
   }
+  interface subcategories {
+    id: number;
+    title: string;
+}
   interface Props {
     product: product;
-    brands:brands;
-    category:category;
+    brands:brands[ ];
+    categories:Category[];
+    subcategories:subcategories[];
   }
 
-export default function Edit({ category ,product,brands}: Props) {
-  const [subcategories, setSubcategories] = useState([]);
+type CheckedState = boolean | "indeterminate";
+type CheckedStateBest = boolean | "indeterminate";
+export default function Edit({ categories,product,brands,subcategories}: Props) {
+const [fetchedSubcategories, setFetchedSubcategories] = useState(subcategories);
+const [hasMounted, setHasMounted] = useState(false);
   const { data, setData, put, processing, errors } = useForm({
     name: product.name || '',
+    slug: product.slug || '',
     category_id: product.category_id || '',
     subcategory_id: product.subcategory_id || '',
     brand_id: product.brand_id || '',
@@ -82,30 +93,31 @@ export default function Edit({ category ,product,brands}: Props) {
     work_type: product.work_type || '',
     occasion: product.occasion || '',
     weight: product.weight || '',
-    is_bestseller: product.is_bestseller || false,
-    status: product.status || 'active'
+    is_bestseller: product.is_bestseller ||  false as CheckedStateBest,
+    status: product.status === 'active' ? true as CheckedState: false,
   });
 
   useEffect(() => {
-    if (data.category_id) {
-      fetchSubcategories(String(data.category_id));
+    if (hasMounted && data.category_id) {
+        fetchSubcategories(String(data.category_id));
+    } else {
+        setHasMounted(true);
     }
   }, [data.category_id]);
 
   const fetchSubcategories = async (categoryId: string) => {
     try {
       const response = await axios.get(`/get-subcategories/${categoryId}`);
-      setSubcategories(response.data);
+      setFetchedSubcategories(response.data);
       setData('subcategory_id', ''); // Reset subcategory when category changes
     } catch (error) {
-
-      Swal.fire({
-        title: 'Error!',
-        text: 'Error fetching subcategories'+error,
-        icon: 'error',
-        timer: 3000,
-        showConfirmButton: false
-    });
+        Swal.fire({
+            title: 'Error!',
+            text: 'Error fetching subcategories'+error,
+            icon: 'error',
+            timer: 3000,
+            showConfirmButton: false
+        });
     }
   };
 
@@ -115,6 +127,20 @@ export default function Edit({ category ,product,brands}: Props) {
     { title: 'Product', href: route('products.index') },
     { title: 'Edit Product', href: route('products.edit', product.id) },
 ];
+const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    put(route('products.update', product.id), {
+        onSuccess: () => {
+            Swal.fire({
+                title: 'Success!',
+                text: 'SubCategory updated successfully',
+                icon: 'success',
+                timer: 4000,
+                showConfirmButton: false
+            });
+        }
+    });
+};
 
   return (
     <DashboardLayout title="Edit Product">
@@ -131,288 +157,226 @@ export default function Edit({ category ,product,brands}: Props) {
             </div>
             <Breadcrumbs breadcrumbs={breadcrumbs} />
         </div>
-        <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Edit Product: {product.name}</h1>
+        <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
+                    <h2 className="text-2xl font-bold mb-6">Edit Product: {product.name}</h2>
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Product Name</Label>
+                        <Input
+                            id="name"
+                            value={data.name}
+                            onChange={e => setData('name', e.target.value)}
+                        />
+                        {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="slug">Slug</Label>
+                        <Input
+                            id="slug"
+                            value={data.slug}
+                            onChange={e => setData('slug', e.target.value)}
+                        />
+                        {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="category_id">Category</Label>
+                        <Select
+                            value={String(data.category_id)}
+                            onValueChange={value => setData('category_id', value)}
+                        >
+                            <SelectTrigger className="bg-white border border-gray-300 rounded-md shadow-sm">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
+                                {categories.map(category => (
+                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                        {category.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="subcategory_id">Sub Category</Label>
+                        <Select
+                        value={String(data.subcategory_id) }
+                        onValueChange={(value) => setData('subcategory_id', value)}
 
-        <div className="bg-white rounded-md shadow p-6">
-          <Form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                {/* Basic Info */}
-                <FormItem>
-                  <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      value={data.name}
-                      onChange={e => setData('name', e.target.value)}
-                      placeholder="Product name"
-                    />
-                  </FormControl>
-                  {errors.name && <FormMessage>{errors.name}</FormMessage>}
-                </FormItem>
+                        >
+                        <SelectTrigger  className="bg-white border border-gray-300 rounded-md shadow-sm">
+                            <SelectValue placeholder={
+                            !data.category_id ? "Select a category first" :
+                            fetchedSubcategories.length === 0 ? "No subcategories available" :
+                            "Select a subcategory"
+                            } />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
+                            {fetchedSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
+                                {subcategory.title}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        {errors.subcategory_id && <p className="text-sm text-red-600">{errors.subcategory_id}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="brand_id">Brand</Label>
+                        <Select value={String(data.brand_id)} onValueChange={value => setData('brand_id', value)} >
+                            <SelectTrigger className="bg-white border border-gray-300 rounded-md shadow-sm">
+                                <SelectValue placeholder="Select a brand" />
+                            </SelectTrigger>
+                            <SelectContent  className="bg-white border border-gray-300 rounded-md shadow-lg">
+                                {brands.map((brand) => (
+                                <SelectItem key={brand.id} value={brand.id.toString()}>
+                                    {brand.name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.brand_id && <p className="text-sm text-red-600">{errors.brand_id}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            value={data.description}
+                            onChange={e => setData('description', e.target.value)}
+                        />
+                        {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="price">Price</Label>
+                        <Input
+                            id="price"
+                            type="number"
+                            value={data.price}
+                            onChange={e => setData('price', e.target.value)}
+                        />
+                        {errors.price && <p className="text-sm text-red-600">{errors.price}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="discount">Discount</Label>
+                        <Input
+                            id="discount"
+                            type="number"
+                            value={data.discount}
+                            onChange={e => setData('discount', e.target.value)}
+                        />
+                        {errors.discount && <p className="text-sm text-red-600">{errors.discount}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="stock_quantity">Stock Quantity</Label>
+                        <Input
+                            id="stock_quantity"
+                            type="number"
+                            value={data.stock_quantity}
+                            onChange={e => setData('stock_quantity', e.target.value)}
+                        />
+                        {errors.stock_quantity && <p className="text-sm text-red-600">{errors.stock_quantity}</p>}
+                    </div>
+                    <div className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
+                    <h2 className="text-lg font-bold mb-4">Product Attributes</h2>
+                    <div className="space-y-2">
+                        <Label htmlFor="fabric">Fabric</Label>
+                        <Input
+                            id="fabric"
+                            value={data.fabric || ''}
+                            onChange={e => setData('fabric', e.target.value)}
+                            placeholder="Cotton, Silk, etc."
+                        />
+                        {errors.fabric && <p className="text-sm text-red-600">{errors.fabric}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="color">Color</Label>
+                        <Input
+                            id="color"
+                            value={data.color || ''}
+                            onChange={e => setData('color', e.target.value)}
+                            placeholder="Red, Blue, etc."
+                        />
+                        {errors.color && <p className="text-sm text-red-600">{errors.color}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="size">Size</Label>
+                        <Input
+                            id="size"
+                            value={data.size || ''}
+                            onChange={e => setData('size', e.target.value)}
+                            placeholder="S, M, L, XL, etc."
+                        />
+                        {errors.size && <p className="text-sm text-red-600">{errors.size}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="weight">Weight</Label>
+                        <Input
+                            id="weight"
+                            type="number"
+                            value={data.weight || ''}
+                            onChange={e => setData('weight', e.target.value)}
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                        />
+                        {errors.weight && <p className="text-sm text-red-600">{errors.weight}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="work_type">Work Type</Label>
+                        <Input
+                            id="work_type"
+                            value={data.work_type || ''}
+                            onChange={e => setData('work_type', e.target.value)}
+                            placeholder="Embroidery, Print, etc."
+                        />
+                        {errors.work_type && <p className="text-sm text-red-600">{errors.work_type}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="occasion">Occasion</Label>
+                        <Input
+                            id="occasion"
+                            value={data.occasion || ''}
+                            onChange={e => setData('occasion', e.target.value)}
+                            placeholder="Casual, Formal, Party, etc."
+                        />
+                        {errors.occasion && <p className="text-sm text-red-600">{errors.occasion}</p>}
+                    </div>
+                 </div>
+                 <div className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
+                    <h2 className="text-lg font-bold mb-4">Status & Bestseller</h2>
+                    <div className="flex items-center space-x-3 space-y-1 mb-2">
+                        <Checkbox
+                            id="is_bestseller"
+                            checked={data.is_bestseller}
+                            onCheckedChange={(checked) => setData('is_bestseller', checked)}
+                        />
+                        <label
+                            htmlFor="is_bestseller"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-30"
+                        >
+                            Is Bestseller
+                        </label>
+                        <Checkbox
+                            id="status"
+                            checked={data.status}
+                            onCheckedChange={(checked) => setData('status', checked)}
+                        />
+                        <label
+                            htmlFor="status"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Active
+                        </label>
+                    </div>
+                 </div>
 
-                <FormItem>
-                  <FormLabel>Category <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.category_id.toString()}
-                      onValueChange={(value) => setData('category_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.category_id && <FormMessage>{errors.category_id}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Subcategory <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.subcategory_id.toString()}
-                      onValueChange={(value) => setData('subcategory_id', value)}
-                      disabled={!data.category_id || subcategories.length === 0}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={
-                          !data.category_id ? "Select a category first" :
-                          subcategories.length === 0 ? "No subcategories available" :
-                          "Select a subcategory"
-                        } />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subcategories.map((subcategory) => (
-                          <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
-                            {subcategory.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.subcategory_id && <FormMessage>{errors.subcategory_id}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Brand <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.brand_id.toString()}
-                      onValueChange={(value) => setData('brand_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id.toString()}>
-                            {brand.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.brand_id && <FormMessage>{errors.brand_id}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={data.description || ''}
-                      onChange={e => setData('description', e.target.value)}
-                      placeholder="Product description"
-                      rows={4}
-                    />
-                  </FormControl>
-                  {errors.description && <FormMessage>{errors.description}</FormMessage>}
-                </FormItem>
-              </div>
-
-              <div className="space-y-6">
-                {/* Pricing and Inventory */}
-                <FormItem>
-                  <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.price}
-                      onChange={e => setData('price', e.target.value)}
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.price && <FormMessage>{errors.price}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Discount (%)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.discount}
-                      onChange={e => setData('discount', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                    />
-                  </FormControl>
-                  {errors.discount && <FormMessage>{errors.discount}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Stock Quantity <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.stock_quantity}
-                      onChange={e => setData('stock_quantity', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.stock_quantity && <FormMessage>{errors.stock_quantity}</FormMessage>}
-                </FormItem>
-
-                {/* Product Attributes */}
-                <div className="grid grid-cols-2 gap-4">
-                  <FormItem>
-                    <FormLabel>Fabric</FormLabel>
-                    <FormControl>
-                      <Input
-                        value={data.fabric || ''}
-                        onChange={e => setData('fabric', e.target.value)}
-                        placeholder="Cotton, Silk, etc."
-                      />
-                    </FormControl>
-                    {errors.fabric && <FormMessage>{errors.fabric}</FormMessage>}
-                  </FormItem>
-
-                  <FormItem>
-                    <FormLabel>Color</FormLabel>
-                    <FormControl>
-                      <Input
-                        value={data.color || ''}
-                        onChange={e => setData('color', e.target.value)}
-                        placeholder="Red, Blue, etc."
-                      />
-                    </FormControl>
-                    {errors.color && <FormMessage>{errors.color}</FormMessage>}
-                  </FormItem>
-
-                  <FormItem>
-                    <FormLabel>Size</FormLabel>
-                    <FormControl>
-                      <Input
-                        value={data.size || ''}
-                        onChange={e => setData('size', e.target.value)}
-                        placeholder="S, M, L, XL, etc."
-                      />
-                    </FormControl>
-                    {errors.size && <FormMessage>{errors.size}</FormMessage>}
-                  </FormItem>
-
-                  <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        value={data.weight || ''}
-                        onChange={e => setData('weight', e.target.value)}
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                      />
-                    </FormControl>
-                    {errors.weight && <FormMessage>{errors.weight}</FormMessage>}
-                  </FormItem>
                 </div>
-
-                <FormItem>
-                  <FormLabel>Work Type</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={data.work_type || ''}
-                      onChange={e => setData('work_type', e.target.value)}
-                      placeholder="Embroidery, Print, etc."
-                    />
-                  </FormControl>
-                  {errors.work_type && <FormMessage>{errors.work_type}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Occasion</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={data.occasion || ''}
-                      onChange={e => setData('occasion', e.target.value)}
-                      placeholder="Casual, Formal, Party, etc."
-                    />
-                  </FormControl>
-                  {errors.occasion && <FormMessage>{errors.occasion}</FormMessage>}
-                </FormItem>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-6">
-              {/* Status & Bestseller */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={data.is_bestseller}
-                      onCheckedChange={(checked) => setData('is_bestseller', checked)}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Bestseller</FormLabel>
-                    <FormDescription>
-                      Mark this product as a bestseller
-                    </FormDescription>
-                  </div>
-                  {errors.is_bestseller && <FormMessage>{errors.is_bestseller}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.status}
-                      onValueChange={(value) => setData('status', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.status && <FormMessage>{errors.status}</FormMessage>}
-                </FormItem>
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={processing}
-                >
-                  {processing ? 'Updating...' : 'Update Product'}
+                <Button  variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}>
+                     {processing ? 'Updating...' : 'Update Product'}
                 </Button>
-              </div>
-            </div>
-          </Form>
+            </form>
         </div>
-      </div>
     </DashboardLayout>
   );
 }

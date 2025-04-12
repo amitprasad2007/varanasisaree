@@ -49,7 +49,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $validated = $request->validated();
-        
+
         $validated['slug'] = str_replace(' ', '-', $validated['slug']);
         $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
         $validated['slug'] = strtolower($validated['slug']);
@@ -97,7 +97,16 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $validated['slug'] = Str::slug($validated['name']);
+        $validated = $request->validated();
+
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
+        // Convert boolean status to enum value
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+        // Add authenticated user ID
+        $validated['added_by'] = auth()->id();
+
 
         $product->update($validated);
 
