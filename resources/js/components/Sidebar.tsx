@@ -15,7 +15,11 @@ const menuItems = [
     ]
   },
   { icon: Building, label: "Brands", path: "/brands" },
-  { icon: Barcode, label: "Products", path: "/products" },
+  { icon: Barcode, label: "Products", path: "/products",
+    subItems: [
+        { icon:Barcode, label: "Images", path: "/productimages" }
+      ]
+   },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },
@@ -26,7 +30,7 @@ const Sidebar = () => {
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     // Show confirmation dialog
     Swal.fire({
       title: 'Are you sure?',
@@ -47,7 +51,7 @@ const Sidebar = () => {
           allowEscapeKey: false,
           showConfirmButton: false
         });
-        
+
         // Perform logout
         router.post(route('logout'), {}, {
           onSuccess: () => {

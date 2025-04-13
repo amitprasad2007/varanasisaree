@@ -1,0 +1,76 @@
+/* Add this CSS to your stylesheets */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Darker semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it appears above other content */
+    transition: opacity 0.3s ease; /* Smooth transition */
+}
+
+.modal-content {
+    background: white;
+    padding: 40px; /* Increased padding */
+    border-radius: 12px; /* Slightly rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Deeper shadow for depth */
+    position: relative;
+    width: 600px; /* Increased width */
+    max-width: 90%; /* Responsive width */
+    transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth transition */
+    opacity: 0; /* Start hidden */
+    transform: translateY(-20px); /* Start slightly above */
+}
+
+.modal-content.show {
+    opacity: 1; /* Fully visible */
+    transform: translateY(0); /* Move to original position */
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 24px; /* Larger close button */
+    color: #ff4d4d; /* Red color for visibility */
+    transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.close:hover {
+    color: #ff1a1a; /* Darker red on hover */
+}
+
+input[type="file"] {
+    display: block; /* Make the input a block element */
+    margin: 20px 0; /* Add margin for spacing */
+    padding: 10px; /* Add padding for better touch area */
+    border: 1px solid #ccc; /* Border for visibility */
+    border-radius: 5px; /* Rounded corners */
+    width: 100%; /* Full width */
+    font-size: 16px; /* Increase font size */
+}
+
+button {
+    background-color: #007bff; /* Primary button color */
+    color: white; /* Text color */
+    border: none; /* Remove border */
+    padding: 10px 15px; /* Button padding */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor */
+    transition: background-color 0.3s ease; /* Smooth background transition */
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+h1 {
+    margin-bottom: 20px; /* Add margin below the header */
+    font-size: 24px; /* Increase header font size */
+    text-align: center; /* Center the header text */
+}

@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ImageProduct;
+use App\Models\Product;
 use App\Http\Requests\StoreImageProductRequest;
 use App\Http\Requests\UpdateImageProductRequest;
+use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ImageProductController extends Controller
 {
@@ -13,9 +17,13 @@ class ImageProductController extends Controller
      */
     public function index()
     {
-        //
+        $products = Product::with('imageproducts')
+        ->orderBy('created_at', 'desc')
+        ->get();
+        return Inertia::render('Admin/Images/Index', [
+            'products' => $products
+        ]);
     }
-
     /**
      * Show the form for creating a new resource.
      */

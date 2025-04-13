@@ -9,4 +9,9 @@ class ImageProduct extends Model
 {
     /** @use HasFactory<\Database\Factories\ImageProductFactory> */
     use HasFactory;
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

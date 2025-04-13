@@ -1,15 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link,useForm } from '@inertiajs/react';
 import { Trash, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import ImageUploadModal from '@/pages/Admin/Images/ImageUploadModal';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -35,6 +30,13 @@ export default function Index({ products }: Props) {
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Product', href: route('products.index') },
   ];
+  const [isModalOpen, setModalOpen] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+
+    const openModal = (productId: number) => {
+        setSelectedProductId(productId);
+        setModalOpen(true);
+    };
   const { delete: destroy } = useForm();
   const handleDelete = (id: number) => {
     Swal.fire({
@@ -130,6 +132,9 @@ export default function Index({ products }: Props) {
                         >
                         <Trash className=" h-4 w-4" />
                         </Button>
+                        <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" variant="outline"  onClick={() => openModal(product.id)}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -144,6 +149,7 @@ export default function Index({ products }: Props) {
           </TableBody>
         </Table>
       </div>
+      <ImageUploadModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} productId={selectedProductId!} />
     </DashboardLayout>
   );
 }

@@ -1,4 +1,4 @@
-import { Card } from "@/Components/ui/card";
+import { Card } from "@/components/ui/card";
 import { DollarSign, PieChart, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import DashboardLayout from "@/Layouts/DashboardLayout";
@@ -18,7 +18,7 @@ const Dashboard = () => {
   useEffect(() => {
     // Check if this is the first visit to the dashboard in this session
     const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-    
+
     if (!hasSeenWelcome) {
       // Show welcome message
       Swal.fire({
@@ -28,7 +28,7 @@ const Dashboard = () => {
         timer: 5000,
         showConfirmButton: false
       });
-      
+
       // Mark that we've shown the welcome message
       sessionStorage.setItem('hasSeenWelcome', 'true');
     }

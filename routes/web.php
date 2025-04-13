@@ -6,6 +6,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\ImageProductController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -31,8 +32,8 @@ Route::middleware('auth')->group(function () {
 
     // Products
     Route::resource('products', ProductController::class);
-
-
+    // Products Images
+    Route::resource('productimages', ImageProductController::class);
 });
 
 // Dynamic subcategories dropdown
