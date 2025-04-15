@@ -1,9 +1,24 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+import { Pencil, ArrowLeft, Image } from 'lucide-react';
 interface product {
     id: number;
     name:string;
@@ -43,100 +58,165 @@ export default function Show({ product }: Props) {
 
   return (
     <DashboardLayout title={`Product: ${product.name}`}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
-          <p className="text-gray-500">Product ID: {product.id}</p>
+      <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
+            <p className="text-muted-foreground">
+              View product details and information
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <Button variant="outline" asChild>
+              <Link href={route('products.index')}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Products
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={route('product-images.index', product.id)}>
+                <Image className="h-4 w-4 mr-2" />
+                Manage Images
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href={route('products.edit', product.id)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Product
+              </Link>
+            </Button>
+          </div>
         </div>
-        <div className="space-x-2">
-          <Link href={route('products.edit', product.id)}>
-            <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">Edit Product</Button>
-          </Link>
-          <Link href={route('products.index')}>
-            <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">Back to Products</Button>
-          </Link>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>
+                Core product details
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableHead className="w-[180px]">Name</TableHead>
+                    <TableCell>{product.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Slug</TableHead>
+                    <TableCell>{product.slug}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableCell>{product.category?.title}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Subcategory</TableHead>
+                    <TableCell>{product.subcategory?.title}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Brand</TableHead>
+                    <TableCell>{product.brand?.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableCell>{product.description || 'No description provided'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableCell>
+                      <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                        {product.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Pricing & Inventory</CardTitle>
+              <CardDescription>
+                Product pricing and stock information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableHead className="w-[180px]">Price</TableHead>
+                    <TableCell>${parseFloat(product.price).toFixed(2)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Discount</TableHead>
+                    <TableCell>{Number(product.discount).toFixed(2)}%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Final Price</TableHead>
+                    <TableCell>
+                      ${(Number(product.price) * (1 - Number(product.discount) / 100)).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Stock Quantity</TableHead>
+                    <TableCell>{product.stock_quantity}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Bestseller</TableHead>
+                    <TableCell>
+                      <Badge variant={product.is_bestseller ? 'default' : 'outline'}>
+                        {product.is_bestseller ? 'Yes' : 'No'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Attributes</CardTitle>
+              <CardDescription>
+                Detailed product specifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableHead className="w-[180px]">Fabric</TableHead>
+                    <TableCell>{product.fabric || 'Not specified'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Color</TableHead>
+                    <TableCell>{product.color || 'Not specified'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Size</TableHead>
+                    <TableCell>{product.size || 'Not specified'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Work Type</TableHead>
+                    <TableCell>{product.work_type || 'Not specified'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Occasion</TableHead>
+                    <TableCell>{product.occasion || 'Not specified'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Weight</TableHead>
+                    <TableCell>
+                      {product.weight ? `${Number(product.weight).toFixed(2)} kg` : 'Not specified'}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              {renderProductAttribute("Name", product.name)}
-              {renderProductAttribute("Slug", product.slug)}
-              {renderProductAttribute("Category", product.category?.title || 'N/A')}
-              {renderProductAttribute("Subcategory", product.subcategory?.title || 'N/A')}
-              {renderProductAttribute("Brand", product.brand?.name || 'N/A')}
-              {renderProductAttribute("Status", (
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  product.status === 'active'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {product.status}
-                </span>
-              ))}
-              {renderProductAttribute("Bestseller", product.is_bestseller ? "Yes" : "No")}
-              {renderProductAttribute("Created At", new Date(product.created_at).toLocaleString())}
-              {renderProductAttribute("Updated At", new Date(product.updated_at).toLocaleString())}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
-          <CardHeader>
-            <CardTitle>Pricing & Inventory</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              {renderProductAttribute("Price", `₹${parseFloat(product.price).toFixed(2)}`)}
-              {renderProductAttribute("Discount", product.discount > 0 ? `${product.discount}%` : "No discount")}
-              {renderProductAttribute("Stock Quantity", product.stock_quantity)}
-
-              {product.discount > 0 && (
-                renderProductAttribute(
-                  "Sale Price",
-                  `₹${(parseFloat(product.price) * (1 - product.discount / 100)).toFixed(2)}`
-                )
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6 lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Product Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              {product.description ? (
-                <p>{product.description}</p>
-              ) : (
-                <p className="text-gray-500 italic">No description provided</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-50 rounded-md shadow-md border border-gray-200 p-6 mt-6">
-          <CardHeader>
-            <CardTitle>Product Attributes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              {renderProductAttribute("Fabric", product.fabric || 'Not specified')}
-              {renderProductAttribute("Color", product.color || 'Not specified')}
-              {renderProductAttribute("Size", product.size || 'Not specified')}
-              {renderProductAttribute("Work Type", product.work_type || 'Not specified')}
-              {renderProductAttribute("Occasion", product.occasion || 'Not specified')}
-              {renderProductAttribute("Weight", product.weight ? `${product.weight} kg` : 'Not specified')}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </DashboardLayout>
   );
 }

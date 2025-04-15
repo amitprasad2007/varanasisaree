@@ -54,7 +54,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ isOpen, onClose, pr
                 
                 <form onSubmit={handleSubmit}>
                     <input type="file" multiple onChange={handleImageChange} />
-                    <Button type="submit">Upload</Button>
+                    <Button className="upbutton" type="submit">Upload</Button>
                 </form>
             </div>
         </div>

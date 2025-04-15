@@ -36,7 +36,7 @@
     top: 15px;
     right: 15px;
     cursor: pointer;
-    font-size: 24px; /* Larger close button */
+    font-size: 26px; /* Larger close button */
     color: #ff4d4d; /* Red color for visibility */
     transition: color 0.3s ease; /* Smooth color transition */
 }
@@ -55,7 +55,7 @@ input[type="file"] {
     font-size: 16px; /* Increase font size */
 }
 
-button {
+.upbutton {
     background-color: #007bff; /* Primary button color */
     color: white; /* Text color */
     border: none; /* Remove border */
