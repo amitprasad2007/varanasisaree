@@ -10,6 +10,19 @@ class ImageProduct extends Model
     /** @use HasFactory<\Database\Factories\ImageProductFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'product_id',
+        'image_path',
+        'alt_text',
+        'is_primary',
+        'display_order',
+    ];
+
+    protected $casts = [
+        'is_primary' => 'boolean',
+        'display_order' => 'integer',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Http\Requests\StoreImageProductRequest;
 use App\Http\Requests\UpdateImageProductRequest;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,7 +22,7 @@ class ImageProductController extends Controller
         
         return Inertia::render('Admin/Images/Index', [
             'product' => $product,
-            'images' => $product->images
+            'images' => $product->imageproducts
         ]);
     }
     /**
@@ -39,6 +40,7 @@ class ImageProductController extends Controller
      */
     public function store(StoreImageProductRequest $request,Product $product)
     {
+       // dd($request);
 
         $images = $request->file('images');
         $altText = $request->input('alt_text', '');
@@ -161,10 +163,10 @@ class ImageProductController extends Controller
     {
         $request->validate([
             'images' => 'required|array',
-            'images.*.id' => 'required|exists:product_images,id',
+            'images.*.id' => 'required|exists:image_products,id',
             'images.*.display_order' => 'required|integer|min:0',
         ]);
-
+        dd($request);
         foreach ($request->input('images') as $image) {
             ImageProduct::where('id', $image['id'])
                 ->update(['display_order' => $image['display_order']]);

@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('image_products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('image_url'); // URL of the product image
-            $table->integer('sort_order')->default(0); // Order of images
+            $table->string('image_path'); // URL of the product image
+            $table->integer('display_order')->default(0); // Order of images
+            $table->string('alt_text')->nullable();
+            $table->boolean('is_primary')->default(false);
             $table->timestamps();
         });
     }
