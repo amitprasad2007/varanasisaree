@@ -1,13 +1,13 @@
 import React from 'react';
 import { ProductImage } from '@/types/product';
-import { Card, CardContent } from '@/Components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious 
-} from '@/Components/ui/carousel';
+} from '@/components/ui/carousel';
 
 interface ProductImageCarouselProps {
   images: ProductImage[];
@@ -16,7 +16,7 @@ interface ProductImageCarouselProps {
 
 export function ProductImageCarousel({ images, productName }: ProductImageCarouselProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg border shadow p-6">
       <h2 className="text-lg font-medium mb-4">Image Gallery Preview</h2>
       <Carousel className="w-full max-w-4xl mx-auto">
         <CarouselContent>

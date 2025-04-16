@@ -15,11 +15,7 @@ const menuItems = [
     ]
   },
   { icon: Building, label: "Brands", path: "/brands" },
-  { icon: Barcode, label: "Products", path: "/products",
-    subItems: [
-        { icon:Barcode, label: "Images", path: "/productimages" }
-      ]
-   },
+  { icon: Barcode, label: "Products", path: "/products",},
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },

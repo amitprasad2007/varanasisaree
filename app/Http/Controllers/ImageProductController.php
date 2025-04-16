@@ -126,11 +126,12 @@ class ImageProductController extends Controller
      */
     public function destroy(ImageProduct $imageProduct)
     {
+       // dd($imageProduct);
         $productId = $imageProduct->product_id;
         $isPrimary = $imageProduct->is_primary;
 
         // Delete the file from storage
-        if (Storage::disk('public')->exists($imageProduct->image_path)) {
+        if (!empty($imageProduct->image_path) && Storage::disk('public')->exists($imageProduct->image_path)) {
             Storage::disk('public')->delete($imageProduct->image_path);
         }
 
@@ -150,6 +151,7 @@ class ImageProductController extends Controller
 
     public function setPrimary(ImageProduct $imageProduct)
     {
+       // dd($imageProduct);  
         ImageProduct::where('product_id', $imageProduct->product_id)
             ->update(['is_primary' => false]);
         
@@ -166,7 +168,7 @@ class ImageProductController extends Controller
             'images.*.id' => 'required|exists:image_products,id',
             'images.*.display_order' => 'required|integer|min:0',
         ]);
-        dd($request);
+      //  dd($request);
         foreach ($request->input('images') as $image) {
             ImageProduct::where('id', $image['id'])
                 ->update(['display_order' => $image['display_order']]);

@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
 import { 
   Card, 
   CardContent, 
@@ -55,38 +57,45 @@ export default function Show({ product }: Props) {
       </div>
     ) : null;
   };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+  ];
 
   return (
     <DashboardLayout title={`Product: ${product.name}`}>
-      <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
-            <p className="text-muted-foreground">
-              View product details and information
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Button variant="outline" asChild>
-              <Link href={route('products.index')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Products
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={route('product-images.index', product.id)}>
-                <Image className="h-4 w-4 mr-2" />
-                Manage Images
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href={route('products.edit', product.id)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit Product
-              </Link>
-            </Button>
-          </div>
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
+              <p className="text-muted-foreground">
+                View product details and information
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <Button variant="outline" asChild>
+                <Link href={route('products.index')}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Products
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={route('product-images.index', product.id)}>
+                  <Image className="h-4 w-4 mr-2" />
+                  Manage Images
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={route('products.edit', product.id)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit Product
+                </Link>
+              </Button>
+            </div>        
         </div>
-
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>       
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>

@@ -90,7 +90,7 @@ export function ProductImagesTable({
                             variant="ghost" 
                             size="sm" 
                             onClick={() => onSetPrimary(image.id)}
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 cursor-pointer"
                           >
                             <Star className="h-3 w-3" />
                           </Button>
@@ -99,7 +99,7 @@ export function ProductImagesTable({
                       <TableCell className="text-right">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-red-500">
+                            <Button variant="ghost" size="icon" className="text-red-500 cursor-pointer">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>

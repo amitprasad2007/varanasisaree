@@ -4,7 +4,6 @@ import { Trash, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import ImageUploadModal from '@/pages/Admin/Images/ImageUploadModal';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -63,7 +62,7 @@ export default function Index({ products }: Props) {
       }
     });
   };
-
+  
   return (
     <DashboardLayout title="Products">
       <div className="space-y-4 pb-6">
@@ -79,7 +78,7 @@ export default function Index({ products }: Props) {
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
-      <div className="bg-white rounded-md shadow-lg border border-gray-100">
+      <div className="bg-white rounded-md shadow-lg border border-gray-100" >
         <Table>
           <TableHeader>
             <TableRow>
@@ -132,9 +131,6 @@ export default function Index({ products }: Props) {
                         >
                         <Trash className=" h-4 w-4" />
                         </Button>
-                        <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" variant="outline"  onClick={() => openModal(product.id)}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -149,7 +145,6 @@ export default function Index({ products }: Props) {
           </TableBody>
         </Table>
       </div>
-      <ImageUploadModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} productId={selectedProductId!} />
     </DashboardLayout>
   );
 }

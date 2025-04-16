@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
 import { 
   Form,
   FormControl,
@@ -118,10 +120,18 @@ export default function Create({ product }: Props) {
       ...Object.fromEntries(formData)
     });
   };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+    { title: 'Product Image', href: route('product-images.index', product.id) },
+    { title: 'Add Image', href: route('product-images.create', product.id) },
+  ];
 
   return (
     <DashboardLayout title={`${product.name} - Add Images`}>
       <div className="space-y-6">
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Upload Images</h1>
@@ -136,8 +146,10 @@ export default function Create({ product }: Props) {
             </Link>
           </Button>
         </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
               <div 
