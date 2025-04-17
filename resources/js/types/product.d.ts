@@ -31,3 +31,12 @@ export interface Product {
     created_at?: string;
     updated_at?: string;
   }
+
+  export interface ProductSpecification {
+    id: number;
+    product_id: number;
+    name: string;
+    value: string;
+    created_at?: string;
+    updated_at?: string;
+  }

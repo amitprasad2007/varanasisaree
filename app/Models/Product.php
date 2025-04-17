@@ -58,8 +58,14 @@ class Product extends Model
     {
         return $this->hasMany(ImageProduct::class,'product_id');
     }
-    public function Specification(): HasMany
+    
+    public function specifications(): HasMany
     {
-        return $this->hasMany(ProductSpecification::class,'product_id');
+        return $this->hasMany(ProductSpecification::class);
+    }
+
+    public function primaryImage()
+    {
+        return $this->hasMany(ImageProduct::class)->where('is_primary', true)->first();
     }
 }

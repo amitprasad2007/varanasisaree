@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { Pencil, ArrowLeft, Image } from 'lucide-react';
+import { Pencil, ArrowLeft, Image, ListChecks } from 'lucide-react';
 interface product {
     id: number;
     name:string;
@@ -86,6 +86,12 @@ export default function Show({ product }: Props) {
                   Manage Images
                 </Link>
               </Button>
+              <Button variant="outline" asChild>
+              <Link href={route('product-specifications.index', product.id)}>
+                <ListChecks className="h-4 w-4 mr-2" />
+                Manage Specifications
+              </Link>
+            </Button>
               <Button variant="outline" asChild>
                 <Link href={route('products.edit', product.id)}>
                   <Pencil className="h-4 w-4 mr-2" />
