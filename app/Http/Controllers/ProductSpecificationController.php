@@ -61,7 +61,7 @@ class ProductSpecificationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductSpecification $productSpecification,Product $product,)
+    public function edit(Product $product,ProductSpecification $productSpecification,)
     {
         return Inertia::render('Admin/ProductSpecifications/Edit', [
             'product' => $product,
@@ -72,13 +72,9 @@ class ProductSpecificationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductSpecificationRequest $request, ProductSpecification $productSpecification, Product $product)
+    public function update(UpdateProductSpecificationRequest $request, Product $product, ProductSpecification $productSpecification)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'value' => 'required|string|max:255',
-        ]);
-
+        $validated = $request->validated();
         $productSpecification->update($validated);
 
         return redirect()->route('product-specifications.index', $product->id)

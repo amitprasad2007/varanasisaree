@@ -88,9 +88,7 @@ export default function Edit({ product, specification }: EditProps) {
 
                 <div className="pt-4">
                   <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={processing}
+                     variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 w-full" disabled={processing}
                   >
                     {processing ? 'Updating...' : 'Update Specification'}
                   </Button>
