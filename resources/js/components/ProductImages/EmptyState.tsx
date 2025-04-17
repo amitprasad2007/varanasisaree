@@ -10,7 +10,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ productId }: EmptyStateProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-12 text-center">
+    <div className="bg-white rounded-lg shadow-lg border border-gray-500 p-12 text-center">
       <div className="flex flex-col items-center justify-center gap-2">
         <Image className="h-12 w-12 text-gray-400" />
         <h3 className="text-lg font-medium">No images uploaded yet</h3>

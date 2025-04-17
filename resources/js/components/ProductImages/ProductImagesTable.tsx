@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Move, Star, Trash2 } from 'lucide-react';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,11 +24,11 @@ interface ProductImagesTableProps {
   onDragEnd: (result: DropResult) => void;
 }
 
-export function ProductImagesTable({ 
-  images, 
-  onDelete, 
-  onSetPrimary, 
-  onDragEnd 
+export function ProductImagesTable({
+  images,
+  onDelete,
+  onSetPrimary,
+  onDragEnd
 }: ProductImagesTableProps) {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -54,7 +54,7 @@ export function ProductImagesTable({
                     >
                       <TableCell className="w-[80px]">
                         <div className="flex items-center">
-                          <div 
+                          <div
                             {...provided.dragHandleProps}
                             className="cursor-move p-2 hover:bg-gray-100 rounded mr-2"
                           >
@@ -66,10 +66,10 @@ export function ProductImagesTable({
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <div className="h-16 w-16 overflow-hidden rounded border bg-gray-50">
-                            <img 
-                              src={`/storage/${image.image_path}`} 
+                            <img
+                              src={`/storage/${image.image_path}`}
                               alt={image.alt_text || 'Product image'}
-                              className="h-full w-full object-cover" 
+                              className="h-full w-full object-cover"
                             />
                           </div>
                           <span className="text-xs text-muted-foreground truncate max-w-[200px]">
@@ -86,9 +86,9 @@ export function ProductImagesTable({
                             <Star className="h-3 w-3 text-yellow-500" />
                           </span>
                         ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => onSetPrimary(image.id)}
                             className="h-6 w-6 p-0 cursor-pointer"
                           >
@@ -106,15 +106,15 @@ export function ProductImagesTable({
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
+                              <AlertDialogDescription >
                                 This action cannot be undone. This will permanently delete this image.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
+                              <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
                                 onClick={() => onDelete(image.id)}
-                                className="bg-red-500 hover:bg-red-600"
+                                className="bg-red-500 hover:bg-red-600 cursor-pointer"
                               >
                                 Delete
                               </AlertDialogAction>

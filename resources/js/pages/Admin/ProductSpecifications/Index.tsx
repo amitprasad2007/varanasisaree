@@ -11,12 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import {
   AlertDialog,
@@ -31,6 +31,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 interface Product {
   id: number;
   name: string;
@@ -53,17 +56,36 @@ export default function Index({ product, specifications }: Props) {
   const handleDelete = (specificationId: number) => {
     destroy(route('product-specifications.destroy', [product.id, specificationId]), {
       onSuccess: () => {
-        toast.success('Specification deleted successfully');
+        Swal.fire({
+            title: 'Success!',
+            text: 'Specification deleted successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+        });
       },
       onError: () => {
-        toast.error('Failed to delete specification');
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete specification',
+            icon: 'error',
+            timer: 4000,
+            showConfirmButton: false
+        });
       }
     });
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+    { title: 'Product Specification', href: route('product-specifications.index', product.id) },
+  ];
   return (
     <DashboardLayout title={`Product Specifications: ${product.name}`}>
       <div className="space-y-6">
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Product Specifications</h1>
@@ -86,7 +108,8 @@ export default function Index({ product, specifications }: Props) {
             </Button>
           </div>
         </div>
-
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Specifications</CardTitle>
@@ -117,11 +140,11 @@ export default function Index({ product, specifications }: Props) {
                               <span className="sr-only">Edit</span>
                             </Link>
                           </Button>
-                          
+
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="icon" variant="ghost">
-                                <Trash2 className="h-4 w-4 text-red-500" />
+                              <Button size="icon" variant="ghost" className=' text-red-500 cursor-pointer'>
+                                <Trash2 className="h-4 w-4 " />
                                 <span className="sr-only">Delete</span>
                               </Button>
                             </AlertDialogTrigger>
@@ -133,11 +156,11 @@ export default function Index({ product, specifications }: Props) {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction 
+                                <AlertDialogCancel className='cursor-pointer'>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
                                   onClick={() => handleDelete(spec.id)}
                                   disabled={processing}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                  className="bg-red-600 cursor-pointer hover:bg-red-700 text-white"
                                 >
                                   {processing ? 'Deleting...' : 'Delete'}
                                 </AlertDialogAction>

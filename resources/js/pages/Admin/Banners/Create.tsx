@@ -9,6 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { router } from '@inertiajs/react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 interface FormData {
   title: string;
@@ -19,9 +22,16 @@ interface FormData {
   [key: string]: any;
 }
 
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Banner', href: route('banners.index') },
+    { title: 'Create Banner', href: route('banners.create') },
+];
+
+
 const Create = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
+
   const { data, setData, post, processing, errors } = useForm<FormData>({
     title: '',
     image: null,
@@ -45,7 +55,16 @@ const Create = () => {
 
     post(route('banners.store'), {
       method: 'post',
-      ...Object.fromEntries(formData)
+      ...Object.fromEntries(formData),
+      onSuccess: () => {
+        Swal.fire({
+            title: 'Success!',
+            text: 'Banner added successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+            });
+        }
     });
 
   };
@@ -54,7 +73,7 @@ const Create = () => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setData('image', file);
-      
+
       // Create a preview of the image
       const reader = new FileReader();
       reader.onload = () => {
@@ -67,17 +86,18 @@ const Create = () => {
   return (
     <DashboardLayout title="Create Banner">
       <Head title="Create Banner" />
-      
-      <div className="flex items-center mb-6">
-        <Link href={route('banners.index')} className="mr-4">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Banners
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold">Create Banner</h1>
+      <div className="space-y-4 pb-6">
+        <div className="flex items-center mb-6">
+            <Link href={route('banners.index')} className="mr-4">
+            <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Banners
+            </Button>
+            </Link>
+            <h1 className="text-2xl font-semibold">Create Banner</h1>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Banner Information</CardTitle>
@@ -110,8 +130,8 @@ const Create = () => {
                         accept="image/*"
                         onChange={handleImageChange}
                       />
-                      <label 
-                        htmlFor="image" 
+                      <label
+                        htmlFor="image"
                         className="cursor-pointer flex flex-col items-center"
                       >
                         <Upload className="h-8 w-8 text-gray-400 mb-2" />
@@ -123,13 +143,13 @@ const Create = () => {
                       <p className="text-sm text-red-500 mt-1">{errors.image}</p>
                     )}
                   </div>
-                  
+
                   {imagePreview && (
                     <div className="w-40">
                       <div className="aspect-video rounded-md overflow-hidden bg-gray-100">
-                        <img 
-                          src={imagePreview} 
-                          alt="Banner preview" 
+                        <img
+                          src={imagePreview}
+                          alt="Banner preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -170,6 +190,7 @@ const Create = () => {
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="status"
+                    
                     checked={data.status === 'active'}
                     onCheckedChange={checked => setData('status', checked ? 'active' : 'inactive')}
                   />
@@ -186,8 +207,7 @@ const Create = () => {
 
             <div className="flex justify-end">
               <Button
-                type="submit"
-                disabled={processing || !data.image}
+               variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"  disabled={processing || !data.image}
               >
                 Create Banner
               </Button>

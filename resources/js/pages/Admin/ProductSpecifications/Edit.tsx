@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 interface Product {
   id: number;
@@ -35,17 +37,37 @@ export default function Edit({ product, specification }: EditProps) {
     e.preventDefault();
     put(route('product-specifications.update', [product.id, specification.id]), {
       onSuccess: () => {
-        toast.success('Specification updated successfully');
+        Swal.fire({
+            title: 'Success!',
+            text: 'Specification updated successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+        });
       },
       onError: () => {
-        toast.error('Failed to update specification');
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update specification',
+            icon: 'error',
+            timer: 4000,
+            showConfirmButton: false
+        });
       }
     });
   };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+    { title: 'Product Specification', href: route('product-specifications.index', product.id) },
+    { title: 'Edit Product Specification', href: route('product-specifications.edit', [product.id,specification.id]) },
+  ];
 
   return (
     <DashboardLayout title={`Edit Specification: ${specification.name}`}>
       <div className="max-w-xl mx-auto">
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Edit Specification</h1>
           <Button variant="outline" asChild>
@@ -55,7 +77,8 @@ export default function Edit({ product, specification }: EditProps) {
             </Link>
           </Button>
         </div>
-
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Edit Specification for {product.name}</CardTitle>
@@ -66,10 +89,10 @@ export default function Edit({ product, specification }: EditProps) {
               <div className="space-y-2">
                   <Label>Name <span className="text-red-500">*</span></Label>
 
-                    <Input 
+                    <Input
                       value={data.name}
                       onChange={e => setData('name', e.target.value)}
-                      placeholder="e.g., Material, Length, Dimensions" 
+                      placeholder="e.g., Material, Length, Dimensions"
                     />
 
                   {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
@@ -77,10 +100,10 @@ export default function Edit({ product, specification }: EditProps) {
                 <div className="space-y-2">
                   <Label>Value <span className="text-red-500">*</span></Label>
 
-                    <Input 
+                    <Input
                       value={data.value}
                       onChange={e => setData('value', e.target.value)}
-                      placeholder="e.g., Cotton, 5.5 meters, 10x15 cm" 
+                      placeholder="e.g., Cotton, 5.5 meters, 10x15 cm"
                     />
 
                   {errors.value && <p className="text-sm text-red-600">{errors.value}</p>}

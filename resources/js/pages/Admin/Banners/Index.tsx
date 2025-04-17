@@ -7,6 +7,9 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { GripVertical, Plus, Eye, EyeOff, Edit, Trash2, Image } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
 
 interface Banner {
   id: number;
@@ -24,7 +27,7 @@ interface Props {
 
 const Index = ({ banners }: Props) => {
   const [sortedBanners, setSortedBanners] = useState<Banner[]>(banners);
-  
+
   const { delete: destroy } = useForm();
 
   const handleDelete = (id: number) => {
@@ -32,7 +35,13 @@ const Index = ({ banners }: Props) => {
       destroy(route('banners.destroy', id), {
         preserveScroll: true,
         onSuccess: () => {
-          toast.success('Banner deleted successfully');
+            Swal.fire({
+                title: 'Success!',
+                text: 'Banner deleted successfully',
+                icon: 'success',
+                timer: 4000,
+                showConfirmButton: false
+            });
         },
       });
     }
@@ -50,12 +59,22 @@ const Index = ({ banners }: Props) => {
           }
           return banner;
         }));
-        
-        toast.success('Banner status updated successfully');
+        Swal.fire({
+            title: 'Success!',
+            text: 'Banner status updated successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+        });
       })
       .catch(error => {
-        console.error('Error updating status:', error);
-        toast.error('Failed to update banner status');
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update banner status',
+            icon: 'error',
+            timer: 4000,
+            showConfirmButton: false
+        });
       });
   };
 
@@ -79,35 +98,52 @@ const Index = ({ banners }: Props) => {
       banners: updatedItems.map(item => ({ id: item.id, order: item.order })),
     })
       .then(() => {
-        toast.success('Banner order updated successfully');
+        Swal.fire({
+            title: 'Success!',
+            text: 'Banner order updated successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+        });
       })
       .catch(error => {
         console.error('Error updating order:', error);
-        toast.error('Failed to update banner order');
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update banner order',
+            icon: 'error',
+            timer: 4000,
+            showConfirmButton: false
+        });
       });
   };
-
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Banner', href: route('banners.index') },
+  ];
   return (
     <DashboardLayout title="Banners">
       <Head title="Banners" />
-      
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Banners</h1>
-        <Link href={route('banners.create')}>
-          <Button variant="default">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Banner
-          </Button>
-        </Link>
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold">Banners</h1>
+            <Link href={route('banners.create')}>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" variant="default">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Banner
+            </Button>
+            </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
       {sortedBanners.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+        <div className="bg-white rounded-lg shadow-lg p-6 text-center border border-gray-100">
           <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-1">No banners found</h3>
           <p className="text-gray-500 mb-4">Get started by creating a new banner.</p>
           <Link href={route('banners.create')}>
-            <Button variant="default">
+            <Button variant="default" className="items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
               <Plus className="h-4 w-4 mr-2" />
               Add New Banner
             </Button>
@@ -141,7 +177,7 @@ const Index = ({ banners }: Props) => {
                             {...provided.draggableProps}
                           >
                             <TableCell>
-                              <div 
+                              <div
                                 {...provided.dragHandleProps}
                                 className="cursor-move flex justify-center"
                               >
@@ -149,18 +185,18 @@ const Index = ({ banners }: Props) => {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <img 
-                                src={`/storage/${banner.image}`} 
-                                alt={banner.title || 'Banner'} 
+                              <img
+                                src={`/storage/${banner.image}`}
+                                alt={banner.title || 'Banner'}
                                 className="h-12 w-20 object-cover rounded-md"
                               />
                             </TableCell>
                             <TableCell>{banner.title || 'Untitled'}</TableCell>
                             <TableCell>
                               {banner.link ? (
-                                <a 
-                                  href={banner.link} 
-                                  target="_blank" 
+                                <a
+                                  href={banner.link}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:underline truncate block max-w-xs"
                                 >
