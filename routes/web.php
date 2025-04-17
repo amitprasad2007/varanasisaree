@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ImageProductController;
 use App\Http\Controllers\ProductSpecificationController;
+use App\Http\Controllers\BannerController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -49,6 +50,11 @@ Route::middleware('auth')->group(function () {
      Route::get('products/{product}/specifications/{productSpecification}/edit', [ProductSpecificationController::class, 'edit'])->name('product-specifications.edit');
      Route::put('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'update'])->name('product-specifications.update');
      Route::delete('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'destroy'])->name('product-specifications.destroy');
+
+     // Banners
+    Route::resource('banners', BannerController::class);
+    Route::post('banners/update-order', [BannerController::class, 'updateOrder'])->name('banners.update-order');
+    Route::post('banners/{banner}/update-status', [BannerController::class, 'updateStatus'])->name('banners.update-status');
 });
 
 // Dynamic subcategories dropdown
