@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
@@ -17,6 +16,7 @@ interface FormData {
   description: string;
   link: string;
   status: string;
+  [key: string]: any;
 }
 
 const Create = () => {

@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { router } from '@inertiajs/react';
 
 interface Banner {
   id: number;
@@ -39,6 +40,7 @@ interface FormData {
   link: string;
   status: string;
   _method: string;
+  [key: string]: any;
 }
 
 const Edit = ({ banner }: Props) => {

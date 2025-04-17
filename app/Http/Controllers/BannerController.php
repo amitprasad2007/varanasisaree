@@ -6,6 +6,7 @@ use App\Models\Banner;
 use App\Http\Requests\StoreBannerRequest;
 use App\Http\Requests\UpdateBannerRequest;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 
@@ -38,9 +39,6 @@ class BannerController extends Controller
     {
         $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
 
         $imagePath = $request->file('image')->store('banners', 'public');
 
@@ -84,9 +82,6 @@ class BannerController extends Controller
     {
         $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
 
         $data = [
             'title' => $request->title,
