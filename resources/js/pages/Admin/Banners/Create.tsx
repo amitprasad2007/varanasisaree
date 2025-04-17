@@ -44,12 +44,10 @@ const Create = () => {
     formData.append('status', data.status);
 
     post(route('banners.store'), {
-      data: formData,
-      forceFormData: true,
-      onSuccess: () => {
-        // Reset the form after successful submission if needed
-      }
+      method: 'post',
+      ...Object.fromEntries(formData)
     });
+
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

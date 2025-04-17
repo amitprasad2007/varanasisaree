@@ -68,14 +68,11 @@ const Edit = ({ banner }: Props) => {
     formData.append('link', data.link);
     formData.append('status', data.status);
     formData.append('_method', 'PUT');
-
     post(route('banners.update', banner.id), {
-      data: formData,
-      forceFormData: true,
-      onSuccess: () => {
-        // Handle success if needed
-      }
-    });
+        method: 'post',
+        ...Object.fromEntries(formData)
+      });
+
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
