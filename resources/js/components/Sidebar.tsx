@@ -1,4 +1,4 @@
-import { Home,Barcode, Building, Settings, User, CreditCard, Bell,Captions,LogOutIcon,PieChart,FolderTree,Tag,Image } from "lucide-react";
+import { Home,Barcode, Building, Settings, User, CreditCard, Bell,Captions,LogOutIcon,PieChart,FolderTree,Video,Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
@@ -18,6 +18,7 @@ const menuItems = [
   { icon: Barcode, label: "Products", path: "/products"},
   { icon: Image, label: "Banners", path: "/banners"},
   { icon: User, label: "Profile", path: "/profile" },
+  { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },
 ];

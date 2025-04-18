@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ImageProductController;
 use App\Http\Controllers\ProductSpecificationController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\VideoProviderController;
+use App\Http\Controllers\ProductVideoController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -43,15 +45,27 @@ Route::middleware('auth')->group(function () {
     Route::post('product-images/{imageProduct}/set-primary', [ImageProductController::class, 'setPrimary'])->name('product-images.set-primary');
     Route::post('products/{product}/images/update-order', [ImageProductController::class, 'updateOrder'])->name('product-images.update-order');
 
-     // Product Specifications
-     Route::get('products/{product}/specifications', [ProductSpecificationController::class, 'index'])->name('product-specifications.index');
-     Route::get('products/{product}/specifications/create', [ProductSpecificationController::class, 'create'])->name('product-specifications.create');
-     Route::post('products/{product}/specifications', [ProductSpecificationController::class, 'store'])->name('product-specifications.store');
-     Route::get('products/{product}/specifications/{productSpecification}/edit', [ProductSpecificationController::class, 'edit'])->name('product-specifications.edit');
-     Route::put('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'update'])->name('product-specifications.update');
-     Route::delete('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'destroy'])->name('product-specifications.destroy');
+    // Product Specifications
+    Route::get('products/{product}/specifications', [ProductSpecificationController::class, 'index'])->name('product-specifications.index');
+    Route::get('products/{product}/specifications/create', [ProductSpecificationController::class, 'create'])->name('product-specifications.create');
+    Route::post('products/{product}/specifications', [ProductSpecificationController::class, 'store'])->name('product-specifications.store');
+    Route::get('products/{product}/specifications/{productSpecification}/edit', [ProductSpecificationController::class, 'edit'])->name('product-specifications.edit');
+    Route::put('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'update'])->name('product-specifications.update');
+    Route::delete('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'destroy'])->name('product-specifications.destroy');
+    // Video Providers
+    Route::resource('video-providers', VideoProviderController::class);
 
-     // Banners
+    // Product Videos
+    Route::get('products/{product}/videos', [ProductVideoController::class, 'index'])->name('product-videos.index');
+    Route::get('products/{product}/videos/create', [ProductVideoController::class, 'create'])->name('product-videos.create');
+    Route::post('products/{product}/videos', [ProductVideoController::class, 'store'])->name('product-videos.store');
+    Route::get('products/{product}/videos/{video}/edit', [ProductVideoController::class, 'edit'])->name('product-videos.edit');
+    Route::put('products/{product}/videos/{video}', [ProductVideoController::class, 'update'])->name('product-videos.update');
+    Route::delete('products/{product}/videos/{video}', [ProductVideoController::class, 'destroy'])->name('product-videos.destroy');
+    Route::post('products/{product}/videos/update-order', [ProductVideoController::class, 'updateOrder'])->name('product-videos.update-order');
+    Route::post('product-videos/{video}/set-featured', [ProductVideoController::class, 'setFeatured'])->name('product-videos.set-featured');
+    
+    // Banners
     Route::resource('banners', BannerController::class);
     Route::post('banners/update-order', [BannerController::class, 'updateOrder'])->name('banners.update-order');
     Route::post('banners/{banner}/update-status', [BannerController::class, 'updateStatus'])->name('banners.update-status');

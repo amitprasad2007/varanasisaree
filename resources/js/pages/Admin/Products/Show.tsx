@@ -19,8 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
-import { Pencil, ArrowLeft, Image, ListChecks } from 'lucide-react';
+import { Badge } from '@/Components/ui/badge';
+import { Pencil, ArrowLeft, Image, ListChecks, Video } from 'lucide-react';
 interface product {
     id: number;
     name:string;
@@ -86,6 +86,12 @@ export default function Show({ product }: Props) {
                   Manage Images
                 </Link>
               </Button>
+              <Button variant="outline" asChild>
+              <Link href={route('product-videos.index', product.id)}>
+                <Video className="h-4 w-4 mr-2" />
+                Manage Videos
+              </Link>
+            </Button>
               <Button variant="outline" asChild>
               <Link href={route('product-specifications.index', product.id)}>
                 <ListChecks className="h-4 w-4 mr-2" />

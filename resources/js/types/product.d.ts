@@ -40,3 +40,30 @@ export interface Product {
     created_at?: string;
     updated_at?: string;
   }
+
+
+export interface ProductVideo {
+  id: number;
+  product_id: number;
+  video_provider_id: number;
+  title: string;
+  video_id: string;
+  description?: string;
+  thumbnail?: string;
+  display_order: number;
+  is_featured: boolean;
+  status: 'active' | 'inactive';
+  created_at?: string;
+  updated_at?: string;
+  videoProvider?: VideoProvider;
+}
+
+export interface VideoProvider {
+  id: number;
+  name: string;
+  base_url: string;
+  logo?: string;
+  status: 'active' | 'inactive';
+  created_at?: string;
+  updated_at?: string;
+}

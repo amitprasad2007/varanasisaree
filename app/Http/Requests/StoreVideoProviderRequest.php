@@ -11,7 +11,7 @@ class StoreVideoProviderRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreVideoProviderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:video_providers',
+            'base_url' => 'required|string|max:255',
+            'logo' => 'nullable|image|max:1024',
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

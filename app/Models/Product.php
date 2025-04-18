@@ -64,8 +64,18 @@ class Product extends Model
         return $this->hasMany(ProductSpecification::class);
     }
 
+    public function videos(): HasMany
+    {
+        return $this->hasMany(ProductVideo::class)->orderBy('display_order');
+    }
+
     public function primaryImage()
     {
         return $this->hasMany(ImageProduct::class)->where('is_primary', true)->first();
+    }
+
+    public function featuredVideo()
+    {
+        return $this->hasMany(ProductVideo::class)->where('is_featured', true)->first();
     }
 }
