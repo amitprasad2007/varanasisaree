@@ -2,22 +2,16 @@ import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { router } from '@inertiajs/react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from "sweetalert2";
+
 
 interface Banner {
   id: number;
@@ -70,11 +64,24 @@ const Edit = ({ banner }: Props) => {
     formData.append('_method', 'PUT');
     post(route('banners.update', banner.id), {
         method: 'post',
-        ...Object.fromEntries(formData)
+        ...Object.fromEntries(formData),
+        onSuccess: () => {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Banner added successfully',
+                icon: 'success',
+                timer: 4000,
+                showConfirmButton: false
+                });
+            }
       });
 
   };
-
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Banner', href: route('banners.index') },
+    { title: 'Edit Banner', href: route('banners.edit', banner.id) },
+];
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -92,15 +99,17 @@ const Edit = ({ banner }: Props) => {
   return (
     <DashboardLayout title="Edit Banner">
       <Head title="Edit Banner" />
-      
+      <div className="space-y-4 pb-6">      
       <div className="flex items-center mb-6">
         <Link href={route('banners.index')} className="mr-4">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className='cursor-pointer'>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Banners
           </Button>
         </Link>
         <h1 className="text-2xl font-semibold">Edit Banner</h1>
+      </div>
+      <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
       <Card>
@@ -213,6 +222,7 @@ const Edit = ({ banner }: Props) => {
               <Button
                 type="submit"
                 disabled={processing}
+                className="cursor-pointer hover:bg-gray-100  dark:hover:bg-gray-400 border" 
               >
                 Update Banner
               </Button>

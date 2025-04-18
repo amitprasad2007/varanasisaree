@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { router } from '@inertiajs/react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from "sweetalert2";
@@ -37,7 +36,7 @@ const Create = () => {
     image: null,
     description: '',
     link: '',
-    status: 'inactive'
+    status: 'active'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -189,8 +188,7 @@ const Create = () => {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Switch
-                    id="status"
-                    
+                    id="status"                    
                     checked={data.status === 'active'}
                     onCheckedChange={checked => setData('status', checked ? 'active' : 'inactive')}
                   />

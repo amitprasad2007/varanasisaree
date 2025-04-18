@@ -214,12 +214,12 @@ const Index = ({ banners }: Props) => {
                               >
                                 {banner.status === 'active' ? (
                                   <>
-                                    <Eye className="h-4 w-4 mr-1" />
+                                    <Eye className="h-4 w-4 mr-1 cursor-pointer" />
                                     Active
                                   </>
                                 ) : (
                                   <>
-                                    <EyeOff className="h-4 w-4 mr-1" />
+                                    <EyeOff className="h-4 w-4 mr-1 cursor-pointer" />
                                     Inactive
                                   </>
                                 )}
@@ -229,7 +229,7 @@ const Index = ({ banners }: Props) => {
                               <div className="flex space-x-2">
                                 <Link href={route('banners.edit', banner.id)}>
                                   <Button variant="outline" size="sm">
-                                    <Edit className="h-4 w-4" />
+                                    <Edit className="h-4 w-4 cursor-pointer" />
                                     <span className="sr-only">Edit</span>
                                   </Button>
                                 </Link>
@@ -239,7 +239,7 @@ const Index = ({ banners }: Props) => {
                                   onClick={() => handleDelete(banner.id)}
                                   className="text-red-600 hover:bg-red-50"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4 cursor-pointer" />
                                   <span className="sr-only">Delete</span>
                                 </Button>
                               </div>
