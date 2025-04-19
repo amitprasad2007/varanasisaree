@@ -4,25 +4,14 @@ import { Trash, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Product, ProductVideo } from '@/types/product';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
 
-interface Product {
-  id: number;
-  name:string;
-  category:{title:string};
-  subcategory:{title:string};
-  brand:{name:string};
-  price:number;
-  stock_quantity:number;
-  status:string;
-}
-
 interface Props {
   products: Product[];
 }
-
 
 export default function Index({ products }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [

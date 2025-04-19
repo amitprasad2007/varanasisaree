@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -99,7 +99,7 @@ export default function Create({ product, providers }: CreateProps) {
   };
 
   return (
-    <AdminLayout title={`Add Video to ${product.name}`}>
+    <DashboardLayout title={`Add Video to ${product.name}`}>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -126,14 +126,11 @@ export default function Create({ product, providers }: CreateProps) {
           <CardContent>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={control}
-                  name="video_provider_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Video Provider</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+              <div className="space-y-2">
+                        <Label htmlFor="parent_id">Video Provider</Label>
+                        <Select
+                    
+                        value={data.parent_id}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -155,7 +152,7 @@ export default function Create({ product, providers }: CreateProps) {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+
 
                 <FormField
                   control={control}
@@ -287,6 +284,6 @@ export default function Create({ product, providers }: CreateProps) {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }

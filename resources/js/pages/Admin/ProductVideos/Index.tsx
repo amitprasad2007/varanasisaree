@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -23,6 +23,12 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Product, ProductVideo } from '@/types/product';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
+
+
+
 
 interface IndexProps {
   product: Product;
@@ -98,7 +104,7 @@ export default function Index({ product, videos }: IndexProps) {
   };
 
   return (
-    <AdminLayout title={`Videos for ${product.name}`}>
+    <DashboardLayout title={`Videos for ${product.name}`}>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -159,12 +165,12 @@ export default function Index({ product, videos }: IndexProps) {
                               draggableId={video.id.toString()} 
                               index={index}
                             >
-                              {(provided, snapshot) => (
+                              {(provided) => (
                                 <TableRow
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className={snapshot.isDragging ? "opacity-50" : ""}
+                                  
                                 >
                                   <TableCell className="w-10">{index + 1}</TableCell>
                                   <TableCell>
@@ -187,7 +193,7 @@ export default function Index({ product, videos }: IndexProps) {
                                   </TableCell>
                                   <TableCell>
                                     <Badge 
-                                      variant={video.status === 'active' ? 'success' : 'secondary'}
+                                      variant={video.status === 'active' ? 'secondary' : 'default'}
                                     >
                                       {video.status}
                                     </Badge>
@@ -260,6 +266,6 @@ export default function Index({ product, videos }: IndexProps) {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }

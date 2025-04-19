@@ -5,8 +5,11 @@ export interface Product {
     category_id: number;
     subcategory_id: number;
     brand_id: number;
+    brand:{name:string};
     description?: string;
     price: number;
+    category:{title:string};
+    subcategory:{title:string};
     discount?: number;
     stock_quantity: number;
     fabric?: string;
