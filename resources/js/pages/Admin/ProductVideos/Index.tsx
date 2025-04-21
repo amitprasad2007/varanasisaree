@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -22,7 +22,6 @@ import { ArrowLeft, Pencil, Plus, Trash2, Star } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Product, ProductVideo } from '@/types/product';
 import axios from 'axios';
-import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -38,26 +37,45 @@ interface IndexProps {
 export default function Index({ product, videos }: IndexProps) {
   const [videoList, setVideoList] = useState(videos);
   const [isReordering, setIsReordering] = useState(false);
+  const { delete: destroy } = useForm();
 
   const handleDelete = (videoId: number) => {
-    if (confirm('Are you sure you want to delete this video?')) {
-      axios.delete(`/admin/products/${product.id}/videos/${videoId}`)
-        .then(response => {
-          toast.success('Video deleted successfully');
-          setVideoList(videoList.filter(video => video.id !== videoId));
-        })
-        .catch(error => {
-          toast.error('Error deleting video');
-          console.error(error);
-        });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if(result.isConfirmed){       
+          destroy(route('product-videos.destroy', [product.id,videoId]), {
+            onSuccess: () => {
+              Swal.fire({
+                title: 'Deleted!',
+                text: 'Your Subcategory has been deleted.',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+              });
+              setVideoList(videoList.filter(video => video.id !== videoId));
+            }
+          });
+        }
+      });
   };
 
   const handleSetFeatured = (videoId: number) => {
-    axios.post(`/admin/product-videos/${videoId}/set-featured`)
+    axios.post(`/product-videos/${videoId}/set-featured`)
       .then(response => {
-        toast.success('Video set as featured successfully');
-        
+        Swal.fire({
+          title: 'Success!',
+          text: 'Video Marked as Featured',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });        
         // Update local state to reflect the change
         const updatedVideos = videoList.map(video => ({
           ...video,
@@ -67,14 +85,18 @@ export default function Index({ product, videos }: IndexProps) {
         setVideoList(updatedVideos);
       })
       .catch(error => {
-        toast.error('Error setting video as featured');
-        console.error(error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Error setting video as featured',
+          icon: 'error',
+          timer: 4000,
+          showConfirmButton: false
+        }); 
       });
   };
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
-
     const items = Array.from(videoList);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
@@ -88,20 +110,39 @@ export default function Index({ product, videos }: IndexProps) {
     setVideoList(updatedItems);
 
     // Save the new order to the server
-    axios.post(`/admin/products/${product.id}/videos/update-order`, {
+    axios.post(`/products/${product.id}/videos/update-order`, {
       videos: updatedItems.map(video => ({
         id: video.id,
         display_order: video.display_order
       }))
     })
     .then(response => {
-      toast.success('Video order updated successfully');
+      Swal.fire({
+        title: 'Success!',
+        text: 'Video order updated successfully',
+        icon: 'success',
+        timer: 4000,
+        showConfirmButton: false
+      });  
     })
     .catch(error => {
-      toast.error('Error updating video order');
+      Swal.fire({
+        title: 'Error!',
+        text: 'Error updating video order',
+        icon: 'error',
+        timer: 4000,
+        showConfirmButton: false
+      }); 
       console.error(error);
     });
   };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+    { title: 'Product Video', href: route('product-videos.index', product.id) },
+  ];
+
 
   return (
     <DashboardLayout title={`Videos for ${product.name}`}>
@@ -120,15 +161,15 @@ export default function Index({ product, videos }: IndexProps) {
                 Back to Product
               </Link>
             </Button>
-            <Button asChild>
+            <Button asChild variant="outline" >
               <Link href={route('product-videos.create', product.id)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Video
               </Link>
             </Button>
-          </div>
+          </div>          
         </div>
-
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
         <Card>
           <CardHeader>
             <CardTitle>Videos</CardTitle>
@@ -170,7 +211,6 @@ export default function Index({ product, videos }: IndexProps) {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  
                                 >
                                   <TableCell className="w-10">{index + 1}</TableCell>
                                   <TableCell>
@@ -187,7 +227,7 @@ export default function Index({ product, videos }: IndexProps) {
                                     )}
                                   </TableCell>
                                   <TableCell className="font-medium">{video.title}</TableCell>
-                                  <TableCell>{video.videoProvider?.name}</TableCell>
+                                  <TableCell>{video.video_provider?.name}</TableCell>
                                   <TableCell className="truncate max-w-[120px]">
                                     {video.video_id}
                                   </TableCell>

@@ -58,7 +58,7 @@ export interface ProductVideo {
   status: 'active' | 'inactive';
   created_at?: string;
   updated_at?: string;
-  videoProvider?: VideoProvider;
+  video_provider: VideoProvider;
 }
 
 export interface VideoProvider {

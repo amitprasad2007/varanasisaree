@@ -62,7 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::post('products/{product}/videos', [ProductVideoController::class, 'store'])->name('product-videos.store');
     Route::get('products/{product}/videos/{video}/edit', [ProductVideoController::class, 'edit'])->name('product-videos.edit');
     Route::put('products/{product}/videos/{video}', [ProductVideoController::class, 'update'])->name('product-videos.update');
-    Route::delete('products/{product}/videos/{video}', [ProductVideoController::class, 'destroy'])->name('product-videos.destroy');
+    Route::delete('products/{product}/videos/{productVideo}', [ProductVideoController::class, 'destroy'])->name('product-videos.destroy');
     Route::post('products/{product}/videos/update-order', [ProductVideoController::class, 'updateOrder'])->name('product-videos.update-order');
     Route::post('product-videos/{video}/set-featured', [ProductVideoController::class, 'setFeatured'])->name('product-videos.set-featured');
 

@@ -19,7 +19,7 @@ class ProductVideoController extends Controller
     public function index(Product $product)
     {
         $product->load(['videos.videoProvider']);
-
+        //dd($product->videos[0]->videoProvider);
         return Inertia::render('Admin/ProductVideos/Index', [
             'product' => $product,
             'videos' => $product->videos
@@ -80,7 +80,7 @@ class ProductVideoController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductVideo $productVideo)
+    public function edit(Product $product, ProductVideo $video)
     {
         $providers = VideoProvider::active()->get();
 
@@ -94,7 +94,7 @@ class ProductVideoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductVideoRequest $request, ProductVideo $productVideo)
+    public function update(UpdateProductVideoRequest $request, Product $product, ProductVideo $video)
     {
         $validated = $request->validate([
             'video_provider_id' => 'required|exists:video_providers,id',
@@ -132,14 +132,14 @@ class ProductVideoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ProductVideo $productVideo)
+    public function destroy(Product $product, ProductVideo $productVideo)
     {
         // Delete thumbnail if exists
-        if ($video->thumbnail) {
-            Storage::disk('public')->delete($video->thumbnail);
+        if ($productVideo->thumbnail) {
+            Storage::disk('public')->delete($productVideo->thumbnail);
         }
 
-        $video->delete();
+        $productVideo->delete();
 
         return redirect()->route('product-videos.index', $product->id)
             ->with('success', 'Video deleted successfully.');

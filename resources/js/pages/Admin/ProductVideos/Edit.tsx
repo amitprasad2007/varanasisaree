@@ -32,9 +32,12 @@ import {
 import { ArrowLeft } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useForm } from 'react-hook-form';
+import { useController, useForm } from 'react-hook-form';
 import { Product, ProductVideo, VideoProvider } from '@/types/product';
 import { Inertia } from '@inertiajs/inertia';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 const formSchema = z.object({
   video_provider_id: z.string().min(1, 'Video provider is required'),
@@ -43,7 +46,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   thumbnail: z.any().optional(),
   is_featured: z.boolean().default(false),
-  status: z.enum(['active', 'inactive']).default('active'),
+  status: z.enum(['active', 'inactive']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -56,15 +59,14 @@ interface EditProps {
 
 export default function Edit({ product, video, providers }: EditProps) {
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
     defaultValues: {
       video_provider_id: video.video_provider_id.toString(),
       title: video.title,
       video_id: video.video_id,
       description: video.description || '',
       thumbnail: null,
-      is_featured: video.is_featured,
-      status: video.status as 'active' | 'inactive',
+      is_featured: video.is_featured ?? false,
+      status: video.status,
     },
   });
 
@@ -92,12 +94,43 @@ export default function Edit({ product, video, providers }: EditProps) {
     // Submit the form using Inertia
     Inertia.post(route('product-videos.update', [product.id, video.id]), formData, {
       forceFormData: true,
+      onSuccess: () => {
+        Swal.fire({
+           title: 'Success!',
+           text: 'Video  Updated successfully',
+           icon: 'success',
+           timer: 4000,
+           showConfirmButton: false
+       });
+     }
     });
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      form.setValue('thumbnail', file); // Use form.setValue to update the form state
+
+      // Optionally, create a preview of the image
+      const reader = new FileReader();
+      reader.onload = () => {
+        // You can set the preview state if needed
+        // setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Product', href: route('products.index') },
+    { title: 'Show Product', href: route('products.show', product.id) },
+    { title: 'Product Video', href: route('product-videos.index', product.id) },
+    { title: 'Edit Product Video', href: route('product-videos.edit', [product.id, video.id]) },
+  ];
   return (
     <DashboardLayout title={`Edit Video for ${product.name}`}>
       <div className="space-y-6">
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Edit Video</h1>
@@ -112,7 +145,8 @@ export default function Edit({ product, video, providers }: EditProps) {
             </Link>
           </Button>
         </div>
-
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Video Details</CardTitle>

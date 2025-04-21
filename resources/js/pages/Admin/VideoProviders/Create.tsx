@@ -98,7 +98,7 @@ export default function Create() {
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Brand Name</Label>
+                        <Label htmlFor="name">Provider Name</Label>
                         <Input
                             id="name"
                             value={data.name}
