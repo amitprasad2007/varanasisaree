@@ -2,200 +2,166 @@ import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Label } from "@/components/ui/label";
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+Card,
+CardContent,
+CardDescription,
+CardFooter,
+CardHeader,
+CardTitle
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { ArrowLeft } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useController } from 'react-hook-form';
-import { Inertia } from '@inertiajs/inertia';
+import { useForm } from '@inertiajs/react';
 
-const formSchema = z.object({
-  name: z.string().min(1, 'Provider name is required'),
-  base_url: z.string().min(1, 'Base URL is required').url('Must be a valid URL'),
-  logo: z.any().optional(),
-  status: z.enum(['active', 'inactive']),
-});
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
-type FormValues = z.infer<typeof formSchema>;
+type CheckedState = boolean | "indeterminate";
 
 export default function Create() {
-  const [isLoading, setIsLoading] = useState(false);
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      base_url: '',
-      logo: null,
-      status: 'active',
-    },
-  });
-
-  const { control, handleSubmit, formState } = form;
-  const { errors } = formState;
-
-  // Custom file input controller
-  const { field: logoField } = useController({
-    name: 'logo',
-    control,
-  });
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      logoField.onChange(e.target.files[0]);
-    }
-  };
-
-  const onSubmit = (data: FormValues) => {
-    // Convert form data to FormData for file upload
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('base_url', data.base_url);
-    formData.append('status', data.status);
-    
-    if (data.logo) {
-      formData.append('logo', data.logo);
-    }
-
-    // Submit the form using Inertia
-    Inertia.post(route('video-providers.store'), formData, {
-      forceFormData: true,
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
+        base_url:'',
+        logo: null as File | null,
+        status: true as CheckedState,
     });
-  };
+    const [previewlogo, setPreviewlogo] = React.useState<string | null>(null);
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setData('logo', file);
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewlogo(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPreviewlogo(null);
+        }
+    };
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Video Providers', href: route('video-providers.index') },
+        { title: 'Add Video Providers', href: route('video-providers.create') },
+    ];
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        post(route('video-providers.store'), {
+          onSuccess: () => {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Video Provider created successfully',
+                icon: 'success',
+                timer: 4000,
+                showConfirmButton: false
+            });
+        }
+        });
+      };
+
 
   return (
     <DashboardLayout title="Add Video Provider">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Add Video Provider</h1>
-            <p className="text-muted-foreground">
-              Configure a new video platform for product videos
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href={route('video-providers.index')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Providers
-            </Link>
-          </Button>
+        <div className="space-y-4 pb-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Add Video Provider</h1>
+                    <p className="text-muted-foreground">
+                    Configure a new video platform for product videos
+                    </p>
+                </div>
+                <Button variant="outline" asChild>
+                    <Link href={route('video-providers.index')}>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Providers
+                    </Link>
+                </Button>
+            </div>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Provider Details</CardTitle>
-            <CardDescription>
-              Enter the information for the video provider
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Provider Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="YouTube" {...field} />
-                      </FormControl>
-                      <FormDescription>
+            <CardHeader>
+                <CardTitle>Provider Details</CardTitle>
+                <CardDescription>
+                    Enter the information for the video provider
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Brand Name</Label>
+                        <Input
+                            id="name"
+                            value={data.name}
+                            placeholder="YouTube"
+                            onChange={e => setData('name', e.target.value)}
+                        />
                         The name of the video platform (e.g., YouTube, Vimeo)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={control}
-                  name="base_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Base URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://www.youtube.com/embed/" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The base URL used for embedding videos from this provider
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={control}
-                  name="logo"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Provider Logo</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleLogoChange}
+                        {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="base_url">Base URL </Label>
+                        <Input
+                            id="base_url"
+                            type="url"
+                            value={data.base_url}
+                            onChange={e => setData('base_url', e.target.value)}
+                            placeholder="https://example.com/page"
                         />
-                      </FormControl>
-                      <FormDescription>
-                        Upload a logo for the video provider (optional)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Active Status</FormLabel>
-                        <FormDescription>
-                          Set if this provider is currently active
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value === 'active'}
-                          onCheckedChange={(checked) => field.onChange(checked ? 'active' : 'inactive')}
+                         Upload a logo for the video provider (optional)
+                        {errors.base_url && (<p className="text-sm text-red-500">{errors.base_url}</p>)}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="logo">Provider Logo</Label>
+                        <div className="space-y-4">
+                            <Input
+                                id="logo"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleLogoChange}
+                            />
+                            {previewlogo && (
+                                <div className="relative group">
+                                    <img
+                                        src={previewlogo}
+                                        alt="Previewlogo"
+                                        className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        {errors.logo && <p className="text-sm text-red-600">{errors.logo}</p>}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Checkbox
+                            id="status"
+                            checked={data.status}
+                            onCheckedChange={(checked) => setData('status', checked)}
                         />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <CardFooter className="flex justify-end px-0 pb-0">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Creating...' : 'Create Provider'}
-                  </Button>
-                </CardFooter>
-              </form>
-            </Form>
-          </CardContent>
+                        <label
+                            htmlFor="status"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Active
+                        </label>
+                    </div>
+                    <CardFooter className="flex justify-end px-0 pb-0">
+                        <Button type="submit" variant="outline"  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}>
+                            Create Provider
+                        </Button>
+                    </CardFooter>
+                </form>
+            </CardContent>
         </Card>
       </div>
     </DashboardLayout>

@@ -1,7 +1,8 @@
-import { Link } from '@inertiajs/react';
+import { Link,useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
+import { Trash, Edit, Plus, View, PlusCircle } from "lucide-react";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -16,39 +17,51 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 import { Badge } from '@/components/ui/badge';
-
 import { VideoProvider } from '@/types/product';
-import axios from 'axios';
-import { toast } from 'sonner';
+
 
 interface IndexProps {
   providers: VideoProvider[];
 }
 
 export default function Index({ providers }: IndexProps) {
+    const { delete: destroy } = useForm();
   const handleDelete = (providerId: number) => {
-    if (confirm('Are you sure you want to delete this video provider?')) {
-      axios.delete(`/admin/video-providers/${providerId}`)
-        .then(response => {
-          toast.success('Video provider deleted successfully');
-          window.location.reload();
-        })
-        .catch(error => {
-          toast.error(error.response?.data?.message || 'Error deleting video provider');
-          console.error(error);
-        });
-    }
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+          destroy(route('video-providers.destroy', providerId), {
+            onSuccess: () => {
+              Swal.fire({
+                title: 'Deleted!',
+                text: 'Your Video Provider has been deleted.',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+              });
+            }
+          });
+        }
+    });
   };
-
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Video Providers', href: route('video-providers.index') },
+  ];
   return (
     <DashboardLayout title="Video Providers">
+        <div className="space-y-4 pb-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Video Providers</h1>
@@ -56,9 +69,14 @@ export default function Index({ providers }: IndexProps) {
             Manage video platforms for product videos
           </p>
         </div>
-        <Button asChild>
-          <Link href={route('video-providers.create')}>Add New Provider</Link>
-        </Button>
+        <Link href={route('video-providers.create')}>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+              <Plus className="h-4 w-4" />
+              Add New Provider
+            </Button>
+        </Link>
+      </div>
+      <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
 
       <Card>
@@ -87,9 +105,9 @@ export default function Index({ providers }: IndexProps) {
                     <TableCell>{provider.base_url}</TableCell>
                     <TableCell>
                       {provider.logo ? (
-                        <img 
-                          src={`/storage/${provider.logo}`} 
-                          alt={provider.name} 
+                        <img
+                          src={`/storage/${provider.logo}`}
+                          alt={provider.name}
                           className="h-8 w-auto object-contain"
                         />
                       ) : (
@@ -97,33 +115,28 @@ export default function Index({ providers }: IndexProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={provider.status === 'active' ? 'secondary' : 'default'}
                       >
                         {provider.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            Actions
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={route('video-providers.edit', provider.id)}>
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600" 
+                    <TableCell className="text-left">
+                    <div className="flex  space-x-2">
+                        <Link href={route('video-providers.edit', provider.id)}>
+                            <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <Button
+                            variant="outline"
+                           className="text-red-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                            size="sm"
                             onClick={() => handleDelete(provider.id)}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            >
+                            <Trash className=" h-4 w-4" />
+                        </Button>
+                    </div>
                     </TableCell>
                   </TableRow>
                 ))

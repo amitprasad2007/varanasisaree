@@ -25,7 +25,7 @@ class StoreVideoProviderRequest extends FormRequest
             'name' => 'required|string|max:255|unique:video_providers',
             'base_url' => 'required|string|max:255',
             'logo' => 'nullable|image|max:1024',
-            'status' => 'required|in:active,inactive',
+            'status' => ['required', 'boolean'],
         ];
     }
 }

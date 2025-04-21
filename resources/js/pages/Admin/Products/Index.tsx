@@ -4,7 +4,7 @@ import { Trash, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Product, ProductVideo } from '@/types/product';
+import { Product } from '@/types/product';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -18,13 +18,6 @@ export default function Index({ products }: Props) {
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Product', href: route('products.index') },
   ];
-  const [isModalOpen, setModalOpen] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-
-    const openModal = (productId: number) => {
-        setSelectedProductId(productId);
-        setModalOpen(true);
-    };
   const { delete: destroy } = useForm();
   const handleDelete = (id: number) => {
     Swal.fire({
@@ -51,7 +44,7 @@ export default function Index({ products }: Props) {
       }
     });
   };
-  
+
   return (
     <DashboardLayout title="Products">
       <div className="space-y-4 pb-6">

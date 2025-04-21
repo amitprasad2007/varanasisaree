@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::put('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'update'])->name('product-specifications.update');
     Route::delete('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'destroy'])->name('product-specifications.destroy');
     // Video Providers
+    
     Route::resource('video-providers', VideoProviderController::class);
 
     // Product Videos
@@ -64,7 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('products/{product}/videos/{video}', [ProductVideoController::class, 'destroy'])->name('product-videos.destroy');
     Route::post('products/{product}/videos/update-order', [ProductVideoController::class, 'updateOrder'])->name('product-videos.update-order');
     Route::post('product-videos/{video}/set-featured', [ProductVideoController::class, 'setFeatured'])->name('product-videos.set-featured');
-    
+
     // Banners
     Route::resource('banners', BannerController::class);
     Route::post('banners/update-order', [BannerController::class, 'updateOrder'])->name('banners.update-order');

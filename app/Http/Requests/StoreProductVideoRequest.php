@@ -11,7 +11,7 @@ class StoreProductVideoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,13 @@ class StoreProductVideoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+           'video_provider_id' => 'required|exists:video_providers,id',
+            'title' => 'required|string|max:255',
+            'video_id' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'thumbnail' => 'nullable|image|max:1024',
+            'is_featured' => 'boolean',
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

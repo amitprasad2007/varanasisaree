@@ -17,8 +17,8 @@ const menuItems = [
   { icon: Building, label: "Brands", path: "/brands" },
   { icon: Barcode, label: "Products", path: "/products"},
   { icon: Image, label: "Banners", path: "/banners"},
-  { icon: User, label: "Profile", path: "/profile" },
   { icon: Video, label: "Video Provider", path: "/video-providers" },
+  { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },
 ];

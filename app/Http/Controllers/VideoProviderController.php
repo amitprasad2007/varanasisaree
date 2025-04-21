@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\ProductVideo;
 use App\Models\VideoProvider;
-use App\Http\Requests\StoreVideoProviderRequest;
-use App\Http\Requests\UpdateVideoProviderRequest;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreVideoProviderRequest;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -19,7 +18,7 @@ class VideoProviderController extends Controller
     public function index()
     {
         $providers = VideoProvider::orderBy('name')->get();
-        
+
         return Inertia::render('Admin/VideoProviders/Index', [
             'providers' => $providers
         ]);
@@ -38,17 +37,17 @@ class VideoProviderController extends Controller
      */
     public function store(StoreVideoProviderRequest $request)
     {
+     //   dd($request);
         $validated = $request->validated();
 
         if ($request->hasFile('logo')) {
             $logoPath = $request->file('logo')->store('providers', 'public');
             $validated['logo'] = $logoPath;
         }
-
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
         VideoProvider::create($validated);
 
-        return redirect()->route('video-providers.index')
-            ->with('success', 'Video provider created successfully.');
+        return redirect()->route('video-providers.index');
     }
 
     /**
@@ -72,21 +71,26 @@ class VideoProviderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateVideoProviderRequest $request, VideoProvider $videoProvider)
+    public function update(Request $request, VideoProvider $video_provider)
     {
-        $validated = $request->validate();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:video_providers,name,' . $video_provider->id,
+            'base_url' => 'required|string|max:255',
+            'logo' => 'nullable|image|max:1024',
+            'status' => 'required|in:active,inactive',
+        ]);
 
         if ($request->hasFile('logo')) {
             // Delete old logo if exists
-            if ($videoProvider->logo) {
-                Storage::disk('public')->delete($videoProvider->logo);
+            if ($video_provider->logo) {
+                Storage::disk('public')->delete($video_provider->logo);
             }
-            
             $logoPath = $request->file('logo')->store('providers', 'public');
             $validated['logo'] = $logoPath;
         }
 
-        $videoProvider->update($validated);
+        $video_provider->update($validated);
 
         return redirect()->route('video-providers.index')
             ->with('success', 'Video provider updated successfully.');

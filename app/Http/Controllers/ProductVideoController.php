@@ -19,7 +19,7 @@ class ProductVideoController extends Controller
     public function index(Product $product)
     {
         $product->load(['videos.videoProvider']);
-        
+
         return Inertia::render('Admin/ProductVideos/Index', [
             'product' => $product,
             'videos' => $product->videos
@@ -32,7 +32,7 @@ class ProductVideoController extends Controller
     public function create(Product $product)
     {
         $providers = VideoProvider::active()->get();
-        
+
         return Inertia::render('Admin/ProductVideos/Create', [
             'product' => $product,
             'providers' => $providers
@@ -41,20 +41,12 @@ class ProductVideoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductVideoRequest $request)
+    public function store(StoreProductVideoRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'video_provider_id' => 'required|exists:video_providers,id',
-            'title' => 'required|string|max:255',
-            'video_id' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'thumbnail' => 'nullable|image|max:1024',
-            'is_featured' => 'boolean',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $request->validated();
 
         $validated['product_id'] = $product->id;
-        
+
         // Get the highest display order and add 1
         $maxOrder = ProductVideo::where('product_id', $product->id)->max('display_order') ?? 0;
         $validated['display_order'] = $maxOrder + 1;
@@ -91,7 +83,7 @@ class ProductVideoController extends Controller
     public function edit(ProductVideo $productVideo)
     {
         $providers = VideoProvider::active()->get();
-        
+
         return Inertia::render('Admin/ProductVideos/Edit', [
             'product' => $product,
             'video' => $video,
@@ -119,7 +111,7 @@ class ProductVideoController extends Controller
             if ($video->thumbnail) {
                 Storage::disk('public')->delete($video->thumbnail);
             }
-            
+
             $thumbnailPath = $request->file('thumbnail')->store('videos', 'public');
             $validated['thumbnail'] = $thumbnailPath;
         }
