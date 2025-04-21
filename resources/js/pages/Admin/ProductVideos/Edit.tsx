@@ -2,13 +2,13 @@ import React from 'react';
 import { Link } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import {
   Form,
@@ -78,15 +78,15 @@ export default function Edit({ product, video, providers }: EditProps) {
     formData.append('video_provider_id', data.video_provider_id);
     formData.append('title', data.title);
     formData.append('video_id', data.video_id);
-    
+
     if (data.description) {
       formData.append('description', data.description);
     }
-    
+
     formData.append('is_featured', data.is_featured ? '1' : '0');
     formData.append('status', data.status);
     formData.append('_method', 'PUT');
-    
+
     if (data.thumbnail) {
       formData.append('thumbnail', data.thumbnail);
     }
@@ -163,16 +163,16 @@ export default function Edit({ product, video, providers }: EditProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Video Provider</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white border border-gray-300 rounded-md shadow-sm">
                             <SelectValue placeholder="Select a provider" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                           {providers.map(provider => (
                             <SelectItem key={provider.id} value={provider.id.toString()}>
                               {provider.name}
@@ -250,9 +250,9 @@ export default function Edit({ product, video, providers }: EditProps) {
                     <FormItem>
                       <FormLabel>Video Thumbnail</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="file" 
-                          accept="image/*" 
+                        <Input
+                          type="file"
+                          accept="image/*"
                           onChange={handleThumbnailChange}
                         />
                       </FormControl>
@@ -307,8 +307,8 @@ export default function Edit({ product, video, providers }: EditProps) {
                 />
 
                 <CardFooter className="flex justify-end px-0 pb-0">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={formState.isSubmitting}
                   >
                     {formState.isSubmitting ? 'Updating...' : 'Update Video'}

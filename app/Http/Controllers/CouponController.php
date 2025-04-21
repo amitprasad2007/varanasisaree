@@ -34,25 +34,9 @@ class CouponController extends Controller
      */
     public function store(StoreCouponRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'code' => 'required|unique:coupons,code|max:30',
-            'type' => 'required|in:fixed,percentage',
-            'value' => 'required|numeric|min:0',
-            'min_spend' => 'nullable|numeric|min:0',
-            'max_discount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
-            'expires_at' => 'nullable|date|after:now',
-            'status' => 'boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
-        }
 
         $data = $request->all();
-        
+
         if ($request->type === 'percentage' && $request->value > 100) {
             return back()
                 ->withErrors(['value' => 'Percentage value cannot exceed 100%'])
@@ -88,25 +72,10 @@ class CouponController extends Controller
      */
     public function update(UpdateCouponRequest $request, Coupon $coupon)
     {
-        $validator = Validator::make($request->all(), [
-            'code' => 'required|max:30|unique:coupons,code,' . $coupon->id,
-            'type' => 'required|in:fixed,percentage',
-            'value' => 'required|numeric|min:0',
-            'min_spend' => 'nullable|numeric|min:0',
-            'max_discount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
-            'expires_at' => 'nullable|date',
-            'status' => 'boolean',
-        ]);
 
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
-        }
 
         $data = $request->all();
-        
+
         if ($request->type === 'percentage' && $request->value > 100) {
             return back()
                 ->withErrors(['value' => 'Percentage value cannot exceed 100%'])
@@ -125,7 +94,7 @@ class CouponController extends Controller
     public function destroy(Coupon $coupon)
     {
         $coupon->delete();
-        
+
         return redirect()->route('coupons.index')
             ->with('message', 'Coupon deleted successfully');
     }
@@ -133,7 +102,7 @@ class CouponController extends Controller
     {
         $coupon->status = !$coupon->status;
         $coupon->save();
-        
+
         return back()->with('message', 'Coupon status updated successfully');
     }
 
@@ -153,41 +122,41 @@ class CouponController extends Controller
         }
 
         $coupon = Coupon::where('code', $request->code)->first();
-        
+
         if (!$coupon->status) {
             return response()->json([
                 'valid' => false,
                 'message' => 'This coupon is inactive',
             ]);
         }
-        
+
         if ($coupon->isExpired()) {
             return response()->json([
                 'valid' => false,
                 'message' => 'This coupon has expired',
             ]);
         }
-        
+
         if ($coupon->isUsageLimitReached()) {
             return response()->json([
                 'valid' => false,
                 'message' => 'This coupon has reached its usage limit',
             ]);
         }
-        
+
         if ($coupon->min_spend && $request->total < $coupon->min_spend) {
             return response()->json([
                 'valid' => false,
                 'message' => "Minimum spend of $" . number_format($coupon->min_spend, 2) . " required",
             ]);
         }
-        
+
         $discount = $coupon->type === 'fixed' ? $coupon->value : ($request->total * $coupon->value / 100);
-        
+
         if ($coupon->max_discount && $discount > $coupon->max_discount) {
             $discount = $coupon->max_discount;
         }
-        
+
         return response()->json([
             'valid' => true,
             'discount' => round($discount, 2),

@@ -1,18 +1,17 @@
-
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import { 
-  BadgePercent, 
-  Edit, 
-  Plus, 
-  Trash2, 
+import {
+  BadgePercent,
+  Edit,
+  Plus,
+  Trash2,
   AlertCircle,
   Calendar
 } from 'lucide-react';
-import { Badge } from '@/Components/ui/badge';
-import { Button } from '@/Components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -20,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/Components/ui/table';
+} from '@/components/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,11 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/Components/ui/alert-dialog';
-import { Switch } from '@/Components/ui/switch';
-import { Toaster } from '@/Components/ui/toaster';
+} from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
+import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
-import AdminLayout from '@/Layouts/AdminLayout';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 interface Coupon {
   id: number;
@@ -57,14 +59,17 @@ interface IndexProps {
 export default function Index({ coupons }: IndexProps) {
   const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
   const { toast } = useToast();
-  
+
   const handleDelete = () => {
     if (couponToDelete) {
       router.delete(route('coupons.destroy', couponToDelete.id), {
         onSuccess: () => {
-          toast({
+            Swal.fire({
             title: "Coupon Deleted",
-            description: `${couponToDelete.code} has been deleted successfully.`,
+            text: `${couponToDelete.code} has been deleted successfully.`,
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
           });
           setCouponToDelete(null);
         },
@@ -75,9 +80,12 @@ export default function Index({ coupons }: IndexProps) {
   const handleStatusChange = (coupon: Coupon) => {
     router.post(route('coupons.update-status', coupon.id), {}, {
       onSuccess: () => {
-        toast({
-          title: `Coupon ${coupon.status ? 'Deactivated' : 'Activated'}`,
-          description: `${coupon.code} has been ${coupon.status ? 'deactivated' : 'activated'} successfully.`,
+        Swal.fire({
+            title: `Coupon ${coupon.status ? 'Deactivated' : 'Activated'}`,
+            text: `${coupon.code} has been ${coupon.status ? 'deactivated' : 'activated'} successfully.`,
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
         });
       },
     });
@@ -88,28 +96,43 @@ export default function Index({ coupons }: IndexProps) {
     return new Date(date) < new Date();
   };
 
-  const formatCurrency = (amount: number | null): string => {
+  const formatCurrency = (amount: number | null | string): string => {
     if (amount === null) return '-';
-    return `$${amount.toFixed(2)}`;
+    if (typeof amount === 'string') {
+      const convertedAmount = parseFloat(amount);
+      if (!isNaN(convertedAmount)) {
+        return `₹${convertedAmount.toFixed(2)}`;
+      }
+      return '-';
+    }
+    if (typeof amount !== 'number') return '-';
+    return `₹${amount.toFixed(2)}`;
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Coupons', href: route('coupons.index') },
+
+  ];
   return (
-    <AdminLayout title="Coupons">
+    <DashboardLayout title="Coupons">
       <Head title="Coupons" />
-      <Toaster />
-      
+      <div className="space-y-4 pb-6">
       <div className="flex justify-between items-center mb-6">
+
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Coupons</h1>
           <p className="text-muted-foreground">Manage discount coupons for your store</p>
         </div>
         <Link href={route('coupons.create')}>
-          <Button>
+          <Button variant='outline' className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
             <Plus className="mr-2 h-4 w-4" /> Add Coupon
           </Button>
         </Link>
       </div>
-      
+      <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -158,7 +181,7 @@ export default function Index({ coupons }: IndexProps) {
                   <TableCell>{coupon.min_spend ? formatCurrency(coupon.min_spend) : '-'}</TableCell>
                   <TableCell>{coupon.max_discount ? formatCurrency(coupon.max_discount) : '-'}</TableCell>
                   <TableCell>
-                    {coupon.usage_limit 
+                    {coupon.usage_limit
                       ? `${coupon.used_count} / ${coupon.usage_limit}`
                       : `${coupon.used_count} / ∞`
                     }
@@ -180,8 +203,8 @@ export default function Index({ coupons }: IndexProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={coupon.status} 
+                      <Switch
+                        checked={coupon.status}
                         onCheckedChange={() => handleStatusChange(coupon)}
                       />
                       <span>{coupon.status ? 'Active' : 'Inactive'}</span>
@@ -190,16 +213,16 @@ export default function Index({ coupons }: IndexProps) {
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Link href={route('coupons.edit', coupon.id)}>
-                        <Button variant="outline" size="sm">
+                        <Button className='cursor-pointer' variant="outline" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500 border-red-200 cursor-pointer hover:bg-red-50 hover:text-red-600"
                             onClick={() => setCouponToDelete(coupon)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -214,12 +237,12 @@ export default function Index({ coupons }: IndexProps) {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel onClick={() => setCouponToDelete(null)}>
+                              <AlertDialogCancel  className="cursor-pointer" onClick={() => setCouponToDelete(null)}>
                                 Cancel
                               </AlertDialogCancel>
-                              <AlertDialogAction 
+                              <AlertDialogAction
                                 onClick={handleDelete}
-                                className="bg-red-500 text-white hover:bg-red-600"
+                                className="bg-red-500 text-white hover:bg-red-600 cursor-pointer"
                               >
                                 Delete
                               </AlertDialogAction>
@@ -235,6 +258,6 @@ export default function Index({ coupons }: IndexProps) {
           </TableBody>
         </Table>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }

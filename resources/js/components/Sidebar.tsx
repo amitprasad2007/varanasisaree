@@ -18,7 +18,7 @@ const menuItems = [
   { icon: Barcode, label: "Products", path: "/products"},
   { icon: Image, label: "Banners", path: "/banners"},
   { icon: Video, label: "Video Provider", path: "/video-providers" },
-  { icon: BadgePercent, label: "Coupons", path: "/admin/coupons" },
+  { icon: BadgePercent, label: "Coupons", path: "/coupons" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },

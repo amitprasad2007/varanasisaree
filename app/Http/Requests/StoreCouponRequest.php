@@ -11,7 +11,7 @@ class StoreCouponRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,14 @@ class StoreCouponRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'code' => 'required|unique:coupons,code|max:30',
+            'type' => 'required|in:fixed,percentage',
+            'value' => 'required|numeric|min:0',
+            'min_spend' => 'nullable|numeric|min:0',
+            'max_discount' => 'nullable|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'expires_at' => 'nullable|date|after:now',
+            'status' => 'boolean',
         ];
     }
 }
