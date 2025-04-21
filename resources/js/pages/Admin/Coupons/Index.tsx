@@ -1,0 +1,240 @@
+
+import React, { useState } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { format } from 'date-fns';
+import { 
+  BadgePercent, 
+  Edit, 
+  Plus, 
+  Trash2, 
+  AlertCircle,
+  Calendar
+} from 'lucide-react';
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/Components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/Components/ui/alert-dialog';
+import { Switch } from '@/Components/ui/switch';
+import { Toaster } from '@/Components/ui/toaster';
+import { useToast } from '@/hooks/use-toast';
+import AdminLayout from '@/Layouts/AdminLayout';
+
+interface Coupon {
+  id: number;
+  code: string;
+  type: 'fixed' | 'percentage';
+  value: number;
+  min_spend: number | null;
+  max_discount: number | null;
+  usage_limit: number | null;
+  used_count: number;
+  expires_at: string | null;
+  status: boolean;
+}
+
+interface IndexProps {
+  coupons: Coupon[];
+}
+
+export default function Index({ coupons }: IndexProps) {
+  const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
+  const { toast } = useToast();
+  
+  const handleDelete = () => {
+    if (couponToDelete) {
+      router.delete(route('coupons.destroy', couponToDelete.id), {
+        onSuccess: () => {
+          toast({
+            title: "Coupon Deleted",
+            description: `${couponToDelete.code} has been deleted successfully.`,
+          });
+          setCouponToDelete(null);
+        },
+      });
+    }
+  };
+
+  const handleStatusChange = (coupon: Coupon) => {
+    router.post(route('coupons.update-status', coupon.id), {}, {
+      onSuccess: () => {
+        toast({
+          title: `Coupon ${coupon.status ? 'Deactivated' : 'Activated'}`,
+          description: `${coupon.code} has been ${coupon.status ? 'deactivated' : 'activated'} successfully.`,
+        });
+      },
+    });
+  };
+
+  const isExpired = (date: string | null): boolean => {
+    if (!date) return false;
+    return new Date(date) < new Date();
+  };
+
+  const formatCurrency = (amount: number | null): string => {
+    if (amount === null) return '-';
+    return `$${amount.toFixed(2)}`;
+  };
+
+  return (
+    <AdminLayout title="Coupons">
+      <Head title="Coupons" />
+      <Toaster />
+      
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Coupons</h1>
+          <p className="text-muted-foreground">Manage discount coupons for your store</p>
+        </div>
+        <Link href={route('coupons.create')}>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Add Coupon
+          </Button>
+        </Link>
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Value</TableHead>
+              <TableHead>Min. Spend</TableHead>
+              <TableHead>Max Discount</TableHead>
+              <TableHead>Usage</TableHead>
+              <TableHead>Expires</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {coupons.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <BadgePercent className="h-12 w-12 text-muted-foreground mb-2" />
+                    <h3 className="text-lg font-medium">No coupons found</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Get started by creating a new coupon.
+                    </p>
+                    <Link href={route('coupons.create')} className="mt-4">
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" /> Add Coupon
+                      </Button>
+                    </Link>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              coupons.map((coupon) => (
+                <TableRow key={coupon.id}>
+                  <TableCell className="font-medium">{coupon.code}</TableCell>
+                  <TableCell>
+                    <Badge variant={coupon.type === 'percentage' ? 'default' : 'secondary'}>
+                      {coupon.type === 'percentage' ? 'Percentage' : 'Fixed'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {coupon.type === 'percentage' ? `${coupon.value}%` : formatCurrency(coupon.value)}
+                  </TableCell>
+                  <TableCell>{coupon.min_spend ? formatCurrency(coupon.min_spend) : '-'}</TableCell>
+                  <TableCell>{coupon.max_discount ? formatCurrency(coupon.max_discount) : '-'}</TableCell>
+                  <TableCell>
+                    {coupon.usage_limit 
+                      ? `${coupon.used_count} / ${coupon.usage_limit}`
+                      : `${coupon.used_count} / ∞`
+                    }
+                  </TableCell>
+                  <TableCell>
+                    {coupon.expires_at ? (
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-3 w-3" />
+                        <span className={isExpired(coupon.expires_at) ? "text-red-500" : ""}>
+                          {format(new Date(coupon.expires_at), 'MMM dd, yyyy')}
+                        </span>
+                        {isExpired(coupon.expires_at) && (
+                          <Badge variant="expired">Expired</Badge>
+                        )}
+                      </div>
+                    ) : (
+                      'Never'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        checked={coupon.status} 
+                        onCheckedChange={() => handleStatusChange(coupon)}
+                      />
+                      <span>{coupon.status ? 'Active' : 'Inactive'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Link href={route('coupons.edit', coupon.id)}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                            onClick={() => setCouponToDelete(coupon)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        {couponToDelete && (
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Coupon</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete coupon "{couponToDelete.code}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setCouponToDelete(null)}>
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={handleDelete}
+                                className="bg-red-500 text-white hover:bg-red-600"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        )}
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </AdminLayout>
+  );
+}

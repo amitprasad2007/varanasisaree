@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductSpecificationController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\VideoProviderController;
 use App\Http\Controllers\ProductVideoController;
+use App\Http\Controllers\CouponController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -23,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('categories', CategoryController::class);
 
     // SubCategories
+    Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('subcategories', [CategoryController::class, 'subcatindex'] )->name('subcatindex');
     Route::get('subcategoriescreate', [CategoryController::class, 'createsubcate'] )->name('subcategories.create');
     Route::post('subcategoriesstore', [CategoryController::class, 'substore'] )->name('subcategories.store');
@@ -70,10 +72,17 @@ Route::middleware('auth')->group(function () {
     Route::resource('banners', BannerController::class);
     Route::post('banners/update-order', [BannerController::class, 'updateOrder'])->name('banners.update-order');
     Route::post('banners/{banner}/update-status', [BannerController::class, 'updateStatus'])->name('banners.update-status');
+
+    // Coupons
+    Route::resource('coupons', CouponController::class);
+    Route::post('coupons/{coupon}/update-status', [CouponController::class, 'updateStatus'])->name('coupons.update-status');
 });
 
 // Dynamic subcategories dropdown
-Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
+
+
+// API Coupon Validation
+Route::post('/api/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
