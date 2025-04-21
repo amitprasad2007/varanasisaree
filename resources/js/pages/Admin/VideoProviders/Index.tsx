@@ -1,7 +1,7 @@
 import { Link,useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Trash, Edit, Plus, View, PlusCircle } from "lucide-react";
+import { Trash2, Edit, Plus, View, PlusCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -130,11 +130,11 @@ export default function Index({ providers }: IndexProps) {
                         </Link>
                         <Button
                             variant="outline"
-                           className="text-red-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                           className="text-red-500 cursor-pointer dark:hover:bg-red-50"
                             size="sm"
                             onClick={() => handleDelete(provider.id)}
                             >
-                            <Trash className=" h-4 w-4" />
+                            <Trash2 className="h-4 w-4 cursor-pointer" />
                         </Button>
                     </div>
                     </TableCell>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link,useForm } from '@inertiajs/react';
-import { Trash, Edit, Plus, View } from "lucide-react";
+import { Trash2, Edit, Plus, View } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -107,11 +107,11 @@ export default function Index({ products }: Props) {
                         </Link>
                         <Button
                         variant="outline"
-                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="cursor-pointer text-red-600 hover:bg-red-50"
                         size="sm"
                         onClick={() => handleDelete(product.id)}
                         >
-                        <Trash className=" h-4 w-4" />
+                         <Trash2 className="h-4 w-4 cursor-pointer" />
                         </Button>
                     </div>
                   </TableCell>

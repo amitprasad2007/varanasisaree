@@ -258,7 +258,7 @@ export default function Index({ product, videos }: IndexProps) {
                                     <div className="flex space-x-2">
                                       <Button 
                                         size="sm" 
-                                        variant="ghost" 
+                                        variant="outline" 
                                         asChild
                                       >
                                         <Link href={route('product-videos.edit', [product.id, video.id])}>
@@ -267,8 +267,8 @@ export default function Index({ product, videos }: IndexProps) {
                                       </Button>
                                       <Button 
                                         size="sm" 
-                                        variant="ghost" 
-                                        className="text-red-500"
+                                        variant="outline" 
+                                        className=" cursor-pointer text-red-600 hover:bg-red-50"
                                         onClick={() => handleDelete(video.id)}
                                       >
                                         <Trash2 className="h-4 w-4" />

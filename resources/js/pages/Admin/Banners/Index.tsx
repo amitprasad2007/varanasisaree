@@ -128,7 +128,7 @@ const Index = ({ banners }: Props) => {
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Banners</h1>
             <Link href={route('banners.create')}>
-            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" variant="default">
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Banner
             </Button>
@@ -143,7 +143,7 @@ const Index = ({ banners }: Props) => {
           <h3 className="text-lg font-medium text-gray-900 mb-1">No banners found</h3>
           <p className="text-gray-500 mb-4">Get started by creating a new banner.</p>
           <Link href={route('banners.create')}>
-            <Button variant="default" className="items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+            <Button variant="outline" className="items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
               <Plus className="h-4 w-4 mr-2" />
               Add New Banner
             </Button>

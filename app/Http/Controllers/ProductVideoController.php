@@ -19,7 +19,6 @@ class ProductVideoController extends Controller
     public function index(Product $product)
     {
         $product->load(['videos.videoProvider']);
-        //dd($product->videos[0]->videoProvider);
         return Inertia::render('Admin/ProductVideos/Index', [
             'product' => $product,
             'videos' => $product->videos

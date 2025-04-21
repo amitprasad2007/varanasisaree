@@ -3,7 +3,7 @@ import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash, Edit, Plus } from "lucide-react";
+import { Trash, Edit, Plus,Trash2 } from "lucide-react";
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -117,12 +117,12 @@ const SubcategoriesIndex = ({ subcategories }: SubcategoriesIndexProps) => {
                                             </Button>
                                         </Link>
                                         <Button
-                                            variant="destructive"
-                                            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                            variant="outline"
+                                            className="cursor-pointer text-red-600 hover:bg-red-50"
                                             size="sm"
                                             onClick={() => handleDelete(subcategory.id)}
                                         >
-                                        <Trash className="h-4 w-4" />
+                                       <Trash2 className="h-4 w-4 cursor-pointer" />
                                         </Button>
                                     </div>
                                 </TableCell>

@@ -99,7 +99,7 @@ export function ProductImagesTable({
                       <TableCell className="text-right">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-red-500 cursor-pointer">
+                            <Button variant="outline" size="icon" className=" text-red-600 hover:bg-red-50 cursor-pointer">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>

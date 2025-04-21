@@ -100,7 +100,7 @@ export default function Index({ product, specifications }: Props) {
                 Back to Product
               </Link>
             </Button>
-            <Button asChild>
+            <Button variant="outline" asChild>
               <Link href={route('product-specifications.create', product.id)}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Specification
@@ -134,7 +134,7 @@ export default function Index({ product, specifications }: Props) {
                       <TableCell>{spec.value}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="icon" variant="ghost" asChild>
+                          <Button size="icon" variant="outline" asChild>
                             <Link href={route('product-specifications.edit', [product.id, spec.id])}>
                               <Pencil className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
@@ -143,7 +143,7 @@ export default function Index({ product, specifications }: Props) {
 
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="icon" variant="ghost" className=' text-red-500 cursor-pointer'>
+                              <Button size="icon" variant="outline" className=' text-red-500 hover:bg-red-50 cursor-pointer'>
                                 <Trash2 className="h-4 w-4 " />
                                 <span className="sr-only">Delete</span>
                               </Button>
