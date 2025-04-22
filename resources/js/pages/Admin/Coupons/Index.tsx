@@ -32,7 +32,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Breadcrumbs } from '@/components/breadcrumbs';

@@ -18,11 +18,12 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('photo')->nullable();
             $table->text('testimonial');
+            $table->text('testimonial_hi')->nullable(); // Keep Hindi translation support
             $table->integer('rating')->default(5)->comment('Rating value from 1 to 5');
             $table->string('designation')->nullable();
             $table->string('company')->nullable();
-            $table->boolean('is_approved')->default(false);
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['active', 'inactive'])->default('inactive');
+            $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }

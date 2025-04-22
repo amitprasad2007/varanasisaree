@@ -12,6 +12,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\VideoProviderController;
 use App\Http\Controllers\ProductVideoController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\TestimonialController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -76,13 +77,20 @@ Route::middleware('auth')->group(function () {
     // Coupons
     Route::resource('coupons', CouponController::class);
     Route::post('coupons/{coupon}/update-status', [CouponController::class, 'updateStatus'])->name('coupons.update-status');
+
+    // Testimonials
+    Route::resource('testimonials', TestimonialController::class);
+    Route::post('testimonials/{testimonial}/update-status', [TestimonialController::class, 'updateStatus'])->name('testimonials.update-status');
+    Route::post('testimonials/{testimonial}/update-approval-status', [TestimonialController::class, 'updateApprovalStatus'])->name('testimonials.update-approval-status');
 });
 
-// Dynamic subcategories dropdown
 
 
 // API Coupon Validation
 Route::post('/api/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
+
+// API Testimonials
+Route::get('/api/testimonials', [TestimonialController::class, 'apiGetTestimonials'])->name('api.testimonials');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

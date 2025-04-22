@@ -1,4 +1,20 @@
-import { Home,Barcode, Building, Settings, User, CreditCard, Bell,Captions,LogOutIcon,PieChart,FolderTree,Video,Image,BadgePercent } from "lucide-react";
+import { 
+  Home,
+  Barcode,
+  Building, 
+  Settings, 
+  User, 
+  CreditCard, 
+  Bell,
+  Captions,
+  LogOutIcon,
+  PieChart,
+  FolderTree,
+  Video,
+  Image,
+  BadgePercent,
+  MessageSquare 
+  } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
@@ -19,6 +35,7 @@ const menuItems = [
   { icon: Image, label: "Banners", path: "/banners"},
   { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: BadgePercent, label: "Coupons", path: "/coupons" },
+  { icon: MessageSquare, label: "Testimonial", path: "/testimonials" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },
@@ -72,7 +89,7 @@ const Sidebar = () => {
     <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-white/10">
       <div className="flex flex-col h-full">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-primary">Finance</h2>
+          <h2 className="text-2xl font-bold text-primary">Admin User</h2>
         </div>
 
         <nav className="flex-1 px-4">

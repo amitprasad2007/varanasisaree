@@ -34,13 +34,27 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Determine the current time in Asia/Kolkata timezone
+  const currentTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const hour = new Date(currentTime).getHours();
+  let greeting;
+
+  // Set greeting based on the hour of the day
+  if (hour < 12) {
+    greeting = "Good Morning!";
+  } else if (hour < 18) {
+    greeting = "Good Afternoon!";
+  } else {
+    greeting = "Good Evening!";
+  }
+
   return (
     <DashboardLayout title="Dashboard">
       <div className="space-y-8">
         <header className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-primary">Good Morning!</h1>
-            <p className="text-secondary-foreground">Welcome back to your financial overview</p>
+            <h1 className="text-4xl font-bold text-primary">{greeting}</h1>
+            <p className="text-secondary-foreground">Welcome back to your Admin Application</p>
           </div>
           <div className="flex items-center space-x-4">
             <button className="glass-card px-4 py-2 rounded-lg hover-scale">
