@@ -22,6 +22,7 @@ import Swal from 'sweetalert2';
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
+  { icon: Image, label: "Banners", path: "/banners"},
   {
     icon: CreditCard,
     label: "Categories",
@@ -30,9 +31,8 @@ const menuItems = [
       { icon:Captions, label: "SubCategories", path: "/subcategories" }
     ]
   },
-  { icon: Building, label: "Brands", path: "/brands" },
+  { icon: Building, label: "Brands", path: "/brands" },   
   { icon: Barcode, label: "Products", path: "/products"},
-  { icon: Image, label: "Banners", path: "/banners"},
   { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: BadgePercent, label: "Coupons", path: "/coupons" },
   { icon: MessageSquare, label: "Testimonial", path: "/testimonials" },

@@ -225,4 +225,23 @@ class CategoryController extends Controller
 
         return redirect()->route('subcatindex');
     }
+
+    public function apiIndex()
+    {
+        $categories = Category::where('status', 'active')
+            ->withCount('subcategories as subcount')
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->description,
+                    'image' => asset('storage/categories/' . $category->photo), // You'll need to handle image storage
+                    'subcount' => $category->subcount,
+                    'slug' => $category->slug,
+                ];
+            });
+
+        return response()->json($categories);
+    }
 }

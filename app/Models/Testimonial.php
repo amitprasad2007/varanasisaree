@@ -57,7 +57,7 @@ class Testimonial extends Model
         return $query->where('approval_status', 'rejected');
     }
 
-    public function getContentInLanguage($language = 'en')
+    public function getTestimonialInLanguage($language = 'en')
     {
         if ($language === 'hi' && !empty($this->content_hi)) {
             return $this->content_hi;

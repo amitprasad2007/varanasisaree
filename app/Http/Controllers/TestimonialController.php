@@ -148,8 +148,8 @@ class TestimonialController extends Controller
     {
         $language = $request->input('lang', 'en');
         
-        $testimonials = Testimonial::where('status', 'approved')
-            ->where('is_approved', true)
+        $testimonials = Testimonial::where('approval_status', 'approved')
+            ->where('status', 'active')
             ->latest()
             ->get()
             ->map(function ($testimonial) use ($language) {
@@ -159,11 +159,13 @@ class TestimonialController extends Controller
                     'designation' => $testimonial->designation,
                     'company' => $testimonial->company,
                     'photo' => $testimonial->photo ? asset('storage/' . $testimonial->photo) : null,
-                    'testimonial' => $testimonial->getTestimonialInLanguage($language),
+                    'testimonial' => $testimonial->testimonial,
                     'rating' => $testimonial->rating,
                 ];
             });
 
         return response()->json($testimonials);
     }
+
+    
 }

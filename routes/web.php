@@ -89,8 +89,16 @@ Route::middleware('auth')->group(function () {
 // API Coupon Validation
 Route::post('/api/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
-// API Testimonials
-Route::get('/api/testimonials', [TestimonialController::class, 'apiGetTestimonials'])->name('api.testimonials');
+
+// Product APIs
+Route::get('/api/featured-products', [ProductController::class, 'getFeaturedProducts']);
+Route::get('/api/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
+
+// Category APIs
+Route::get('/api/categories', [CategoryController::class, 'apiIndex']);
+
+// Testimonial APIs
+Route::get('/api/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
