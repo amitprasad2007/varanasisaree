@@ -168,7 +168,7 @@ class ProductController extends Controller
             ->where('status', 'active')
             ->where('is_bestseller', true)
             ->where('stock_quantity', '>', 0)
-            ->take(2)
+            ->take(5)
             ->get()
             ->map(function ($product) {
                 return [
@@ -177,12 +177,12 @@ class ProductController extends Controller
                     'slug' => $product->slug,
                     'images' => $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
                     'price' => (float) $product->price,
-                    'originalPrice' => $product->discount > 0 ? 
-                        (float) ($product->price + ($product->price * $product->discount / 100)) : 
+                    'originalPrice' => $product->discount > 0 ?
+                        (float) ($product->price + ($product->price * $product->discount / 100)) :
                         null,
                     'rating' => 4.8, // Placeholder - implement real rating system
                     'reviewCount' => 100, // Placeholder - implement real review system
-                    'category' => $product->category->name,
+                    'category' => $product->category->title,
                     'isBestseller' => true
                 ];
             });
