@@ -234,10 +234,10 @@ class CategoryController extends Controller
             ->map(function ($category) {
                 return [
                     'id' => $category->id,
-                    'name' => $category->name,
-                    'description' => $category->description,
-                    'image' => asset('storage/categories/' . $category->photo), // You'll need to handle image storage
-                    'subcount' => $category->subcount,
+                    'name' => $category->title,
+                    'description' => $category->summary,
+                    'image' => asset('storage/' . $category->photo), // You'll need to handle image storage
+                    'count' => $category->subcount,
                     'slug' => $category->slug,
                 ];
             });
