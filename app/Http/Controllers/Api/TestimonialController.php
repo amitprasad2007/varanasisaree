@@ -23,10 +23,10 @@ class TestimonialController extends Controller
                 return [
                     'id' => $testimonial->id,
                     'name' => $testimonial->name,
-                    'designation' => $testimonial->designation,
+                    'role' => $testimonial->designation,
                     'company' => $testimonial->company,
-                    'photo' => $testimonial->photo ? asset('storage/' . $testimonial->photo) : null,
-                    'testimonial' => $testimonial->testimonial,
+                    'image' => $testimonial->photo ? asset('storage/' . $testimonial->photo) : null,
+                    'text' => $testimonial->testimonial,
                     'rating' => $testimonial->rating,
                 ];
             });

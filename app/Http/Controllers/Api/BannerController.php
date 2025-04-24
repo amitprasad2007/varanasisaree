@@ -10,7 +10,18 @@ class BannerController extends Controller
 {
     public function apiGetBanners()
     {
-        $banners = Banner::active()->ordered()->get();
+        $banners = Banner::active()->ordered()->get()->map(function ($banners) {
+            return [
+                'id' => $banners->id,
+                'title' => $banners->title,
+                'subtitle' => $banners->description,
+                'description'=> $banners->description,
+                'image' => asset('storage/' . $banners->image), // You'll need to handle image storage
+                'cta' => $banners->slug,
+                'path' => $banners->link,
+            ];
+        });
+        ;
         return response()->json($banners);
     }
 }

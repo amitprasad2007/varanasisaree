@@ -195,7 +195,7 @@ const Index = ({ banners }: Props) => {
                             <TableCell>
                               {banner.link ? (
                                 <a
-                                  href={banner.link}
+                                  href={import.meta.env.VITE_APP_SENTRY_DSN_PUBLIC+banner.link}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-blue-600 hover:underline truncate block max-w-xs"

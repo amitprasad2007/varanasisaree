@@ -175,7 +175,6 @@ const Create = () => {
                 <Label htmlFor="link">Link URL (Optional)</Label>
                 <Input
                   id="link"
-                  type="url"
                   value={data.link}
                   onChange={e => setData('link', e.target.value)}
                   placeholder="https://example.com/page"
@@ -188,7 +187,7 @@ const Create = () => {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Switch
-                    id="status"                    
+                    id="status"
                     checked={data.status === 'active'}
                     onCheckedChange={checked => setData('status', checked ? 'active' : 'inactive')}
                   />

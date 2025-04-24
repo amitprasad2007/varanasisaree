@@ -2,27 +2,35 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\BannerController;
+use App\Http\Controllers\Api\BrandController;
+use App\HttP\Controllers\Api\CouponController;
+use App\HttP\Controllers\Api\TestimonialController;
+use App\HttP\Controllers\Api\UserController;
+use App\HttP\Controllers\Api\WhishlistController;
+use App\HttP\Controllers\Api\ProductController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
 // Testimonial APIs
-Route::get('/api/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
+Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
 
 // Category APIs
-Route::get('/api/categories', [CategoryController::class, 'apiIndex']);
+Route::get('/categories', [CategoryController::class, 'apiIndex']);
 
 
 
 // Product APIs
-Route::get('/api/featured-products', [ProductController::class, 'getFeaturedProducts']);
-Route::get('/api/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
+Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
+Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
 
-Route::get('/api/getBanners', [BannerController::class, 'apiGetBanners']);
+Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 
 // API Coupon Validation
-Route::post('/api/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
+Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
 
 

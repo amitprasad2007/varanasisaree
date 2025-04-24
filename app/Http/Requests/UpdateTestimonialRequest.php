@@ -24,7 +24,7 @@ class UpdateTestimonialRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,avif|max:3048',
             'testimonial' => 'required|string',
             'testimonial_hi' => 'nullable|string',
             'rating' => 'required|integer|min:1|max:5',

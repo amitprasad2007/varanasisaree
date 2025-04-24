@@ -39,7 +39,7 @@ interface FormData {
 
 const Edit = ({ banner }: Props) => {
   const [imagePreview, setImagePreview] = useState<string | null>(`/storage/${banner.image}`);
-  
+
   const { data, setData, post, processing, errors } = useForm<FormData>({
     title: banner.title || '',
     image: null,
@@ -86,7 +86,7 @@ const Edit = ({ banner }: Props) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setData('image', file);
-      
+
       // Create a preview of the image
       const reader = new FileReader();
       reader.onload = () => {
@@ -99,7 +99,7 @@ const Edit = ({ banner }: Props) => {
   return (
     <DashboardLayout title="Edit Banner">
       <Head title="Edit Banner" />
-      <div className="space-y-4 pb-6">      
+      <div className="space-y-4 pb-6">
       <div className="flex items-center mb-6">
         <Link href={route('banners.index')} className="mr-4">
           <Button variant="outline" size="sm" className='cursor-pointer'>
@@ -144,8 +144,8 @@ const Edit = ({ banner }: Props) => {
                         accept="image/*"
                         onChange={handleImageChange}
                       />
-                      <label 
-                        htmlFor="image" 
+                      <label
+                        htmlFor="image"
                         className="cursor-pointer flex flex-col items-center"
                       >
                         <Upload className="h-8 w-8 text-gray-400 mb-2" />
@@ -157,13 +157,13 @@ const Edit = ({ banner }: Props) => {
                       <p className="text-sm text-red-500 mt-1">{errors.image}</p>
                     )}
                   </div>
-                  
+
                   {imagePreview && (
                     <div className="w-40">
                       <div className="aspect-video rounded-md overflow-hidden bg-gray-100">
-                        <img 
-                          src={imagePreview} 
-                          alt="Banner preview" 
+                        <img
+                          src={imagePreview}
+                          alt="Banner preview"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -190,7 +190,6 @@ const Edit = ({ banner }: Props) => {
                 <Label htmlFor="link">Link URL (Optional)</Label>
                 <Input
                   id="link"
-                  type="url"
                   value={data.link}
                   onChange={e => setData('link', e.target.value)}
                   placeholder="https://example.com/page"
@@ -222,7 +221,7 @@ const Edit = ({ banner }: Props) => {
               <Button
                 type="submit"
                 disabled={processing}
-                className="cursor-pointer hover:bg-gray-100  dark:hover:bg-gray-400 border" 
+                className="cursor-pointer hover:bg-gray-100  dark:hover:bg-gray-400 border"
               >
                 Update Banner
               </Button>
