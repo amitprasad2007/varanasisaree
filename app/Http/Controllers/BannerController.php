@@ -149,9 +149,5 @@ class BannerController extends Controller
         return redirect()->route('banners.index')->with('success', 'Banner status updated successfully.');
     }
 
-    public function apiGetBanners()
-    {
-        $banners = Banner::active()->ordered()->get();
-        return response()->json($banners);
-    }
+    
 }

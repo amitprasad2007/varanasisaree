@@ -226,22 +226,14 @@ class CategoryController extends Controller
         return redirect()->route('subcatindex');
     }
 
-    public function apiIndex()
-    {
-        $categories = Category::where('status', 'active')
-            ->withCount('subcategories as subcount')
-            ->get()
-            ->map(function ($category) {
-                return [
-                    'id' => $category->id,
-                    'name' => $category->title,
-                    'description' => $category->summary,
-                    'image' => asset('storage/' . $category->photo), // You'll need to handle image storage
-                    'count' => $category->subcount,
-                    'slug' => $category->slug,
-                ];
-            });
-
-        return response()->json($categories);
-    }
+     // Get subcategories for a specific category (for dynamic dropdown)
+     public function getSubcategories($categoryId)
+     {
+         $subcategories = Category::where('parent_id', $categoryId)
+             ->where('status', 'active')
+             ->get();
+ 
+         return response()->json($subcategories);
+     }
+   
 }

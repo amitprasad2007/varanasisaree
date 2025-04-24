@@ -141,31 +141,7 @@ class TestimonialController extends Controller
             ->with('success', 'Testimonial approval status updated successfully.');
     }
 
-    /**
-     * API endpoint to get active and approved testimonials
-     */
-    public function apiGetTestimonials(Request $request)
-    {
-        $language = $request->input('lang', 'en');
-        
-        $testimonials = Testimonial::where('approval_status', 'approved')
-            ->where('status', 'active')
-            ->latest()
-            ->get()
-            ->map(function ($testimonial) use ($language) {
-                return [
-                    'id' => $testimonial->id,
-                    'name' => $testimonial->name,
-                    'designation' => $testimonial->designation,
-                    'company' => $testimonial->company,
-                    'photo' => $testimonial->photo ? asset('storage/' . $testimonial->photo) : null,
-                    'testimonial' => $testimonial->testimonial,
-                    'rating' => $testimonial->rating,
-                ];
-            });
-
-        return response()->json($testimonials);
-    }
+   
 
     
 }

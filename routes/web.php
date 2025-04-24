@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('categories', CategoryController::class);
 
     // SubCategories
-    Route::get('get-subcategories/{categoryId}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
+    Route::get('get-subcategories/{categoryId}', [CategoryController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('subcategories', [CategoryController::class, 'subcatindex'] )->name('subcatindex');
     Route::get('subcategoriescreate', [CategoryController::class, 'createsubcate'] )->name('subcategories.create');
     Route::post('subcategoriesstore', [CategoryController::class, 'substore'] )->name('subcategories.store');
@@ -86,19 +86,13 @@ Route::middleware('auth')->group(function () {
 
 
 
-// API Coupon Validation
-Route::post('/api/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
 
-// Product APIs
-Route::get('/api/featured-products', [ProductController::class, 'getFeaturedProducts']);
-Route::get('/api/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
 
-// Category APIs
-Route::get('/api/categories', [CategoryController::class, 'apiIndex']);
 
-// Testimonial APIs
-Route::get('/api/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
+
+
+
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

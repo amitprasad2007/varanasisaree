@@ -86,12 +86,11 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-white/10">
+    <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-b-gray-700">
       <div className="flex flex-col h-full">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-primary">Admin User</h2>
         </div>
-
         <nav className="flex-1 px-4">
           <ul className="space-y-2">
             {menuItems.map((item) => {
@@ -100,7 +99,6 @@ const Sidebar = () => {
               const isSubItemActive = item.subItems?.some(subItem =>
                 url.startsWith(subItem.path)
               );
-
               return (
                 <li key={item.path}>
                   {item.isLogout ? (
@@ -151,7 +149,6 @@ const Sidebar = () => {
             })}
           </ul>
         </nav>
-
         <div className="p-4 mt-auto">
           <div className="flex items-center gap-3 px-4 py-3">
             <User className="h-8 w-8 rounded-full bg-accent p-1" />
