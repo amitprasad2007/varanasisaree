@@ -24,6 +24,8 @@ Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProd
 
 // Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
+Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
+
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');

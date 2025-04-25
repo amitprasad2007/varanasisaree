@@ -14,6 +14,7 @@ class CategoryController extends Controller
     {
         $categories = Category::where('status', 'active')
             ->withCount('subcategories as subcount')
+            ->whereNull('parent_id')
             ->get()
             ->map(function ($category) {
                 return [

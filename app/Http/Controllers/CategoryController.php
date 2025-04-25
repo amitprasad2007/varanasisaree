@@ -18,7 +18,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::with('subcategories')->whereNull('parent_id' )->get();
+        $categories = Category::with('subcategories')->whereNull('parent_id')->get();
         return Inertia::render('Admin/Categories/Index', [
             'categories' => $categories
         ]);
@@ -232,8 +232,8 @@ class CategoryController extends Controller
          $subcategories = Category::where('parent_id', $categoryId)
              ->where('status', 'active')
              ->get();
- 
+
          return response()->json($subcategories);
      }
-   
+
 }
