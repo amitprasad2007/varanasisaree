@@ -11,9 +11,6 @@ use App\HttP\Controllers\Api\UserController;
 use App\HttP\Controllers\Api\WhishlistController;
 use App\HttP\Controllers\Api\ProductController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -21,12 +18,11 @@ Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']
 // Category APIs
 Route::get('/categories', [CategoryController::class, 'apiIndex']);
 
-
-
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
 
+// Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 
 // API Coupon Validation

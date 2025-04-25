@@ -36,6 +36,7 @@ const menuItems = [
   { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: BadgePercent, label: "Coupons", path: "/coupons" },
   { icon: MessageSquare, label: "Testimonial", path: "/testimonials" },
+  { icon: User, label: "User Management", path: "/users" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: LogOutIcon, label: "Logout", path: "/logout", isLogout: true },

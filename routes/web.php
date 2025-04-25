@@ -13,6 +13,7 @@ use App\Http\Controllers\VideoProviderController;
 use App\Http\Controllers\ProductVideoController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\UserManagementController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -82,6 +83,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('testimonials', TestimonialController::class);
     Route::post('testimonials/{testimonial}/update-status', [TestimonialController::class, 'updateStatus'])->name('testimonials.update-status');
     Route::post('testimonials/{testimonial}/update-approval-status', [TestimonialController::class, 'updateApprovalStatus'])->name('testimonials.update-approval-status');
+
+    Route::resource('users', UserManagementController::class);
+
 });
 
 
