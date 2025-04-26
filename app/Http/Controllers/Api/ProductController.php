@@ -64,4 +64,73 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
+
+     /**
+     * Get product details for API
+     */
+
+    public function getProductDetails($slug) {
+        $product = Product::where('slug', $slug)
+                ->get()
+                ->load(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'videos', 'primaryImage','featuredVideo'])
+                ->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'slug' => $product->slug,
+                        'brand'=> $product->brand,
+                        'price'=> (float)$product->price,
+                        'originalPrice'=> (float) ($product->price + ($product->price * $product->discount / 100)),
+                        'discountPercentage'=> $product->discount,
+                        'rating'=> $product->rating,
+                        'reviewCount'=> $product->reviewCount,
+                        'category'=> $product->category,
+                        'subCategory'=> $product->subcategory,
+                        'images'=>$product->imageproducts,
+                        'colors'=>$product->color,
+                        'sizes'=> $product->size,
+                        'stock'=> $product->stock_quantity,
+                        'description'=>$product->description ,
+                        'specifications'=>$product->specifications ,
+                        'isBestseller'=> $product->is_bestseller
+                    ];
+                });
+            return response()->json($product);
+    }
+    public function getRelatedProducts($slug) {
+        // Retrieve the current product
+        $currentProduct = Product::where('slug', $slug)->first();
+
+        if (!$currentProduct) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        // Find related products based on category, subcategory, brand, and price
+        $relatedProducts = Product::with(['imageproducts', 'category'])
+            ->where('id', '!=', $currentProduct->id) // Exclude the current product
+            ->where('category_id', $currentProduct->category_id)
+            ->orWhere('subcategory_id', $currentProduct->subcategory_id)
+            ->orWhere('brand_id', $currentProduct->brand_id)
+            ->orWhereBetween('price', [
+                max(0, $currentProduct->price - 10), // Adjust the range as needed
+                $currentProduct->price + 10
+            ])
+            ->where('status', 'active')
+            ->take(5) // Limit the number of related products
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'images' => $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+                    'price' => (float) $product->price,
+                    'originalPrice' => (float) ($product->price + ($product->price * $product->discount / 100)),
+                    'category' => $product->category->name,
+                ];
+            });
+
+        return response()->json($relatedProducts);
+    }
+    
 }

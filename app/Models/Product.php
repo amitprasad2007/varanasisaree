@@ -56,7 +56,7 @@ class Product extends Model
 
     public function imageproducts(): HasMany
     {
-        return $this->hasMany(ImageProduct::class,'product_id');
+        return $this->hasMany(ImageProduct::class);
     }
     
     public function specifications(): HasMany
@@ -71,11 +71,11 @@ class Product extends Model
 
     public function primaryImage()
     {
-        return $this->hasMany(ImageProduct::class)->where('is_primary', true)->first();
+        return $this->hasMany(ImageProduct::class)->where('is_primary', true);
     }
 
     public function featuredVideo()
     {
-        return $this->hasMany(ProductVideo::class)->where('is_featured', true)->first();
+        return $this->hasMany(ProductVideo::class)->where('is_featured', true);
     }
 }

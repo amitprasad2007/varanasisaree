@@ -21,6 +21,8 @@ Route::get('/categories', [CategoryController::class, 'apiIndex']);
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
+Route::get('/getProductDetails/{slug}',[ProductController::class, 'getProductDetails']); 
+Route::get('/getRelatedProducts /{slug}',[ProductController::class, 'getRelatedProducts']); 
 
 // Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
@@ -29,6 +31,8 @@ Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
+
+
 
 
 
