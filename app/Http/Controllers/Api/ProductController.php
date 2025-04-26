@@ -71,31 +71,46 @@ class ProductController extends Controller
 
     public function getProductDetails($slug) {
         $product = Product::where('slug', $slug)
-                ->get()
-                ->load(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'videos', 'primaryImage','featuredVideo'])
-                ->map(function ($product) {
-                    return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'slug' => $product->slug,
-                        'brand'=> $product->brand,
-                        'price'=> (float)$product->price,
-                        'originalPrice'=> (float) ($product->price + ($product->price * $product->discount / 100)),
-                        'discountPercentage'=> $product->discount,
-                        'rating'=> $product->rating,
-                        'reviewCount'=> $product->reviewCount,
-                        'category'=> $product->category,
-                        'subCategory'=> $product->subcategory,
-                        'images'=>$product->imageproducts,
-                        'colors'=>$product->color,
-                        'sizes'=> $product->size,
-                        'stock'=> $product->stock_quantity,
-                        'description'=>$product->description ,
-                        'specifications'=>$product->specifications ,
-                        'isBestseller'=> $product->is_bestseller
-                    ];
-                });
-            return response()->json($product);
+                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'videos', 'primaryImage', 'featuredVideo'])
+                ->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        return response()->json([
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'brand'=> $product->brand,
+            'price'=> (float)$product->price,
+            'originalPrice'=> (float) ($product->price + ($product->price * $product->discount / 100)),
+            'discountPercentage'=> $product->discount,
+            'rating'=> $product->rating,
+            'reviewCount'=> $product->reviewCount,
+            'category'=> $product->category,
+            'subCategory'=> $product->subcategory,
+            'images'=> $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+            'colors' => [
+                ['name' => "Gold", 'value' => "#D4AF37", 'available' => true],
+                ['name' => "Red", 'value' => "#9E2A2B", 'available' => true],
+                ['name' => "Maroon", 'value' => "#800020", 'available' => true],
+                ['name' => "Navy Blue", 'value' => "#000080", 'available' => false],
+            ],
+            'sizes'=> $product->size,
+            'stock'=> $product->stock_quantity,
+            'description'=> $product->description,
+            'specifications'=> [
+                [ 'name'=> 'Material', 'value'=> 'Pure Katan Silk' ],
+                [ 'name'=> 'Weave', 'value'=> 'Handloom' ],
+                [ 'name'=> 'Zari Type', 'value'=> 'Real Gold Zari (tested)' ],
+                [ 'name'=> 'Length', 'value'=> '5.5 meters (saree), 0.8 meters (blouse)' ],
+                [ 'name'=> 'Width', 'value'=> '45 inches' ],
+                [ 'name'=> 'Weight', 'value'=> '750-800 grams' ],
+                [ 'name'=> 'Care', 'value'=> 'Dry Clean Only' ]
+            ],
+            'isBestseller'=> $product->is_bestseller
+        ]);
     }
     public function getRelatedProducts($slug) {
         // Retrieve the current product
@@ -132,5 +147,5 @@ class ProductController extends Controller
 
         return response()->json($relatedProducts);
     }
-    
+
 }
