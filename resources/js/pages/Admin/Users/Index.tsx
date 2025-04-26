@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Link } from '@inertiajs/react';
 import { Edit, Trash2, UserPlus } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 interface Role {
   id: number;
@@ -15,6 +16,10 @@ interface User {
   id: number;
   name: string;
   email: string;
+  mobile: string;
+  avatar: string | null;
+  is_active: boolean;
+  last_login_at: string;
   roles: Role[];
 }
 
@@ -38,20 +43,41 @@ export default function Index({ users }: { users: User[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Mobile</TableHead>
                 <TableHead>Roles</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Login</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <Avatar>
+                        {user.avatar ? (
+                          <AvatarImage src={`/storage/${user.avatar}`} alt={user.name} />
+                        ) : (
+                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                      <span>{user.name}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.mobile}</TableCell>
                   <TableCell>
                     {user.roles.map(role => role.name).join(', ')}
                   </TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {user.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
+                  <TableCell>{user.last_login_at}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Link href={route('users.edit', user.id)}>

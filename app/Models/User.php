@@ -23,6 +23,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
+        'mobile',
+        'address',
+        'is_active',
     ];
 
     /**
@@ -45,6 +49,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -71,4 +77,20 @@ class User extends Authenticatable
     {
         return $this->roles()->whereIn('name', (array) $roles)->orWhereIn('slug', (array) $roles)->exists();
     }
+
+    public function hasPermission($permission): bool
+    {
+        return $this->roles()->whereHas('permissions', function($query) use ($permission) {
+            $query->where('name', $permission)->orWhere('slug', $permission);
+        })->exists();
+    }
+
+    public function hasAnyPermission($permissions): bool
+    {
+        return $this->roles()->whereHas('permissions', function($query) use ($permissions) {
+            $query->whereIn('name', (array) $permissions)
+                  ->orWhereIn('slug', (array) $permissions);
+        })->exists();
+    }
+
 }
