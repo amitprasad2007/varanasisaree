@@ -28,10 +28,11 @@ Route::get('/getRelatedProducts/{slug}',[ProductController::class, 'getRelatedPr
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 
-
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
+//Customer Logi API
+Route::post('login', [UserController::class, 'userlogin']);
 
 
 
