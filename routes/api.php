@@ -12,6 +12,7 @@ use App\HttP\Controllers\Api\WhishlistController;
 use App\HttP\Controllers\Api\ProductController;
 use App\HttP\Controllers\Api\CartController;
 use App\HttP\Controllers\Api\OrderController;
+use App\HttP\Controllers\Api\AddressController;
 
 
 // Testimonial APIs
@@ -33,9 +34,6 @@ Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
-//Customer Logi API
-Route::post('login', [UserController::class, 'userlogin']);
-
 // Customer Authentication APIs
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
@@ -49,10 +47,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/add', [CartController::class, 'addToCart']);
     Route::put('/cart/update', [CartController::class, 'updateCart']);
     Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
+    Route::get('/cart/checkout', [CartController::class, 'getCheckoutCart']);
 
     // Order operations
     Route::post('/order/buy-now', [OrderController::class, 'buyNow']);
     Route::post('/order/checkout', [OrderController::class, 'checkout']);
+    Route::get('/orders', [OrderController::class, 'listOrders']);
+
+    // Address operations
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 });
 
 

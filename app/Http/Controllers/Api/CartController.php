@@ -109,4 +109,29 @@ class CartController extends Controller
             ->whereNull('order_id')
             ->get();
     }
-} 
+
+    /**
+     * Get cart items for checkout with summary
+     */
+    public function getCheckoutCart(Request $request)
+    {
+        $user = $request->user();
+        $cartItems = $this->getUserCart($user->id);
+
+        // Calculate cart summary
+        $subTotal = $cartItems->sum('amount');
+        $quantity = $cartItems->sum('quantity');
+        $shipping = 0; // You can implement shipping calculation logic here
+        $total = $subTotal + $shipping;
+
+        return response()->json([
+            'cart_items' => $cartItems,
+            'summary' => [
+                'sub_total' => $subTotal,
+                'quantity' => $quantity,
+                'shipping' => $shipping,
+                'total' => $total
+            ]
+        ]);
+    }
+}

@@ -140,4 +140,34 @@ class OrderController extends Controller
             return response()->json(['message' => 'Failed to place order', 'error' => $e->getMessage()], 500);
         }
     }
-} 
+
+    /**
+     * List all orders with optional status filter
+     */
+    public function listOrders(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'nullable|in:pending,shipped,delivered,cancelled',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+        $query = Order::where('user_id', $user->id)
+            ->with(['cartItems.product', 'address'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->get();
+
+        return response()->json([
+            'orders' => $orders
+        ]);
+    }
+}

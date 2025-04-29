@@ -9,4 +9,45 @@ class Order extends Model
 {
     /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'user_id',
+        'address_id',
+        'sub_total',
+        'quantity',
+        'total_amount',
+        'coupon',
+        'payment_method',
+        'payment_status',
+        'status',
+    ];
+
+    /**
+     * Get the user that owns the order.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the address associated with the order.
+     */
+    public function address()
+    {
+        return $this->belongsTo(AddressUser::class, 'address_id');
+    }
+
+    /**
+     * Get the cart items for the order.
+     */
+    public function cartItems()
+    {
+        return $this->hasMany(Cart::class);
+    }
 }
