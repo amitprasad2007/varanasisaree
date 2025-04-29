@@ -40,7 +40,7 @@ Route::post('/login', [UserController::class, 'login']);
 
 // Protected routes that require authentication
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [UserController::class, 'profile']);
+    Route::get('/user', [UserController::class, 'profile']);
     Route::post('/logout', [UserController::class, 'logout']);
 
     // Cart operations

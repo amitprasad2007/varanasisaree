@@ -21,7 +21,7 @@ interface FormData {
   name: string;
   email: string;
   password: string;
-  mobile: string;
+  phone: string;
   address: string;
   avatar: File | null;
   role_ids: number[];
@@ -34,7 +34,7 @@ export default function Create({ roles }: { roles: Role[] }) {
     name: '',
     email: '',
     password: '',
-    mobile: '',
+    phone: '',
     address: '',
     avatar: null,
     role_ids: [],
@@ -70,10 +70,10 @@ export default function Create({ roles }: { roles: Role[] }) {
   return (
     <DashboardLayout title="Create New User">
       <Head title="Create User" />
-      
+
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Create New User</h1>
-        
+
         <form onSubmit={handleSubmit} className="max-w-2xl bg-white p-6 rounded-lg shadow">
           <div className="space-y-4">
           <div className="flex justify-center mb-6">
@@ -133,15 +133,15 @@ export default function Create({ roles }: { roles: Role[] }) {
             </div>
 
             <div>
-            <Label htmlFor="mobile">Mobile</Label>
+            <Label htmlFor="phone">Mobile</Label>
               <Input
-                id="mobile"
+                id="phone"
                 type="tel"
-                value={data.mobile}
-                onChange={e => setData('mobile', e.target.value)}
+                value={data.phone}
+                onChange={e => setData('phone', e.target.value)}
               />
-              {errors.mobile && (
-                <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
+              {errors.phone && (
+                <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
               )}
             </div>
 

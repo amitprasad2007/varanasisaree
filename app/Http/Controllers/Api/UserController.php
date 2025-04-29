@@ -16,7 +16,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'mobile' => 'required|string|max:15|unique:users',
+            'phone' => 'required|string|max:15|unique:users',
             'password' => 'required|string|min:8',
         ]);
 
@@ -27,7 +27,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'mobile' => $request->mobile,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
@@ -43,7 +43,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -51,7 +51,7 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::where('mobile', $request->mobile)->first();
+        $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
@@ -69,7 +69,7 @@ class UserController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
-        
+
         // Load all related data
         $user->load([
             'orders' => function($query) {

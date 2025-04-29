@@ -16,7 +16,7 @@ interface User {
   id: number;
   name: string;
   email: string;
-  mobile: string;
+  phone: string;
   avatar: string | null;
   is_active: boolean;
   last_login_at: string;
@@ -27,7 +27,7 @@ export default function Index({ users }: { users: User[] }) {
   return (
     <DashboardLayout title="User Management">
       <Head title="User Management" />
-      
+
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">User Management</h1>
@@ -68,7 +68,7 @@ export default function Index({ users }: { users: User[] }) {
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.mobile}</TableCell>
+                  <TableCell>{user.phone}</TableCell>
                   <TableCell>
                     {user.roles.map(role => role.name).join(', ')}
                   </TableCell>
