@@ -10,6 +10,8 @@ use App\HttP\Controllers\Api\TestimonialController;
 use App\HttP\Controllers\Api\UserController;
 use App\HttP\Controllers\Api\WhishlistController;
 use App\HttP\Controllers\Api\ProductController;
+use App\HttP\Controllers\Api\CartController;
+use App\HttP\Controllers\Api\OrderController;
 
 
 // Testimonial APIs
@@ -33,6 +35,25 @@ Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('a
 
 //Customer Logi API
 Route::post('login', [UserController::class, 'userlogin']);
+
+// Customer Authentication APIs
+Route::post('/register', [UserController::class, 'register']);
+Route::post('/login', [UserController::class, 'login']);
+
+// Protected routes that require authentication
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::post('/logout', [UserController::class, 'logout']);
+
+    // Cart operations
+    Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::put('/cart/update', [CartController::class, 'updateCart']);
+    Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
+
+    // Order operations
+    Route::post('/order/buy-now', [OrderController::class, 'buyNow']);
+    Route::post('/order/checkout', [OrderController::class, 'checkout']);
+});
 
 
 
