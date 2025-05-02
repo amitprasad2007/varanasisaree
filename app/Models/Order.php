@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -16,6 +18,7 @@ class Order extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'order_id',
         'user_id',
         'address_id',
         'sub_total',
@@ -49,5 +52,17 @@ class Order extends Model
     public function cartItems()
     {
         return $this->hasMany(Cart::class);
+    }
+
+    public function orderItems() {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function vendor() {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function warehouse() {
+        return $this->belongsTo(Warehouse::class);
     }
 }

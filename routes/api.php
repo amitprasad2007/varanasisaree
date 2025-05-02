@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\BrandController;
 use App\HttP\Controllers\Api\CouponController;
 use App\HttP\Controllers\Api\TestimonialController;
 use App\HttP\Controllers\Api\UserController;
-use App\HttP\Controllers\Api\WhishlistController;
+use App\HttP\Controllers\Api\WishlistController;
 use App\HttP\Controllers\Api\ProductController;
 use App\HttP\Controllers\Api\CartController;
 use App\HttP\Controllers\Api\OrderController;
@@ -48,17 +48,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/update', [CartController::class, 'updateCart']);
     Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
     Route::get('/cart/checkout', [CartController::class, 'getCheckoutCart']);
+    Route::get('/cart/summary', [CartController::class, 'getCartSummary']);
 
     // Order operations
     Route::post('/order/buy-now', [OrderController::class, 'buyNow']);
     Route::post('/order/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders', [OrderController::class, 'listOrders']);
+    Route::get('/orders/history', [OrderController::class, 'getOrderHistory']);
 
     // Address operations
-    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::get('/addresses', [AddressController::class, 'getAddresses']);
+    Route::get('/addressesind', [AddressController::class, 'index']);
     Route::post('/addresses', [AddressController::class, 'store']);
     Route::put('/addresses/{id}', [AddressController::class, 'update']);
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+
+    // Wishlist operations
+    Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
 });
 
 

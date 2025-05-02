@@ -148,4 +148,34 @@ class AddressController extends Controller
             'message' => 'Address deleted successfully'
         ]);
     }
+
+    public function getAddresses(Request $request)
+    {
+        $user = $request->user();
+
+        $addresses = AddressUser::where('user_id', $user->id)
+            ->orderBy('is_default', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($address) {
+                $addressLine = $address->address_line1;
+                if ($address->address_line2) {
+                    $addressLine .= ', ' . $address->address_line2;
+                }
+
+                return [
+                    'id' => $address->id,
+                    'name' => $address->full_name,
+                    'type' => ucfirst($address->address_type),
+                    'address' => $addressLine,
+                    'city' => $address->city,
+                    'state' => $address->state,
+                    'postal' => $address->postal_code,
+                    'phone' => $address->phone,
+                    'isDefault' => $address->is_default
+                ];
+            });
+
+        return response()->json($addresses);
+    }
 }

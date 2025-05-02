@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -121,8 +123,13 @@ class User extends Authenticatable
     /**
      * Get the cart items for the user.
      */
-    public function cartItems()
+    public function cart()
     {
         return $this->hasMany(Cart::class);
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(Cart::class)->whereNull('order_id');
     }
 }

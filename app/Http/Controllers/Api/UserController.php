@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,13 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -68,29 +76,8 @@ class UserController extends Controller
 
     public function profile(Request $request)
     {
-        $user = $request->user();
-
-        // Load all related data
-        $user->load([
-            'orders' => function($query) {
-                $query->with('orderItems.product');
-            },
-            'wishlists' => function($query) {
-                $query->with('product');
-            },
-            'addresses',
-            'cartItems' => function($query) {
-                $query->with('product');
-            }
-        ]);
-
-        return response()->json([
-            'user' => $user,
-            'orders' => $user->orders,
-            'wishlists' => $user->wishlists,
-            'addresses' => $user->addresses,
-            'cart_items' => $user->cartItems
-        ]);
+        $user = $request->user()->load(['orders.orderItems.product', 'wishlists.product', 'addresses', 'cartItems.product']);
+        return response()->json($this->userService->formatUserData($user));
     }
 
     public function logout(Request $request)

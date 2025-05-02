@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -132,6 +133,50 @@ class CartController extends Controller
                 'shipping' => $shipping,
                 'total' => $total
             ]
+        ]);
+    }
+
+    public function getCartSummary(Request $request)
+    {
+        $user = $request->user();
+
+        $cartItems = Cart::where('user_id', $user->id)
+            ->whereNull('order_id')
+            ->with('product')
+            ->get();
+
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+
+        // Calculate tax (assuming 18% GST)
+        $tax = $subtotal * 0.18;
+
+        // For this example, we'll use a fixed discount
+        $discount = 5000;
+
+        // Free shipping for this example
+        $shipping = 0;
+
+        $total = $subtotal + $tax + $shipping - $discount;
+
+        $formattedItems = $cartItems->map(function ($item) {
+            return [
+                'id' => $item->product_id,
+                'name' => $item->product->name,
+                'price' => $item->price,
+                'quantity' => $item->quantity,
+                'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+            ];
+        });
+
+        return response()->json([
+            'items' => $formattedItems,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'shipping' => $shipping,
+            'tax' => $tax,
+            'total' => $total
         ]);
     }
 }
