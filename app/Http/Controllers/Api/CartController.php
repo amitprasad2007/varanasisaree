@@ -46,10 +46,28 @@ class CartController extends Controller
             ]);
         }
 
+        // After adding or updating the cart, fetch the latest cart item for this product
+        $cartItem = Cart::with('product')
+            ->where('user_id', $user->id)
+            ->where('product_id', $product->id)
+            ->whereNull('order_id')
+            ->latest('updated_at')
+            ->first();
+
         return response()->json([
             'message' => 'Product added to cart successfully',
-            'cart' => $this->getUserCart($user->id)
+            'item' => [
+                'id' => $cartItem->id,
+                'product_id' => $cartItem->product_id,
+                'quantity' => $cartItem->quantity,
+                'name' => $cartItem->product->name ?? '',
+                'price' => $cartItem->price,
+                'image' => $cartItem->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'color' => $cartItem->product->color ?? '',
+                'slug' => $cartItem->product->slug ?? '',
+            ]
         ]);
+
     }
 
     public function updateCart(Request $request)
@@ -119,6 +137,21 @@ class CartController extends Controller
         $user = $request->user();
         $cartItems = $this->getUserCart($user->id);
 
+        // Map cart items to the required format
+        $formattedCartItems = $cartItems->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->product->name ?? '',
+                'slug' => $item->product->slug ?? '',
+                'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'price' => $item->price,
+                'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
+                'quantity' => $item->quantity,
+                'color' => $item->product->color ?? '',
+                'maxQuantity' => $item->product->max_quantity ?? 10, // fallback if not available
+            ];
+        });
+
         // Calculate cart summary
         $subTotal = $cartItems->sum('amount');
         $quantity = $cartItems->sum('quantity');
@@ -126,7 +159,7 @@ class CartController extends Controller
         $total = $subTotal + $shipping;
 
         return response()->json([
-            'cart_items' => $cartItems,
+            'cart_items' => $formattedCartItems,
             'summary' => [
                 'sub_total' => $subTotal,
                 'quantity' => $quantity,
