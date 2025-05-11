@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -118,6 +119,11 @@ class User extends Authenticatable
     public function addresses()
     {
         return $this->hasMany(AddressUser::class);
+    }
+
+    public function addressesdefault()
+    {
+        return $this->hasone(AddressUser::class)->where('is_default', true);
     }
 
     /**

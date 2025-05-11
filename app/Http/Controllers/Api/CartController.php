@@ -136,6 +136,7 @@ class CartController extends Controller
     {
         $user = $request->user();
         $cartItems = $this->getUserCart($user->id);
+       // dd($cartItems);
 
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
@@ -157,8 +158,9 @@ class CartController extends Controller
         $quantity = $cartItems->sum('quantity');
         $shipping = 0; // You can implement shipping calculation logic here
         $total = $subTotal + $shipping;
-
+        $cartdetails = $this->getUserCart($user->id);
         return response()->json([
+            'cartdetails' => $cartdetails,
             'cart_items' => $formattedCartItems,
             'summary' => [
                 'sub_total' => $subTotal,
@@ -171,7 +173,7 @@ class CartController extends Controller
 
     public function getCartSummary(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user()->load('addressesdefault');
 
         $cartItems = Cart::where('user_id', $user->id)
             ->whereNull('order_id')
@@ -204,6 +206,7 @@ class CartController extends Controller
         });
 
         return response()->json([
+            'address' => $user->addressesdefault,
             'items' => $formattedItems,
             'subtotal' => $subtotal,
             'discount' => $discount,
