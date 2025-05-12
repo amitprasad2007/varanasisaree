@@ -123,7 +123,7 @@ class CartController extends Controller
 
     public function getUserCart($userId)
     {
-        return Cart::with('product')
+        return Cart::with('product', 'product.primaryImage')
             ->where('user_id', $userId)
             ->whereNull('order_id')
             ->get();
@@ -136,7 +136,6 @@ class CartController extends Controller
     {
         $user = $request->user();
         $cartItems = $this->getUserCart($user->id);
-       // dd($cartItems);
 
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
@@ -144,7 +143,7 @@ class CartController extends Controller
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
-                'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
                 'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
                 'quantity' => $item->quantity,
@@ -201,7 +200,7 @@ class CartController extends Controller
                 'name' => $item->product->name,
                 'price' => $item->price,
                 'quantity' => $item->quantity,
-                'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
             ];
         });
 

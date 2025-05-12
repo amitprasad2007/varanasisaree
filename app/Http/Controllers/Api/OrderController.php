@@ -112,15 +112,19 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
+                'order_id' => 'ORD-' . strtoupper(uniqid()), // Generate a unique order ID
                 'user_id' => $user->id,
                 'address_id' => $address->id,
                 'sub_total' => $subTotal,
+                'shipping_id' => 1, // Assuming a fixed shipping ID for this example
                 'quantity' => $quantity,
                 'total_amount' => $totalAmount,
                 'coupon' => $discount,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
-                'status' => 'pending'
+                'status' => 'pending',
+                'transaction_id' => $request->payment_method === 'razorpay' ? $request->razorpay_payment_id : null,
+                'payment_details' => json_encode($request->all())
             ]);
 
             // Update cart items with order_id

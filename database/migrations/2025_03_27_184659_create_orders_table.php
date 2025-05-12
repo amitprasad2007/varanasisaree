@@ -25,6 +25,7 @@ return new class extends Migration
             $table->enum('payment_status', ['paid', 'unpaid'])->default('unpaid');
             $table->enum('status', ['pending', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->string('transaction_id')->nullable();
+            $table->json('payment_details')->nullable();
             $table->timestamps();
         });
     }
