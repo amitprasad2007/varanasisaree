@@ -63,7 +63,7 @@ class AddressController extends Controller
 
         $address = AddressUser::create([
             'user_id' => $user->id,
-            'name' => $request->name,
+            'full_name' => $request->name,
             'phone' => $request->phone,
             'address_line1' => $request->address_line1,
             'address_line2' => $request->address_line2,
