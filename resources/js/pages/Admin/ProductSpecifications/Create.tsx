@@ -64,57 +64,56 @@ export default function Create({ product }: CreateProps) {
   ];
   return (
     <DashboardLayout title={`Add Specification: ${product.name}`}>
-      <div className="max-w-xl mx-auto">
-      <div className="space-y-4 pb-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Add Specification</h1>
-          <Button variant="outline" asChild>
-            <Link href={route('product-specifications.index', product.id)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Specifications
-            </Link>
-          </Button>
+        <div className="space-y-4 pb-6">
+            <div className="space-y-4 pb-6">
+                <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold tracking-tight">Add Specification</h1>
+                <Button variant="outline" className="hover:bg-gray-100 dark:hover:bg-gray-800" asChild>
+                    <Link href={route('product-specifications.index', product.id)}>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Specifications
+                    </Link>
+                </Button>
+                </div>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </div>
         </div>
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </div>
-
         <Card>
-          <CardHeader>
-            <CardTitle>Add New Specification for {product.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Name <span className="text-red-500">*</span></Label>
-                    <Input
-                      value={data.name}
-                      onChange={e => setData('name', e.target.value)}
-                      placeholder="e.g., Material, Length, Dimensions"
-                    />
-                  {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+            <CardHeader>
+                <CardTitle>Add New Specification for {product.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                    <Label>Name <span className="text-red-500">*</span></Label>
+                        <Input
+                        value={data.name}
+                        onChange={e => setData('name', e.target.value)}
+                        placeholder="e.g., Material, Length, Dimensions"
+                        />
+                    {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                    </div>
+                    <div className="space-y-2">
+                    <Label>Value <span className="text-red-500">*</span></Label>
+                        <Input
+                        value={data.value}
+                        onChange={e => setData('value', e.target.value)}
+                        placeholder="e.g., Cotton, 5.5 meters, 10x15 cm"
+                        />
+                    {errors.value && <p className="text-sm text-red-600">{errors.value}</p>}
+                    </div>
+                    <div className="pt-4">
+                    <Button
+                        variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 " disabled={processing}
+                    >
+                        {processing ? 'Adding...' : 'Add Specification'}
+                    </Button>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Value <span className="text-red-500">*</span></Label>
-                    <Input
-                      value={data.value}
-                      onChange={e => setData('value', e.target.value)}
-                      placeholder="e.g., Cotton, 5.5 meters, 10x15 cm"
-                    />
-                  {errors.value && <p className="text-sm text-red-600">{errors.value}</p>}
-                </div>
-                <div className="pt-4">
-                  <Button
-                    variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 w-full" disabled={processing}
-                  >
-                    {processing ? 'Adding...' : 'Add Specification'}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </CardContent>
+                </form>
+            </CardContent>
         </Card>
-      </div>
     </DashboardLayout>
   );
 }

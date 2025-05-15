@@ -94,13 +94,13 @@ export default function Index({ product, specifications }: Props) {
             </p>
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" asChild>
+            <Button variant="outline" className="hover:bg-gray-100 dark:hover:bg-gray-800" asChild>
               <Link href={route('products.show', product.id)}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Product
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" className="hover:bg-gray-100 dark:hover:bg-gray-800" asChild>
               <Link href={route('product-specifications.create', product.id)}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Specification
