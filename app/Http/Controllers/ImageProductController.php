@@ -40,7 +40,7 @@ class ImageProductController extends Controller
      */
     public function store(StoreImageProductRequest $request,Product $product)
     {
-       // dd($request);
+        dd($request);
 
         $images = $request->file('images');
         $altText = $request->input('alt_text', '');

@@ -82,7 +82,7 @@ export default function Index({ products }: Props) {
                   <TableCell>{product.category?.title || 'N/A'}</TableCell>
                   <TableCell>{product.subcategory?.title || 'N/A'}</TableCell>
                   <TableCell>{product.brand?.name || 'N/A'}</TableCell>
-                  <TableCell>${product.price}</TableCell>
+                  <TableCell>₹ {product.price}</TableCell>
                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${

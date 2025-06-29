@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { GripVertical, Plus, Eye, EyeOff, Edit, Trash2, Image } from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from "sweetalert2";
