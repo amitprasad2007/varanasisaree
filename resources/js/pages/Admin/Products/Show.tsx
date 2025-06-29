@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from '@/Components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Pencil, ArrowLeft, Image, ListChecks, Video } from 'lucide-react';
 interface product {
     id: number;
@@ -168,7 +168,7 @@ export default function Show({ product }: Props) {
                 <TableBody>
                   <TableRow>
                     <TableHead className="w-[180px]">Price</TableHead>
-                    <TableCell>${parseFloat(product.price).toFixed(2)}</TableCell>
+                    <TableCell>₹{parseFloat(product.price).toFixed(2)}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableHead>Discount</TableHead>
@@ -177,7 +177,7 @@ export default function Show({ product }: Props) {
                   <TableRow>
                     <TableHead>Final Price</TableHead>
                     <TableCell>
-                      ${(Number(product.price) * (1 - Number(product.discount) / 100)).toFixed(2)}
+                      ₹{(Number(product.price) * (1 - Number(product.discount) / 100)).toFixed(2)}
                     </TableCell>
                   </TableRow>
                   <TableRow>
