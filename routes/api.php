@@ -5,14 +5,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\BrandController;
-use App\HttP\Controllers\Api\CouponController;
-use App\HttP\Controllers\Api\TestimonialController;
-use App\HttP\Controllers\Api\UserController;
-use App\HttP\Controllers\Api\WishlistController;
-use App\HttP\Controllers\Api\ProductController;
-use App\HttP\Controllers\Api\CartController;
-use App\HttP\Controllers\Api\OrderController;
-use App\HttP\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\TestimonialController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\AddressController;
 
 
 // Testimonial APIs

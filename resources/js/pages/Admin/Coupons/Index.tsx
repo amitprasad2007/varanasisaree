@@ -212,7 +212,7 @@ export default function Index({ coupons }: IndexProps) {
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Link href={route('coupons.edit', coupon.id)}>
-                        <Button className='cursor-pointer' variant="outline" size="sm">
+                        <Button  variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>

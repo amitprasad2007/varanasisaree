@@ -28,7 +28,7 @@ class AddressController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address_line1' => 'required|string|max:255',
             'address_line2' => 'nullable|string|max:255',
@@ -63,7 +63,7 @@ class AddressController extends Controller
 
         $address = AddressUser::create([
             'user_id' => $user->id,
-            'full_name' => $request->name,
+            'full_name' => $request->full_name,
             'phone' => $request->phone,
             'address_line1' => $request->address_line1,
             'address_line2' => $request->address_line2,

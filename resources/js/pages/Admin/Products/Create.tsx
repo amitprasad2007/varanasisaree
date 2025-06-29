@@ -105,17 +105,17 @@ export default function Create({ categories, brands }: { categories: Category[];
   return (
     <DashboardLayout title="Create Product">
         <div className="space-y-4 pb-6">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Create New Product</h1>
-            <Button
-                variant="outline"
-                onClick={() => window.history.back()}
-                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-                Cancel
-            </Button>
-        </div>
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold">Create New Product</h1>
+                <Button
+                    variant="outline"
+                    onClick={() => window.history.back()}
+                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                    Cancel
+                </Button>
+            </div>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
         </div>
         <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
             <form onSubmit={handleSubmit} className="space-y-6">

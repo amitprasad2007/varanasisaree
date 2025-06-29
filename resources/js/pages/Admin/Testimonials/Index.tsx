@@ -2,22 +2,22 @@ import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { PlusIcon, TrashIcon, PencilIcon, Trash2 } from 'lucide-react';
@@ -25,16 +25,16 @@ import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
-import { 
-  AlertDialog, 
-  AlertDialogTrigger, 
-  AlertDialogContent, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogCancel, 
-  AlertDialogAction 
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction
 } from '@/components/ui/alert-dialog';
 
 interface Testimonial {
@@ -178,9 +178,9 @@ export default function Index({ testimonials }: Props) {
                     <TableRow key={testimonial.id}>
                       <TableCell>
                         {testimonial.photo ? (
-                          <img 
-                            src={`/storage/${testimonial.photo}`} 
-                            alt={testimonial.name} 
+                          <img
+                            src={`/storage/${testimonial.photo}`}
+                            alt={testimonial.name}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
@@ -216,8 +216,8 @@ export default function Index({ testimonials }: Props) {
                         )}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        <Switch 
-                          checked={testimonial.status === 'active'} 
+                        <Switch
+                          checked={testimonial.status === 'active'}
                           onCheckedChange={(checked) => handleStatusChange(testimonial, checked)}
                         />
                       </TableCell>
@@ -225,13 +225,13 @@ export default function Index({ testimonials }: Props) {
                         <div className="flex flex-col space-y-1">
                           {getApprovalBadge(testimonial.approval_status)}
                           <div className="mt-1 flex space-x-1">
-                            <button 
+                            <button
                               onClick={() => handleApprovalStatusChange(testimonial, 'approved')}
                               className={`cursor-pointer text-xs px-1 rounded ${testimonial.approval_status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
                             >
                               Approve
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleApprovalStatusChange(testimonial, 'rejected')}
                               className={`cursor-pointer text-xs px-1 rounded ${testimonial.approval_status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}
                             >
@@ -242,7 +242,7 @@ export default function Index({ testimonials }: Props) {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm" asChild>
                             <Link href={route('testimonials.edit', testimonial.id)}>
                               <PencilIcon className="h-4 w-4" />
                             </Link>

@@ -66,11 +66,11 @@ export default function Edit({ product, specification }: EditProps) {
 
   return (
     <DashboardLayout title={`Edit Specification: ${specification.name}`}>
-      <div className="max-w-xl mx-auto">
+
       <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Edit Specification</h1>
-          <Button variant="outline" asChild>
+          <Button variant="outline" className='hover:bg-gray-100 dark:hover:bg-gray-800' asChild>
             <Link href={route('product-specifications.index', product.id)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Specifications
@@ -111,7 +111,7 @@ export default function Edit({ product, specification }: EditProps) {
 
                 <div className="pt-4">
                   <Button
-                     variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 w-full" disabled={processing}
+                     variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}
                   >
                     {processing ? 'Updating...' : 'Update Specification'}
                   </Button>
@@ -120,7 +120,7 @@ export default function Edit({ product, specification }: EditProps) {
             </form>
           </CardContent>
         </Card>
-      </div>
+
     </DashboardLayout>
   );
 }

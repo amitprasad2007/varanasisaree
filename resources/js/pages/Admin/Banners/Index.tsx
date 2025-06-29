@@ -227,7 +227,7 @@ const Index = ({ banners }: Props) => {
                             <TableCell>
                               <div className="flex space-x-2">
                                 <Link href={route('banners.edit', banner.id)}>
-                                  <Button variant="outline" size="sm">
+                                  <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                                     <Edit className="h-4 w-4 cursor-pointer" />
                                     <span className="sr-only">Edit</span>
                                   </Button>

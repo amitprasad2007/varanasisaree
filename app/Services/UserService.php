@@ -51,7 +51,7 @@ class UserService
                     return [
                         'id' => $item->product_id,
                         'name' => $item->product->name,
-                        'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                        'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                     ];
@@ -68,7 +68,7 @@ class UserService
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
-                'image' => $product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'image' => $product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
                 'price' => $product->price,
                 'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
                 'category' => $product->category->name ?? 'Uncategorized',
@@ -116,7 +116,7 @@ class UserService
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                    'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
                 ];
             }),
             'subtotal' => $subtotal,
