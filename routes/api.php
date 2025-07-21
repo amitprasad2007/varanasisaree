@@ -13,7 +13,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AddressController;
-
+use App\Http\Controllers\Api\PaymentController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -55,6 +55,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders', [OrderController::class, 'listOrders']);
     Route::get('/orders/history', [OrderController::class, 'getOrderHistory']);
+
+    // Payment operations
+    Route:: post('createrazorpayorder', [PaymentController::class, 'createOrder']);
+
 
     // Address operations
     Route::get('/addresses', [AddressController::class, 'getAddresses']);

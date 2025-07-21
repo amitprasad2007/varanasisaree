@@ -187,7 +187,7 @@ class CartController extends Controller
         $tax = $subtotal * 0.18;
 
         // For this example, we'll use a fixed discount
-        $discount = 5000;
+        $discount = 1000;
 
         // Free shipping for this example
         $shipping = 0;
@@ -196,6 +196,7 @@ class CartController extends Controller
 
         $formattedItems = $cartItems->map(function ($item) {
             return [
+                'cart_id' => $item->id,
                 'id' => $item->product_id,
                 'name' => $item->product->name,
                 'price' => $item->price,
