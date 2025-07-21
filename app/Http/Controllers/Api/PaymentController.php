@@ -46,7 +46,7 @@ class PaymentController extends Controller
                 $cart->save();
             }
         }
-        $customer_name = $request->shipping['firstName']." ".$request->shipping['lastName'];
+        $customer_name = $user->name;
         $amountto = $order->total_amount;
         $amounttotal = round($amountto * 100);
 
