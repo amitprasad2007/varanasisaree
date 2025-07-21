@@ -80,5 +80,54 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function paychecksave(Request $request){
+        $user = auth()->user();
+        $payment_id = $request->response['razorpay_payment_id'];
+        $order_id = $request->response['razorpay_order_id'];
+        $signature = $request->response['razorpay_signature'];
+        $totalamount = $request->orderData['total'];
+        $api = new Api(env('RAZOR_KEY_ID'), env('RAZOR_KEY_SECRET'));
+        $payment = $api->payment->fetch($payment_id);
+        if ($payment->status === 'captured'){
+            $payment_save = Payment::create([
+                'payment_id'=> $payment->id,
+                'amount'=> $payment->amount,
+                'status'=> $payment->status,
+                'method'=> $payment->method,
+                'order_id'=> $payment->description,
+                'rzorder_id'=> $payment->order_id,
+                'card_id' => $payment->card_id,
+                'email' => $payment->email,
+                'contact'=> $payment->contact,
+                'user_id' =>auth()->user()->id,
+                'payment_details'=> json_encode($payment->toArray())
+            ]);
+            Order::where('transaction_id', $payment->order_id)->update(['payment_status' => 'paid','status'=>'processing']);
+            return response()->json([
+                'orderId' => $payment->description,
+                'success' => true
+            ]);
+        }else{
+            $response = $payment->capture(array('amount' => $totalamount));
+            $payment_save = Payment::create([
+                'payment_id'=> $response->id,
+                'amount'=> $response->amount,
+                'status'=> $response->status,
+                'method'=> $response->method,
+                'order_id'=> $response->description,
+                'rzorder_id'=> $response->order_id,
+                'card_id' => $response->card_id,
+                'email' => $response->email,
+                'contact'=> $response->contact,
+                'user_id' =>auth()->user()->id,
+                'payment_details'=> json_encode($response->toArray())
+            ]);
+            Order::where('transaction_id', $response->order_id)->update(['payment_status' => 'paid','status'=>'process']);
+            return response()->json([
+                'orderId' => $response->description,
+                'success' => true
+            ]);
+        }
+    }
 }
 

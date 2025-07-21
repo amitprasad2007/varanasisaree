@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Payment operations
     Route:: post('createrazorpayorder', [PaymentController::class, 'createOrder']);
-
+    Route:: post('paychecksave', [PaymentController::class, 'paychecksave']);
 
     // Address operations
     Route::get('/addresses', [AddressController::class, 'getAddresses']);

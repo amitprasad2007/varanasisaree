@@ -13,6 +13,19 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->string('payment_id')->unique();
+            $table->float('amount');
+            $table->string('status');
+            $table->string('method');
+            $table->string('rzorder_id')->nullable();
+            $table->string('order_id')->nullable();
+            $table->foreign('order_id')->references('order_id')->on('orders')->onDelete('SET NULL');
+            $table->string('card_id')->nullable();
+            $table->string('email')->nullable();
+            $table->string('contact')->nullable();
+            $table->json('payment_details')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('SET NULL');
             $table->timestamps();
         });
     }
