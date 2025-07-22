@@ -129,9 +129,6 @@ class CartController extends Controller
             ->get();
     }
 
-    /**
-     * Get cart items for checkout with summary
-     */
     public function getCheckoutCart(Request $request)
     {
         $user = $request->user();
