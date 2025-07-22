@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route:: post('createrazorpayorder', [PaymentController::class, 'createOrder']);
     Route:: post('paychecksave', [PaymentController::class, 'paychecksave']);
     Route:: get('orderdetails/{orid}', [OrderController::class, 'orderdetails']);
+    Route:: get('order/pdf/{orid}', [OrderController::class, 'generateInvoicePdf'])->name('api.order.pdf');
 
     // Address operations
     Route::get('/addresses', [AddressController::class, 'getAddresses']);

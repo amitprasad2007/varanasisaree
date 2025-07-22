@@ -66,4 +66,8 @@ class Order extends Model
     public function warehouse() {
         return $this->belongsTo(Warehouse::class);
     }
+
+    public function payment(){
+        return $this->hasOne(Payment::class,'order_id','order_number');
+    }
 }

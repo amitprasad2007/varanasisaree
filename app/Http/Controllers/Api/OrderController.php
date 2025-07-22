@@ -215,7 +215,7 @@ class OrderController extends Controller
     }
 
     public function orderdetails(Request $request,$orid){
-        $orderdetails = Order::where('order_number',$orid)->with(['address','orderItems.product.photoproduct','payment'])->get();
+        $orderdetails = Order::where('order_id',$orid)->with(['address','orderItems.product.imageproducts','payment'])->get();
 
         if (!$orderdetails) {
             return response()->json(['message' => 'Order not found'], 404);
@@ -223,7 +223,7 @@ class OrderController extends Controller
 
         $formattedOrder = $orderdetails->map(function($item) {
             return [
-                'order_number' => $item->order_number,
+                'order_id' => $item->order_id,
                 'order_date' => $item->created_at,
                 'order_status' => $item->status,
                 'order_total' => $item->total_amount,
@@ -242,12 +242,12 @@ class OrderController extends Controller
                 'tax'=> $item->tax,
                 'payment_method' => $item->payment_method,
                 'payment_online_details' => $item->payment ? $item->payment->toArray() : [],
-                'invoice_download_url' => route('api.order.pdf', $item->order_number),
+                'invoice_download_url' => route('api.order.pdf', $item->order_id),
                 'order_items' => $item->orderItems->map(function($item) {
                     return [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->title,
-                        'product_image' => $item->product->photoproduct->first() ? asset('storage/products/photos/thumbnails/'.$item->product->photoproduct->first()->photo_path) : null,
+                        'product_image' => $item->product->imageproducts->first() ? asset('storage/products/photos/thumbnails/'.$item->product->imageproducts->first()->photo_path) : null,
                         'product_price' => $item->product->price,
                         'product_discount' => $item->product->discount,
                         'product_price_after_discount' => $item->product->price - ($item->product->price * $item->product->discount) / 100,
