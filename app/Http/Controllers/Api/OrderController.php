@@ -213,4 +213,49 @@ class OrderController extends Controller
 
         return response()->json($orders);
     }
+
+    public function orderdetails(Request $request,$orid){
+        $orderdetails = Order::where('order_number',$orid)->with(['address','orderItems.product.photoproduct','payment'])->get();
+
+        if (!$orderdetails) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $formattedOrder = $orderdetails->map(function($item) {
+            return [
+                'order_number' => $item->order_number,
+                'order_date' => $item->created_at,
+                'order_status' => $item->status,
+                'order_total' => $item->total_amount,
+                'order_address' => $item->address->address . ' ' . $item->address->address2,
+                'order_city' => $item->address->city,
+                'shippingcost' => $item->shippingcost,
+                'sub_total' => $item->sub_total,
+                'firstName'=> $item->address->firstName,
+                'lastName'=> $item->address->lastName,
+                'order_state' => $item->address->state,
+                'order_zip' => $item->address->postal_code,
+                'order_country' => $item->address->country,
+                'order_phone' => $item->address->mobile,
+                'order_email' => $item->user->email,
+                'payment_status'=> $item->payment_status,
+                'tax'=> $item->tax,
+                'payment_method' => $item->payment_method,
+                'payment_online_details' => $item->payment ? $item->payment->toArray() : [],
+                'invoice_download_url' => route('api.order.pdf', $item->order_number),
+                'order_items' => $item->orderItems->map(function($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->title,
+                        'product_image' => $item->product->photoproduct->first() ? asset('storage/products/photos/thumbnails/'.$item->product->photoproduct->first()->photo_path) : null,
+                        'product_price' => $item->product->price,
+                        'product_discount' => $item->product->discount,
+                        'product_price_after_discount' => $item->product->price - ($item->product->price * $item->product->discount) / 100,
+                        'product_quantity' => $item->quantity,
+                    ];
+                })
+            ];
+        });
+        return response()->json($formattedOrder);
+    }
 }
