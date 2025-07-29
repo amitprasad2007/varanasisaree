@@ -27,8 +27,8 @@ class PaymentController extends Controller
             'shippingcost' => $request->shippingcost,
             'tax' => $request->tax,
             'total_amount' => $request->total,
-            'payment_method' => ($request->paymentMethod == 'online') ? 'razorpay' : 'cod',
-            'payment_status' => ($request->paymentMethod == 'online') ? 'paid' : 'unpaid',
+            'payment_method' => ($request->payment_method == 'online') ? 'razorpay' : 'cod',
+            'payment_status' => ($request->payment_method == 'online') ? 'paid' : 'unpaid',
             'status' => 'pending',
             'shipping_id' => null // Set shipping_id to null since we're using address_id instead
         ]);

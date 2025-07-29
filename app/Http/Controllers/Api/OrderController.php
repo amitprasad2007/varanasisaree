@@ -145,9 +145,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * List all orders with optional status filter
-     */
     public function listOrders(Request $request)
     {
         $validator = Validator::make($request->all(), [
