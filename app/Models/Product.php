@@ -78,4 +78,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductVideo::class)->where('is_featured', true);
     }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 }

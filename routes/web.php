@@ -84,6 +84,10 @@ Route::middleware('auth')->group(function () {
     Route::post('testimonials/{testimonial}/update-status', [TestimonialController::class, 'updateStatus'])->name('testimonials.update-status');
     Route::post('testimonials/{testimonial}/update-approval-status', [TestimonialController::class, 'updateApprovalStatus'])->name('testimonials.update-approval-status');
 
+    Route::resource('colors', ColorController::class);
+    Route::resource('sizes', SizeController::class);
+    Route::resource('products.variants', ProductVariantController::class);
+
     Route::resource('users', UserManagementController::class);
 
 });
