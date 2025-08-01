@@ -3,67 +3,118 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductVariant;
-use App\Http\Requests\StoreProductVariantRequest;
-use App\Http\Requests\UpdateProductVariantRequest;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\Color;
+use App\Models\Size;
 use Illuminate\Support\Facades\Storage;
 
 class ProductVariantController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Product $product)
     {
-        //
+        $variants = ProductVariant::with(['color', 'size'])
+            ->where('product_id', $product->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Admin/ProductVariants/Index', [
+            'product' => $product,
+            'variants' => $variants
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(Product $product)
     {
-        //
+        $colors = Color::where('status', 'active')->get();
+        $sizes = Size::where('status', 'active')->get();
+
+        return Inertia::render('Admin/ProductVariants/Create', [
+            'product' => $product,
+            'colors' => $colors,
+            'sizes' => $sizes
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProductVariantRequest $request)
+    public function store(Request $request, Product $product)
     {
-        //
+        $request->validate([
+            'color_id' => 'nullable|exists:colors,id',
+            'size_id' => 'nullable|exists:sizes,id',
+            'sku' => 'required|string|unique:product_variants,sku',
+            'price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'stock_quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $data = $request->all();
+        $data['product_id'] = $product->id;
+        $data['discount'] = $data['discount'] ?? 0;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('product-variants', 'public');
+            $data['image_path'] = $imagePath;
+        }
+
+        ProductVariant::create($data);
+
+        return redirect()->route('product-variants.index', $product)->with('success', 'Product variant created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(ProductVariant $productVariant)
+    public function edit(Product $product, ProductVariant $variant)
     {
-        //
+        $colors = Color::where('status', 'active')->get();
+        $sizes = Size::where('status', 'active')->get();
+
+        return Inertia::render('Admin/ProductVariants/Edit', [
+            'product' => $product,
+            'variant' => $variant->load(['color', 'size']),
+            'colors' => $colors,
+            'sizes' => $sizes
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ProductVariant $productVariant)
+    public function update(Request $request, Product $product, ProductVariant $variant)
     {
-        //
+        $request->validate([
+            'color_id' => 'nullable|exists:colors,id',
+            'size_id' => 'nullable|exists:sizes,id',
+            'sku' => 'required|string|unique:product_variants,sku,' . $variant->id,
+            'price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'stock_quantity' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $data = $request->all();
+        $data['discount'] = $data['discount'] ?? 0;
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($variant->image_path) {
+                Storage::disk('public')->delete($variant->image_path);
+            }
+
+            $imagePath = $request->file('image')->store('product-variants', 'public');
+            $data['image_path'] = $imagePath;
+        }
+
+        $variant->update($data);
+
+        return redirect()->route('product-variants.index', $product)->with('success', 'Product variant updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProductVariantRequest $request, ProductVariant $productVariant)
+    public function destroy(Product $product, ProductVariant $variant)
     {
-        //
-    }
+        if ($variant->image_path) {
+            Storage::disk('public')->delete($variant->image_path);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ProductVariant $productVariant)
-    {
-        //
+        $variant->delete();
+        return redirect()->route('product-variants.index', $product)->with('success', 'Product variant deleted successfully.');
     }
 }

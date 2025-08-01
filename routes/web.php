@@ -14,6 +14,9 @@ use App\Http\Controllers\ProductVideoController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\ColorController;
+use App\Http\Controllers\SizeController;
+use App\Http\Controllers\ProductVariantController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -57,7 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::put('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'update'])->name('product-specifications.update');
     Route::delete('products/{product}/specifications/{productSpecification}', [ProductSpecificationController::class, 'destroy'])->name('product-specifications.destroy');
     // Video Providers
-    
+
     Route::resource('video-providers', VideoProviderController::class);
 
     // Product Videos
@@ -84,9 +87,17 @@ Route::middleware('auth')->group(function () {
     Route::post('testimonials/{testimonial}/update-status', [TestimonialController::class, 'updateStatus'])->name('testimonials.update-status');
     Route::post('testimonials/{testimonial}/update-approval-status', [TestimonialController::class, 'updateApprovalStatus'])->name('testimonials.update-approval-status');
 
+    // Colors
     Route::resource('colors', ColorController::class);
+    // Sizes
     Route::resource('sizes', SizeController::class);
-    Route::resource('products.variants', ProductVariantController::class);
+    // Product Variants
+    Route::get('products/{product}/variants', [ProductVariantController::class, 'index'])->name('product-variants.index');
+    Route::get('products/{product}/variants/create', [ProductVariantController::class, 'create'])->name('product-variants.create');
+    Route::post('products/{product}/variants', [ProductVariantController::class, 'store'])->name('product-variants.store');
+    Route::get('products/{product}/variants/{variant}/edit', [ProductVariantController::class, 'edit'])->name('product-variants.edit');
+    Route::put('products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->name('product-variants.update');
+    Route::delete('products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])->name('product-variants.destroy');
 
     Route::resource('users', UserManagementController::class);
 

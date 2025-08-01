@@ -58,7 +58,7 @@ class Product extends Model
     {
         return $this->hasMany(ImageProduct::class);
     }
-    
+
     public function specifications(): HasMany
     {
         return $this->hasMany(ProductSpecification::class);
@@ -83,4 +83,13 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariant::class);
     }
+    public function colors(): HasMany
+    {
+        return $this->hasMany(Color::class);
+    }
+    public function sizes(): HasMany
+    {
+        return $this->hasMany(Size::class);
+    }
+  
 }

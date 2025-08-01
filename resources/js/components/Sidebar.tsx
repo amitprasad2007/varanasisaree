@@ -1,10 +1,10 @@
-import { 
+import {
   Home,
   Barcode,
-  Building, 
-  Settings, 
-  User, 
-  CreditCard, 
+  Building,
+  Settings,
+  User,
+  CreditCard,
   Bell,
   Captions,
   LogOutIcon,
@@ -13,7 +13,9 @@ import {
   Video,
   Image,
   BadgePercent,
-  MessageSquare 
+  MessageSquare,
+  Palette,
+  Ruler
   } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -31,8 +33,10 @@ const menuItems = [
       { icon:Captions, label: "SubCategories", path: "/subcategories" }
     ]
   },
-  { icon: Building, label: "Brands", path: "/brands" },   
+  { icon: Building, label: "Brands", path: "/brands" },
   { icon: Barcode, label: "Products", path: "/products"},
+  { icon: Palette, label: "Colors", path: "/colors"},
+  { icon: Ruler, label: "Sizes", path: "/sizes"},
   { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: BadgePercent, label: "Coupons", path: "/coupons" },
   { icon: MessageSquare, label: "Testimonial", path: "/testimonials" },

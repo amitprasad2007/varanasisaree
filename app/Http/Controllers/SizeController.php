@@ -3,67 +3,66 @@
 namespace App\Http\Controllers;
 
 use App\Models\Size;
-use App\Http\Requests\StoreSizeRequest;
-use App\Http\Requests\UpdateSizeRequest;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class SizeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $sizes = Size::orderBy('created_at', 'desc')->get();
+
+        return Inertia::render('Admin/Sizes/Index', [
+            'sizes' => $sizes
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Sizes/Create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreSizeRequest $request)
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:10',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        Size::create($request->all());
+
+        return redirect()->route('sizes.index')->with('success', 'Size created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Size $size)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Size $size)
     {
-        //
+        return Inertia::render('Admin/Sizes/Edit', [
+            'size' => $size
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateSizeRequest $request, Size $size)
+    public function update(Request $request, Size $size)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:10',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $size->update($request->all());
+
+        return redirect()->route('sizes.index')->with('success', 'Size updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Size $size)
     {
-        //
+        $size->delete();
+        return redirect()->route('sizes.index')->with('success', 'Size deleted successfully.');
+    }
+
+    public function apiIndex()
+    {
+        return Size::where('status', 'active')->get();
     }
 }

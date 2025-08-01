@@ -12,9 +12,13 @@ class Color extends Model
     /** @use HasFactory<\Database\Factories\ColorFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'hex_code'];
+    protected $fillable = [
+        'name',
+        'hex_code',
+        'status',
+    ];
 
-    public function variants()
+    public function productVariants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }

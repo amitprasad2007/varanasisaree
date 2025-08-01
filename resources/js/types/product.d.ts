@@ -23,7 +23,7 @@ export interface Product {
     created_at?: string;
     updated_at?: string;
   }
-  
+
   export interface ProductImage {
     id: number;
     product_id: number;
@@ -70,3 +70,38 @@ export interface VideoProvider {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface Color {
+    id: number;
+    name: string;
+    hex_code?: string;
+    status: 'active' | 'inactive';
+    created_at?: string;
+    updated_at?: string;
+  }
+
+  export interface Size {
+    id: number;
+    name: string;
+    code?: string;
+    status: 'active' | 'inactive';
+    created_at?: string;
+    updated_at?: string;
+  }
+
+  export interface ProductVariant {
+    id: number;
+    product_id: number;
+    color_id?: number;
+    size_id?: number;
+    sku: string;
+    price: number;
+    discount: number;
+    stock_quantity: number;
+    image_path?: string;
+    status: 'active' | 'inactive';
+    created_at?: string;
+    updated_at?: string;
+    color?: Color;
+    size?: Size;
+  }
