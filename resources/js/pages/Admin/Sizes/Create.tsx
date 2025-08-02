@@ -7,9 +7,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
 import {
-  Form,
   FormControl,
-  FormField,
   FormItem,
   FormLabel,
   FormMessage,
@@ -46,48 +44,58 @@ export default function Create() {
         <div className="bg-white rounded-md shadow p-6">
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              <FormItem>
-                <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <Input
-                    value={data.name}
-                    onChange={e => setData('name', e.target.value)}
-                    placeholder="Size name (e.g., Small, Medium, Large)"
-                  />
-                </FormControl>
-                {errors.name && <FormMessage>{errors.name}</FormMessage>}
-              </FormItem>
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="name"
+                  value={data.name}
+                  onChange={e => setData('name', e.target.value)}
+                  placeholder="Size name (e.g., Small, Medium, Large)"
+                  className={errors.name ? "border-red-500" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm font-medium text-destructive">{errors.name}</p>
+                )}
+              </div>
 
-              <FormItem>
-                <FormLabel>Code</FormLabel>
-                <FormControl>
-                  <Input
-                    value={data.code}
-                    onChange={e => setData('code', e.target.value)}
-                    placeholder="Size code (e.g., S, M, L, XL)"
-                  />
-                </FormControl>
-                {errors.code && <FormMessage>{errors.code}</FormMessage>}
-              </FormItem>
+              <div className="space-y-2">
+                <label htmlFor="code" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Code
+                </label>
+                <Input
+                  id="code"
+                  value={data.code}
+                  onChange={e => setData('code', e.target.value)}
+                  placeholder="Size code (e.g., S, M, L, XL)"
+                  className={errors.code ? "border-red-500" : ""}
+                />
+                {errors.code && (
+                  <p className="text-sm font-medium text-destructive">{errors.code}</p>
+                )}
+              </div>
 
-              <FormItem>
-                <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <Select
-                    value={data.status}
-                    onValueChange={(value) => setData('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                {errors.status && <FormMessage>{errors.status}</FormMessage>}
-              </FormItem>
+              <div className="space-y-2">
+                <label htmlFor="status" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={data.status}
+                  onValueChange={(value) => setData('status', value)}
+                >
+                  <SelectTrigger className={errors.status ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.status && (
+                  <p className="text-sm font-medium text-destructive">{errors.status}</p>
+                )}
+              </div>
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={processing}>
