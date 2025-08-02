@@ -11,7 +11,7 @@ class ColorController extends Controller
     public function index()
     {
         $colors = Color::orderBy('created_at', 'desc')->get();
-
+        
         return Inertia::render('Admin/Colors/Index', [
             'colors' => $colors
         ]);
@@ -26,7 +26,7 @@ class ColorController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'hex_code' => 'nullable|string|max:7',
+            'hex_code' => 'required|string|max:10',
             'status' => 'required|in:active,inactive',
         ]);
 
