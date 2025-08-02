@@ -15,7 +15,8 @@ import {
   BadgePercent,
   MessageSquare,
   Palette,
-  Ruler
+  Ruler,
+  FileText
   } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -37,6 +38,7 @@ const menuItems = [
   { icon: Barcode, label: "Products", path: "/products"},
   { icon: Palette, label: "Colors", path: "/colors"},
   { icon: Ruler, label: "Sizes", path: "/sizes"},
+  { icon: FileText, label: "Product Bulk Upload", path: "/products/bulkupload" },
   { icon: Video, label: "Video Provider", path: "/video-providers" },
   { icon: BadgePercent, label: "Coupons", path: "/coupons" },
   { icon: MessageSquare, label: "Testimonial", path: "/testimonials" },

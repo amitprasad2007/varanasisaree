@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ImageProductController;
 use App\Http\Controllers\ProductSpecificationController;
@@ -14,9 +13,11 @@ use App\Http\Controllers\ProductVideoController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\ProductBulkUploadController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -41,10 +42,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
     Route::resource('brands', BrandController::class);
 
+    // Product Bulk Upload
+    Route::get('products/bulkupload', [ProductBulkUploadController::class, 'index'])->name('products.bulkupload');
+    Route::post('products/bulkupload', [ProductBulkUploadController::class, 'upload'])->name('products.bulkupload.store');
+    Route::get('products/bulkupload/template', [ProductBulkUploadController::class, 'downloadTemplate'])->name('products.bulkupload.template');
+
     // Products
     Route::resource('products', ProductController::class);
     // Products Images
-    Route::get('products/{product}/images', [ImageProductController::class, 'index'])->name('product-images.index');
     Route::get('products/{product}/images/create', [ImageProductController::class, 'create'])->name('product-images.create');
     Route::post('products/{product}/images', [ImageProductController::class, 'store'])->name('product-images.store');
     Route::put('product-images/{imageProduct}', [ImageProductController::class, 'update'])->name('product-images.update');
@@ -98,6 +103,8 @@ Route::middleware('auth')->group(function () {
     Route::get('products/{product}/variants/{variant}/edit', [ProductVariantController::class, 'edit'])->name('product-variants.edit');
     Route::put('products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->name('product-variants.update');
     Route::delete('products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])->name('product-variants.destroy');
+
+
 
     Route::resource('users', UserManagementController::class);
 
