@@ -1,0 +1,125 @@
+import React from 'react';
+import { Link } from '@inertiajs/react';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { router } from '@inertiajs/react';
+
+interface Size {
+  id: number;
+  name: string;
+  code: string | null;
+  status: 'active' | 'inactive';
+  created_at: string;
+}
+
+interface Props {
+  sizes: Size[];
+}
+
+export default function Index({ sizes }: Props) {
+  const handleDelete = (id: number) => {
+    if (confirm('Are you sure you want to delete this size?')) {
+      router.delete(route('sizes.destroy', id), {
+        onSuccess: () => {
+          Swal.fire({
+            title: 'Success!',
+            text: 'Size deleted successfully',
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+          });
+        },
+        onError: () => {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete size',
+            icon: 'error',
+            timer: 4000,
+            showConfirmButton: false
+          });
+        }
+      });
+    }
+  };
+
+      const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Sizes', href: route('sizes.index') },
+  ];
+
+  return (
+    <DashboardLayout title="Sizes">
+      <div className="space-y-4 pb-6">      
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Sizes</h1>
+          <Link href={route('sizes.create')}>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Size
+            </Button>
+          </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
+
+      <div className="bg-white rounded-md shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sizes.map((size) => (
+              <TableRow key={size.id}>
+                <TableCell className="font-medium">{size.name}</TableCell>
+                <TableCell>{size.code || 'N/A'}</TableCell>
+                <TableCell>
+                  <Badge variant={size.status === 'active' ? 'default' : 'secondary'}>
+                    {size.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {new Date(size.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Link href={route('sizes.edit', size.id)}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(size.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </DashboardLayout>
+  );
+}

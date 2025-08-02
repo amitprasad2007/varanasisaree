@@ -1,5 +1,8 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,9 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface Product {
   id: number;
@@ -48,24 +49,56 @@ interface Props {
   sizes: Size[];
 }
 
+const formSchema = z.object({
+  product_id: z.string(),
+  color_id: z.string().min(1, 'Color is required'),
+  size_id: z.string().min(1, 'Size is required'),
+  sku: z.string().min(1, 'SKU is required'),
+  price: z.string().min(1, 'Price is required'),
+  discount: z.string(),
+  stock_quantity: z.string().min(1, 'Stock quantity is required'),
+  image: z.any().optional(),
+  status: z.enum(['active', 'inactive']),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function Create({ product, colors, sizes }: Props) {
-  const { data, setData, post, processing, errors } = useForm({
-    product_id: product.id.toString(),
-    color_id: '',
-    size_id: '',
-    sku: '',
-    price: '',
-    discount: '0',
-    stock_quantity: '0',
-    image: null as File | null,
-    status: 'active'
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      product_id: product.id.toString(),
+      color_id: '',
+      size_id: '',
+      sku: '',
+      price: '',
+      discount: '0',
+      stock_quantity: '0',
+      image: null,
+      status: 'active'
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = form;
+
+  const onSubmit = (data: FormValues) => {
+    // Convert form data to FormData for file upload
+    const formData = new FormData();
+    formData.append('product_id', data.product_id);
+    formData.append('color_id', data.color_id);
+    formData.append('size_id', data.size_id);
+    formData.append('sku', data.sku);
+    formData.append('price', data.price);
+    formData.append('discount', data.discount);
+    formData.append('stock_quantity', data.stock_quantity);
+    formData.append('status', data.status);
     
-    post(route('product-variants.store', product.id), {      
-        onSuccess: () => {
+    if (data.image) {
+      formData.append('image', data.image);
+    }
+
+    router.post(route('product-variants.store', product.id), formData, {
+      onSuccess: () => {
         Swal.fire({
           title: 'Success!',
           text: 'Variant created successfully',
@@ -102,158 +135,203 @@ export default function Create({ product, colors, sizes }: Props) {
         <h1 className="text-2xl font-bold mb-6">Create Product Variant - {product.name}</h1>
 
         <div className="bg-white rounded-md shadow p-6">
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.color_id}
-                      onValueChange={(value) => setData('color_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colors.map((color) => (
-                          <SelectItem key={color.id} value={color.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              {color.hex_code && (
-                                <div
-                                  className="w-4 h-4 rounded-full border border-gray-300"
-                                  style={{ backgroundColor: color.hex_code }}
-                                />
-                              )}
-                              {color.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.color_id && <FormMessage>{errors.color_id}</FormMessage>}
-                </FormItem>
+                <FormField
+                  control={control}
+                  name="color_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Color</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {colors.map((color) => (
+                              <SelectItem key={color.id} value={color.id.toString()}>
+                                <div className="flex items-center gap-2 bg-white p-1 rounded">
+                                  {color.hex_code && (
+                                    <div
+                                      className="w-4 h-4 rounded-full border border-gray-300"
+                                      style={{ backgroundColor: color.hex_code }}
+                                    />
+                                  )}
+                                  {color.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.size_id}
-                      onValueChange={(value) => setData('size_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizes.map((size) => (
-                          <SelectItem key={size.id} value={size.id.toString()}>
-                            {size.name} {size.code && `(${size.code})`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.size_id && <FormMessage>{errors.size_id}</FormMessage>}
-                </FormItem>
+                <FormField
+                  control={control}
+                  name="size_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Size</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sizes.map((size) => (
+                              <SelectItem key={size.id} value={size.id.toString()}>
+                                {size.name} {size.code && `(${size.code})`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <FormItem>
-                <FormLabel>SKU <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <Input
-                    value={data.sku}
-                    onChange={e => setData('sku', e.target.value)}
-                    placeholder="Product variant SKU"
-                  />
-                </FormControl>
-                {errors.sku && <FormMessage>{errors.sku}</FormMessage>}
-              </FormItem>
+              <FormField
+                control={control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SKU <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Product variant SKU"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormItem>
-                  <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.price}
-                      onChange={e => setData('price', e.target.value)}
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.price && <FormMessage>{errors.price}</FormMessage>}
-                </FormItem>
+                <FormField
+                  control={control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <FormItem>
-                  <FormLabel>Discount (%)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.discount}
-                      onChange={e => setData('discount', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                    />
-                  </FormControl>
-                  {errors.discount && <FormMessage>{errors.discount}</FormMessage>}
-                </FormItem>
+                <FormField
+                  control={control}
+                  name="discount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discount (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          max="100"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <FormItem>
-                  <FormLabel>Stock Quantity <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.stock_quantity}
-                      onChange={e => setData('stock_quantity', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.stock_quantity && <FormMessage>{errors.stock_quantity}</FormMessage>}
-                </FormItem>
+                <FormField
+                  control={control}
+                  name="stock_quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stock Quantity <span className="text-red-500">*</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          min="0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <FormItem>
-                <FormLabel>Variant Image</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => setData('image', e.target.files?.[0] || null)}
-                  />
-                </FormControl>
-                {errors.image && <FormMessage>{errors.image}</FormMessage>}
-              </FormItem>
+              <FormField
+                control={control}
+                name="image"
+                render={({ field: { onChange, value, ...field } }) => (
+                  <FormItem>
+                    <FormLabel>Variant Image</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => onChange(e.target.files?.[0] || null)}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <FormItem>
-                <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <Select
-                    value={data.status}
-                    onValueChange={(value) => setData('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                {errors.status && <FormMessage>{errors.status}</FormMessage>}
-              </FormItem>
+              <FormField
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={processing}>
-                  {processing ? 'Creating...' : 'Create Variant'}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating...' : 'Create Variant'}
                 </Button>
               </div>
-            </div>
-          </form>
+            </form>
+          </Form>
         </div>
       </div>
     </DashboardLayout>

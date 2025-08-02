@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link,useForm } from '@inertiajs/react';
-import { Trash2, Edit, Plus, View } from "lucide-react";
+import { Trash2, Edit, Plus, View, Eye } from "lucide-react";
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -98,6 +98,11 @@ export default function Index({ products }: Props) {
                         <Link href={route('products.show', product.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                             <View className="h-4 w-4" />
+                        </Button>
+                        </Link>
+                        <Link href={route('product-variants.index', product.id)}>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
+                            <Eye className="h-4 w-4" />
                         </Button>
                         </Link>
                         <Link href={route('products.edit', product.id)}>
