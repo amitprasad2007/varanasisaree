@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -30,29 +30,31 @@ interface Props {
 }
 
 export default function Index({ sizes }: Props) {
+  const { delete: destroy } = useForm();
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this size?')) {
-      router.delete(route('sizes.destroy', id), {
-        onSuccess: () => {
-          Swal.fire({
-            title: 'Success!',
-            text: 'Size deleted successfully',
-            icon: 'success',
-            timer: 4000,
-            showConfirmButton: false
-          });
-        },
-        onError: () => {
-          Swal.fire({
-            title: 'Error!',
-            text: 'Failed to delete size',
-            icon: 'error',
-            timer: 4000,
-            showConfirmButton: false
-          });
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Are you sure you want to delete this size?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+        destroy(route('sizes.destroy', id), {
+            onSuccess: () => {
+            Swal.fire({
+                title: 'Deleted!',
+                text: 'Your Size has been deleted.',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            }
+        });
         }
-      });
-    }
+    });
   };
 
       const breadcrumbs: BreadcrumbItem[] = [

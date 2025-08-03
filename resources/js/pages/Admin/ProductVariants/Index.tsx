@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,6 +51,7 @@ interface Props {
 }
 
 export default function Index({ product, variants }: Props) {
+  const { delete: destroy } = useForm();
   const handleDelete = (id: number) => {
     Swal.fire({
       title: 'Are you sure?',
@@ -90,8 +91,8 @@ export default function Index({ product, variants }: Props) {
     <DashboardLayout title={`Product Variants - ${product.name}`}>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Link 
-            href={route('products.index')} 
+          <Link
+            href={route('products.index')}
             className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-2"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />

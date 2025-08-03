@@ -30,20 +30,29 @@ const Index = ({ banners }: Props) => {
   const { delete: destroy } = useForm();
 
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this banner?')) {
-      destroy(route('banners.destroy', id), {
-        preserveScroll: true,
-        onSuccess: () => {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Are you sure you want to delete this banner?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+        destroy(route('banners.destroy', id), {
+            onSuccess: () => {
             Swal.fire({
-                title: 'Success!',
-                text: 'Banner deleted successfully',
+                title: 'Deleted!',
+                text: 'Your Banner has been deleted.',
                 icon: 'success',
-                timer: 4000,
+                timer: 3000,
                 showConfirmButton: false
             });
-        },
-      });
-    }
+            }
+        });
+        }
+    });
   };
 
   const handleToggleStatus = (id: number) => {

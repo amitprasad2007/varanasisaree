@@ -24,7 +24,7 @@ interface Color {
     status: 'active' | 'inactive';
     created_at: string;
   }
-  
+
   interface Props {
     colors?: Color[];
   }
@@ -35,32 +35,32 @@ export default function Index({ colors = [] }: Props) {
         { title: 'Colors', href: route('colors.index') },
       ];
       const { delete: destroy } = useForm();
-      const handleDelete = (id: number) => {      
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "Are you sure you want to delete this color?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-        destroy(route('colors.destroy', id), {
-            onSuccess: () => {
-            Swal.fire({
-                title: 'Deleted!',
-                text: 'Your Color has been deleted.',
-                icon: 'success',
-                timer: 3000,
-                showConfirmButton: false
+      const handleDelete = (id: number) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Are you sure you want to delete this color?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+            destroy(route('colors.destroy', id), {
+                onSuccess: () => {
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'Your Color has been deleted.',
+                    icon: 'success',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                }
             });
             }
         });
-        }
-    });
     };
-  
+
     return (
       <DashboardLayout title="Colors">
         <div className="space-y-4 pb-6">
@@ -109,7 +109,7 @@ export default function Index({ colors = [] }: Props) {
                   {new Date(color.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">                  
+                  <div className="flex justify-end gap-2">
                     <Link href={route('colors.edit', color.id)}>
                       <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                         <Edit className="h-4 w-4" />
@@ -133,7 +133,7 @@ export default function Index({ colors = [] }: Props) {
             )}
           </TableBody>
         </Table>
-          
+
         </div>
       </DashboardLayout>
     );
