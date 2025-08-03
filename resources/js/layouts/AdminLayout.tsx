@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
-import { Toaster } from '@/Components/ui/toaster';
-import { Toaster as Sonner } from '@/Components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Head } from '@inertiajs/react';
-import AdminNav from '@/Components/AdminNav';
+import AdminNav from '@/components/AdminNav';
 
 interface AdminLayoutProps {
   children: ReactNode;

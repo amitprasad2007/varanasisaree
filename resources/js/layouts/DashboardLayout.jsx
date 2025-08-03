@@ -1,7 +1,6 @@
-
-import { Toaster } from "@/Components/ui/toaster";
-import { Toaster as Sonner } from "@/Components/ui/sonner";
-import { TooltipProvider } from "@/Components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from "@/components/Sidebar.js";
 import { Head } from '@inertiajs/react';
 

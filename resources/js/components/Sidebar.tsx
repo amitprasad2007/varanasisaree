@@ -93,7 +93,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-b-gray-700">
+    <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-b-gray-700 h-screen overflow-y-auto">
       <div className="flex flex-col h-full">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-primary">Admin User</h2>
