@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Color {
   id: number;
@@ -33,7 +35,7 @@ export default function Edit({ color }: Props) {
       hex_code: color.hex_code || '',
       status: color.status
     });
-  
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       put(route('colors.update', color.id), {
@@ -52,16 +54,27 @@ export default function Edit({ color }: Props) {
         { title: 'Dashboard', href: route('dashboard') },
         { title: 'Colors', href: route('colors.index') },
         { title: 'Edit Color', href: route('colors.edit', color.id) },
-    ];  
+    ];
     return (
       <DashboardLayout title="Edit Color">
-        <div className="space-y-4 pb-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Edit Color</h1>
+        <Head title="Edit Color" />
+
+        <div className="flex items-center mb-6 justify-between">
+          <h1 className="text-2xl font-semibold">Edit Color</h1>
+          <Link href={route('colors.index')} className="mr-4">
+            <Button variant="outline" className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Colors
+            </Button>
+          </Link>
         </div>
         <Breadcrumbs breadcrumbs={breadcrumbs} />
-        <div className="bg-white rounded-md shadow p-6">
-            <form onSubmit={handleSubmit}>
+        <Card>
+        <CardHeader>
+          <CardTitle>Color Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
@@ -72,7 +85,7 @@ export default function Edit({ color }: Props) {
                   />
                   {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                 </div>
-  
+
                                 <div className="space-y-2">
                   <label className="text-sm font-medium">Hex Code</label>
                   <div className="flex gap-2">
@@ -116,8 +129,8 @@ export default function Edit({ color }: Props) {
                 </div>
               </div>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </DashboardLayout>
     );
   }

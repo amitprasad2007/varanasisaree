@@ -62,11 +62,11 @@ export default function Index({ sizes }: Props) {
 
   return (
     <DashboardLayout title="Sizes">
-      <div className="space-y-4 pb-6">      
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Sizes</h1>
           <Link href={route('sizes.create')}>
-            <Button>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
               <Plus className="w-4 h-4 mr-2" />
               Add Size
             </Button>
@@ -102,12 +102,13 @@ export default function Index({ sizes }: Props) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={route('sizes.edit', size.id)}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" size="sm">
                         <Edit className="w-4 h-4" />
                       </Button>
                     </Link>
                     <Button
                       variant="outline"
+                      className="flex items-center gap-2 bg-primary cursor-pointer text-red-600 hover:bg-red-50 shadow-sm"
                       size="sm"
                       onClick={() => handleDelete(size.id)}
                     >

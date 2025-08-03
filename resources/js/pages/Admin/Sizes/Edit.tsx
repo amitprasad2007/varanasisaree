@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
+import { CardContent, Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Size {
   id: number;
@@ -44,46 +45,75 @@ export default function Edit({ size }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     put(route('sizes.update', size.id), {
-      onSuccess: () => toast.success('Size updated successfully'),
-      onError: () => toast.error('Failed to update size')
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Size updated successfully',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      onError: () => {
+        Swal.fire({
+          title: 'Failed to update size',
+          icon: 'error',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
     });
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Sizes', href: route('sizes.index') },
+    { title: 'Edit Size', href: route('sizes.edit', size.id) },
+];
+
   return (
     <DashboardLayout title="Edit Size">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Edit Size</h1>
-
-        <div className="bg-white rounded-md shadow p-6">
-          <form onSubmit={handleSubmit}>
+      <Head title="Edit Size" />
+      <div className="space-y-4 pb-6">
+        <div className="flex items-center mb-6 justify-between">
+          <h1 className="text-2xl font-semibold">Edit Size</h1>
+          <Link href={route('sizes.index')} className="mr-4">
+            <Button variant="outline" className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Sizes
+            </Button>
+          </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Size Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
-              <FormItem>
-                <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
                   <Input
                     value={data.name}
                     onChange={e => setData('name', e.target.value)}
                     placeholder="Size name (e.g., Small, Medium, Large)"
                   />
-                </FormControl>
-                {errors.name && <FormMessage>{errors.name}</FormMessage>}
-              </FormItem>
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              </div>
 
-              <FormItem>
-                <FormLabel>Code</FormLabel>
-                <FormControl>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Code</label>
                   <Input
                     value={data.code}
                     onChange={e => setData('code', e.target.value)}
                     placeholder="Size code (e.g., S, M, L, XL)"
                   />
-                </FormControl>
-                {errors.code && <FormMessage>{errors.code}</FormMessage>}
-              </FormItem>
+                {errors.code && <p className="text-sm text-red-500">{errors.code}</p>}
+              </div>
 
-              <FormItem>
-                <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status <span className="text-red-500">*</span></label>
                   <Select
                     value={data.status}
                     onValueChange={(value) => setData('status', value as 'active' | 'inactive')}
@@ -96,19 +126,18 @@ export default function Edit({ size }: Props) {
                       <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
-                </FormControl>
-                {errors.status && <FormMessage>{errors.status}</FormMessage>}
-              </FormItem>
+                {errors.status && <p className="text-sm text-red-500">{errors.status}</p>}
+              </div>
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={processing}>
+                <Button variant="outline" type="submit" disabled={processing} className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
                   {processing ? 'Updating...' : 'Update Size'}
                 </Button>
               </div>
             </div>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }

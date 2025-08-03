@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Create() {
   const { data, setData, post, processing, errors } = useForm({
@@ -35,14 +37,33 @@ export default function Create() {
       onError: () => toast.error('Failed to create size')
     });
   };
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Sizes', href: route('sizes.index') },
+    { title: 'Create Size', href: route('sizes.create') },
+];
 
   return (
     <DashboardLayout title="Create Size">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Create New Size</h1>
-
-        <div className="bg-white rounded-md shadow p-6">
-          <form onSubmit={handleSubmit}>
+      <Head title="Create Size" />
+      <div className="space-y-4 pb-6">
+          <div className="flex items-center mb-6 justify-between">
+          <h1 className="text-2xl font-semibold">Create Size</h1>
+            <Link href={route('sizes.index')} className="mr-4">
+            <Button variant="outline" className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Sizes
+            </Button>
+            </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Size Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -98,14 +119,14 @@ export default function Create() {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={processing}>
+                <Button variant="outline" type="submit" disabled={processing} className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
                   {processing ? 'Creating...' : 'Create Size'}
                 </Button>
               </div>
             </div>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }
