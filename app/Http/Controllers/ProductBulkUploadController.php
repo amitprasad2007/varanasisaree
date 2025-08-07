@@ -62,14 +62,17 @@ class ProductBulkUploadController extends Controller
 
     public function upload(Request $request)
     {
+       // dd($request);
         $request->validate([
             'file' => 'required|file|mimes:csv,txt|max:10240',
         ]);
 
-        try {
+       try {
             $file = $request->file('file');
             $csvData = array_map('str_getcsv', file($file->getRealPath()));
+
             $headers = array_shift($csvData);
+            //dd($headers);
 
             $results = [
                 'success' => 0,
@@ -80,6 +83,7 @@ class ProductBulkUploadController extends Controller
             DB::beginTransaction();
 
             foreach ($csvData as $rowIndex => $row) {
+               // dd($row);
                 try {
                     $rowData = array_combine($headers, $row);
                     $this->processProductRow($rowData, $rowIndex + 2, $results);
@@ -104,6 +108,7 @@ class ProductBulkUploadController extends Controller
 
     private function processProductRow($data, $rowNumber, &$results)
     {
+       // dd($data);
         // Find or create category
         $category = Category::firstOrCreate(
             ['name' => $data['category_name']],

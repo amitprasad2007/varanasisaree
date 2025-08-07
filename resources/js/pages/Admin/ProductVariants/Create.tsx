@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface Product {
   id: number;
@@ -92,7 +93,7 @@ export default function Create({ product, colors, sizes }: Props) {
     formData.append('discount', data.discount);
     formData.append('stock_quantity', data.stock_quantity);
     formData.append('status', data.status);
-    
+
     if (data.image) {
       formData.append('image', data.image);
     }
@@ -125,15 +126,16 @@ export default function Create({ product, colors, sizes }: Props) {
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
       <div className="max-w-2xl mx-auto">
-        <Link 
-          href={route('product-variants.index', product.id)} 
-          className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-2"
+        <Link
+          href={route('product-variants.index', product.id)}
+
+          className="flex w-48 items-center text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md p-2 mb-2"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
+          <ArrowLeft className="w-4 h-4 mr-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" />
           Back to Variants
         </Link>
         <h1 className="text-2xl font-bold mb-6">Create Product Variant - {product.name}</h1>
-
+        <Card>
         <div className="bg-white rounded-md shadow p-6">
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -152,7 +154,7 @@ export default function Create({ product, colors, sizes }: Props) {
                           <SelectTrigger>
                             <SelectValue placeholder="Select a color" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent  className="bg-white border border-gray-300 rounded-md shadow-lg">
                             {colors.map((color) => (
                               <SelectItem key={color.id} value={color.id.toString()}>
                                 <div className="flex items-center gap-2 bg-white p-1 rounded">
@@ -188,7 +190,7 @@ export default function Create({ product, colors, sizes }: Props) {
                           <SelectTrigger>
                             <SelectValue placeholder="Select a size" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                             {sizes.map((size) => (
                               <SelectItem key={size.id} value={size.id.toString()}>
                                 {size.name} {size.code && `(${size.code})`}
@@ -314,7 +316,7 @@ export default function Create({ product, colors, sizes }: Props) {
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border border-gray-300 rounded-md shadow-lg">
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="inactive">Inactive</SelectItem>
                         </SelectContent>
@@ -326,13 +328,14 @@ export default function Create({ product, colors, sizes }: Props) {
               />
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={isSubmitting}>
+                <Button variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={isSubmitting}>
                   {isSubmitting ? 'Creating...' : 'Create Variant'}
                 </Button>
               </div>
             </form>
           </Form>
         </div>
+        </Card>
       </div>
     </DashboardLayout>
   );

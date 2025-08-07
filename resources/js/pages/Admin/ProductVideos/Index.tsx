@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card';
 import {
   Table,
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Pencil, Plus, Trash2, Star } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Product, ProductVideo } from '@/types/product';
 import axios from 'axios';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -49,7 +49,7 @@ export default function Index({ product, videos }: IndexProps) {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
-        if(result.isConfirmed){       
+        if(result.isConfirmed){
           destroy(route('product-videos.destroy', [product.id,videoId]), {
             onSuccess: () => {
               Swal.fire({
@@ -75,13 +75,13 @@ export default function Index({ product, videos }: IndexProps) {
           icon: 'success',
           timer: 4000,
           showConfirmButton: false
-        });        
+        });
         // Update local state to reflect the change
         const updatedVideos = videoList.map(video => ({
           ...video,
           is_featured: video.id === videoId
         }));
-        
+
         setVideoList(updatedVideos);
       })
       .catch(error => {
@@ -91,7 +91,7 @@ export default function Index({ product, videos }: IndexProps) {
           icon: 'error',
           timer: 4000,
           showConfirmButton: false
-        }); 
+        });
       });
   };
 
@@ -123,7 +123,7 @@ export default function Index({ product, videos }: IndexProps) {
         icon: 'success',
         timer: 4000,
         showConfirmButton: false
-      });  
+      });
     })
     .catch(error => {
       Swal.fire({
@@ -132,7 +132,7 @@ export default function Index({ product, videos }: IndexProps) {
         icon: 'error',
         timer: 4000,
         showConfirmButton: false
-      }); 
+      });
       console.error(error);
     });
   };
@@ -167,7 +167,7 @@ export default function Index({ product, videos }: IndexProps) {
                 Add New Video
               </Link>
             </Button>
-          </div>          
+          </div>
         </div>
         <Breadcrumbs breadcrumbs={breadcrumbs} />
         <Card>
@@ -201,9 +201,9 @@ export default function Index({ product, videos }: IndexProps) {
                         </TableHeader>
                         <TableBody>
                           {videoList.map((video, index) => (
-                            <Draggable 
-                              key={video.id.toString()} 
-                              draggableId={video.id.toString()} 
+                            <Draggable
+                              key={video.id.toString()}
+                              draggableId={video.id.toString()}
                               index={index}
                             >
                               {(provided) => (
@@ -215,9 +215,9 @@ export default function Index({ product, videos }: IndexProps) {
                                   <TableCell className="w-10">{index + 1}</TableCell>
                                   <TableCell>
                                     {video.thumbnail ? (
-                                      <img 
-                                        src={`/storage/${video.thumbnail}`} 
-                                        alt={video.title} 
+                                      <img
+                                        src={`/storage/${video.thumbnail}`}
+                                        alt={video.title}
                                         className="h-12 w-20 object-cover rounded"
                                       />
                                     ) : (
@@ -232,7 +232,7 @@ export default function Index({ product, videos }: IndexProps) {
                                     {video.video_id}
                                   </TableCell>
                                   <TableCell>
-                                    <Badge 
+                                    <Badge
                                       variant={video.status === 'active' ? 'secondary' : 'default'}
                                     >
                                       {video.status}
@@ -245,8 +245,8 @@ export default function Index({ product, videos }: IndexProps) {
                                         Featured
                                       </Badge>
                                     ) : (
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         className='cursor-pointer'
                                         onClick={() => handleSetFeatured(video.id)}
@@ -257,18 +257,18 @@ export default function Index({ product, videos }: IndexProps) {
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex space-x-2">
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline" 
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
                                         asChild
                                       >
                                         <Link href={route('product-videos.edit', [product.id, video.id])}>
                                           <Pencil className="h-4 w-4" />
                                         </Link>
                                       </Button>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline" 
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
                                         className="cursor-pointer text-red-600 hover:bg-red-50"
                                         onClick={() => handleDelete(video.id)}
                                       >

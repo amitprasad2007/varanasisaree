@@ -3,7 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { GripVertical, Plus, Eye, EyeOff, Edit, Trash2, Image } from 'lucide-react';
 import axios from 'axios';
 import { Breadcrumbs } from '@/components/breadcrumbs';

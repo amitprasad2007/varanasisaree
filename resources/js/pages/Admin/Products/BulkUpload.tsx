@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Download, Upload, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import axios from 'axios';
 
 interface UploadResults {
   success: number;
@@ -50,16 +51,21 @@ export default function BulkUpload() {
     }, 200);
 
     try {
-      const response = await fetch('/products/bulkupload', {
-        method: 'POST',
-        body: formData,
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const response = await axios.post('/products/bulkupload', formData, {
         headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'X-CSRF-TOKEN': csrfToken,
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setProgress(Math.min(percentCompleted, 100));
+          }
         },
       });
-
-      const data = await response.json();
-
+      const data = response.data;
       clearInterval(progressInterval);
       setProgress(100);
       setResults(data);
@@ -111,6 +117,7 @@ export default function BulkUpload() {
                   accept=".csv,.txt"
                   onChange={handleFileChange}
                   disabled={uploading}
+                  className="w-full cursor-pointer"
                 />
               </div>
 
@@ -137,7 +144,8 @@ export default function BulkUpload() {
               <Button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="w-full"
+                variant="outline"
+                className="w-full cursor-pointer rounded-lg bg-primary text-primary-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {uploading ? 'Uploading...' : 'Upload Products'}
               </Button>
@@ -171,7 +179,7 @@ export default function BulkUpload() {
               <Button
                 onClick={downloadTemplate}
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer rounded-lg bg-primary text-primary-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download CSV Template

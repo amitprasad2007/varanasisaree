@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Images } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
@@ -93,15 +93,15 @@ export default function Index({ product, variants }: Props) {
         <div>
           <Link
             href={route('products.index')}
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-2"
+            className="flex w-42 items-center text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md p-2 mb-2"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
+            <ArrowLeft className="w-4 h-4 mr-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" />
             Back to Products
           </Link>
           <h1 className="text-2xl font-bold">Product Variants - {product.name}</h1>
         </div>
         <Link href={route('product-variants.create', product.id)}>
-          <Button>
+          <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
             <Plus className="w-4 h-4 mr-2" />
             Add Variant
           </Button>
@@ -139,7 +139,7 @@ export default function Index({ product, variants }: Props) {
                   </div>
                 </TableCell>
                 <TableCell>{variant.size?.name || 'N/A'}</TableCell>
-                <TableCell>${variant.price}</TableCell>
+                <TableCell>₹{variant.price}</TableCell>
                 <TableCell>{variant.discount}%</TableCell>
                 <TableCell>{variant.stock_quantity}</TableCell>
                 <TableCell>
@@ -152,8 +152,13 @@ export default function Index({ product, variants }: Props) {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Link href={route('product-variant-images.index', variant.id)}>
+                      <Button variant="outline" size="sm" title="View Images" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <Images className="w-4 h-4" />
+                      </Button>
+                    </Link>
                     <Link href={route('product-variants.edit', [product.id, variant.id])}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" title="Edit Variant" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
                         <Edit className="w-4 h-4" />
                       </Button>
                     </Link>
@@ -161,6 +166,8 @@ export default function Index({ product, variants }: Props) {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(variant.id)}
+                      title="Delete Variant"
+                      className="cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-800"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

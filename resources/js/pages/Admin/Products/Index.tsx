@@ -112,7 +112,7 @@ export default function Index({ products }: Props) {
                         </Link>
                         <Button
                         variant="outline"
-                        className="cursor-pointer text-red-600 hover:bg-red-50"
+                        className="cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-800"
                         size="sm"
                         onClick={() => handleDelete(product.id)}
                         >

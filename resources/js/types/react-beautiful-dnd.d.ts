@@ -1,4 +1,4 @@
-declare module 'react-beautiful-dnd' {
+declare module '@hello-pangea/dnd' {
   export interface DropResult {
     draggableId: string;
     type: string;
@@ -45,4 +45,4 @@ declare module 'react-beautiful-dnd' {
     index: number;
     children: (provided: DraggableProvided) => React.ReactNode;
   }>;
-} 
+}

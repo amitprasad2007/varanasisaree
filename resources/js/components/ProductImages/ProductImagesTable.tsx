@@ -3,7 +3,7 @@ import React from 'react';
 import { ProductImage } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Move, Star, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
