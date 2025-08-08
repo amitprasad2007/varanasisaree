@@ -114,7 +114,7 @@ Route::middleware('auth')->group(function () {
      Route::post('variant-images/{image}/set-primary', [App\Http\Controllers\ProductVariantImageController::class, 'setPrimary'])->name('product-variant-images.set-primary');
      Route::post('variants/{variant}/images/update-order', [App\Http\Controllers\ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
 
-    Route::resource('users', UserManagementController::class);
+     Route::resource('users', UserManagementController::class);
 
 });
 
