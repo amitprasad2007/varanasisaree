@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,14 +17,35 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'created_at');
+        $direction = $request->input('direction', 'desc');
+        $perPage = (int) $request->input('perPage', 10);
+
+        // Whitelist sortable columns to avoid SQL injection
+        $allowedSorts = ['name', 'price', 'stock_quantity', 'status', 'created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'created_at';
+        }
+        $direction = strtolower($direction) === 'asc' ? 'asc' : 'desc';
+        $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 10;
+
         $products = Product::with(['category', 'subcategory', 'brand'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('slug', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy($sort, $direction)
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => $products
+            'products' => $products,
+            'filters' => $request->only(['search', 'sort', 'direction', 'perPage'])
         ]);
     }
 
@@ -123,8 +145,8 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 
-   
-   
+
+
 
 
 }

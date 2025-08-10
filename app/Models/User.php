@@ -58,44 +58,7 @@ class User extends Authenticatable
         ];
     }
 
-     /**
-     * Get the roles that belong to the user.
-     */
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class);
-    }
-
-    /**
-     * Check if user has a specific role.
-     */
-    public function hasRole($role): bool
-    {
-        return $this->roles()->where('name', $role)->orWhere('slug', $role)->exists();
-    }
-
-    /**
-     * Check if user has any of the given roles.
-     */
-    public function hasAnyRole($roles): bool
-    {
-        return $this->roles()->whereIn('name', (array) $roles)->orWhereIn('slug', (array) $roles)->exists();
-    }
-
-    public function hasPermission($permission): bool
-    {
-        return $this->roles()->whereHas('permissions', function($query) use ($permission) {
-            $query->where('name', $permission)->orWhere('slug', $permission);
-        })->exists();
-    }
-
-    public function hasAnyPermission($permissions): bool
-    {
-        return $this->roles()->whereHas('permissions', function($query) use ($permissions) {
-            $query->whereIn('name', (array) $permissions)
-                  ->orWhereIn('slug', (array) $permissions);
-        })->exists();
-    }
+    // Rely on Spatie's HasRoles trait for roles/permissions relationships & helpers
 
     /**
      * Get the orders for the user.

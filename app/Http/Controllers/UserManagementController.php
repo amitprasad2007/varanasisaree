@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +13,7 @@ class UserManagementController extends Controller
     public function index()
     {
         $users = User::with('roles')->latest()->get();
-        
+
         return Inertia::render('Admin/Users/Index', [
             'users' => $users
         ]);
@@ -21,13 +21,13 @@ class UserManagementController extends Controller
 
     public function create()
     {
-        $roles = Role::where('is_active', true)->get();
-        
+        $roles = Role::with('permissions')->get();
+
         return Inertia::render('Admin/Users/Create', [
             'roles' => $roles
         ]);
-    }  
-    
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -44,7 +44,7 @@ class UserManagementController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $user->roles()->sync($validated['role_ids']);
+        $user->syncRoles($validated['role_ids']);
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
@@ -52,8 +52,8 @@ class UserManagementController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::where('is_active', true)->get();
-        
+        $roles = Role::with('permissions')->get();
+
         return Inertia::render('Admin/Users/Edit', [
             'user' => $user->load('roles'),
             'roles' => $roles
@@ -79,7 +79,7 @@ class UserManagementController extends Controller
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 
-        $user->roles()->sync($validated['role_ids']);
+        $user->syncRoles($validated['role_ids']);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');

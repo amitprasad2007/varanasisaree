@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\Subcategory;
 use App\Models\Brand;
 use App\Models\Color;
 use App\Models\Size;
@@ -108,16 +107,16 @@ class ProductBulkUploadController extends Controller
 
     private function processProductRow($data, $rowNumber, &$results)
     {
-       // dd($data);
+        //dd($data);
         // Find or create category
         $category = Category::firstOrCreate(
-            ['name' => $data['category_name']],
+            ['title' => $data['category_name']],
             ['slug' => Str::slug($data['category_name']), 'status' => 'active']
         );
 
         // Find or create subcategory
-        $subcategory = Subcategory::firstOrCreate(
-            ['name' => $data['subcategory_name'], 'category_id' => $category->id],
+        $subcategory = Category::firstOrCreate(
+            ['title' => $data['subcategory_name'], 'parent_id' => $category->id],
             ['slug' => Str::slug($data['subcategory_name']), 'status' => 'active']
         );
 
@@ -126,15 +125,15 @@ class ProductBulkUploadController extends Controller
             ['name' => $data['brand_name']],
             ['slug' => Str::slug($data['brand_name']), 'status' => 'active']
         );
-
+      //  dd( $brand);
         // Create product
         $product = Product::create([
             'name' => $data['name'],
-            'slug' => Str::slug($data['name']) . '-' . time(),
+            'slug' => Str::slug($data['name']) . '-' . time().$data['color'],
             'category_id' => $category->id,
             'subcategory_id' => $subcategory->id,
             'brand_id' => $brand->id,
-            'description' => $data['description'] ?? null,
+            'description' => mb_convert_encoding($data['description'], 'UTF-8', 'UTF-8') ?? null,
             'price' => (float) $data['price'],
             'discount' => (float) ($data['discount'] ?? 0),
             'stock_quantity' => (int) ($data['stock_quantity'] ?? 0),
@@ -147,7 +146,7 @@ class ProductBulkUploadController extends Controller
             'is_bestseller' => filter_var($data['is_bestseller'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'status' => $data['status'] ?? 'active',
         ]);
-
+        //dd($product);
         // Process specifications
         if (!empty($data['specifications'])) {
             $this->processSpecifications($product, $data['specifications'], $results);

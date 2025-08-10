@@ -18,6 +18,8 @@ use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\ProductBulkUploadController;
+use App\Http\Controllers\ApiPlaygroundController;
+use App\Http\Controllers\RoleManagementController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -25,6 +27,8 @@ Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login'
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', [AuthenticatedSessionController::class, 'dashboard'] )->name('dashboard');
+    // API Playground
+    Route::get('api-playground', [ApiPlaygroundController::class, 'index'])->name('api.playground');
     // Categories
     Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::resource('categories', CategoryController::class);
@@ -115,6 +119,9 @@ Route::middleware('auth')->group(function () {
      Route::post('variants/{variant}/images/update-order', [App\Http\Controllers\ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
 
      Route::resource('users', UserManagementController::class);
+
+    // Roles
+    Route::resource('roles', RoleManagementController::class);
 
 });
 

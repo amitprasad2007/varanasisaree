@@ -1,16 +1,20 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface Role {
   id: number;
   name: string;
-  permissions: Array<{
+  permissions?: Array<{
     id: number;
     name: string;
   }>;
@@ -42,17 +46,23 @@ export default function Create({ roles }: { roles: Role[] }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (key === 'role_ids') {
-        data[key].forEach((id: number) => {
-          formData.append(`${key}[]`, id.toString());
+    post(route('users.store'), {
+      forceFormData: true,
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Success',
+          text: 'User created successfully.',
+          icon: 'success',
         });
-      } else if (data[key] !== null) {
-        formData.append(key, data[key]);
-      }
+      },
+      onError: () => {
+        Swal.fire({
+          title: 'Error',
+          text: 'Please correct the highlighted errors.',
+          icon: 'error',
+        });
+      },
     });
-    post(route('users.store'));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,27 +77,41 @@ export default function Create({ roles }: { roles: Role[] }) {
     }
   };
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'User Management', href: route('users.index') },
+    { title: 'Create User', href: route('users.create') },
+  ];
+
   return (
     <DashboardLayout title="Create New User">
       <Head title="Create User" />
 
-      <div className="container mx-auto py-6">
-        <h1 className="text-2xl font-bold mb-6">Create New User</h1>
-
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Create New User</h1>
+          <Link href={route('users.index')}>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to User Management
+            </Button>
+          </Link>
+        </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
         <form onSubmit={handleSubmit} className="max-w-2xl bg-white p-6 rounded-lg shadow">
           <div className="space-y-4">
           <div className="flex justify-center mb-6">
               <div className="relative">
-                <Avatar className="h-24 w-24">
+                <Avatar className="h-24 w-24 cursor-pointer">
                   {preview ? (
                     <AvatarImage src={preview} alt="Preview" />
                   ) : (
-                    <AvatarFallback>Upload</AvatarFallback>
+                    <AvatarFallback className="text-gray-500 text-sm font-bold border border-gray-300" >Upload</AvatarFallback>
                   )}
                 </Avatar>
                 <Input
                   type="file"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 opacity-0 cursor-pointer hover:bg-gray-100 text-black shadow-sm"
                   onChange={handleFileChange}
                   accept="image/*"
                 />
@@ -174,7 +198,7 @@ export default function Create({ roles }: { roles: Role[] }) {
                     />
                     <Label htmlFor={`role-${role.id}`}>{role.name}</Label>
                     <span className="text-sm text-gray-500">
-                      ({role.permissions.map(p => p.name).join(', ')})
+                      ({(role.permissions ?? []).map(p => p.name).join(', ')})
                     </span>
                   </div>
                 ))}
@@ -184,7 +208,7 @@ export default function Create({ roles }: { roles: Role[] }) {
               )}
             </div>
 
-            <Button type="submit" disabled={processing}>
+            <Button type="submit" className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm" disabled={processing}>
               Create User
             </Button>
           </div>
