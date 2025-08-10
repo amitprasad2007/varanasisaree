@@ -20,6 +20,8 @@ interface Role {
   }>;
 }
 
+interface Permission { id: number; name: string }
+
 // Define a type for the form data
 interface FormData {
   name: string;
@@ -29,10 +31,11 @@ interface FormData {
   address: string;
   avatar: File | null;
   role_ids: number[];
+  permission_ids: number[];
   [key: string]: any; // Add index signature
 }
 
-export default function Create({ roles }: { roles: Role[] }) {
+export default function Create({ roles, permissions }: { roles: Role[]; permissions: Permission[] }) {
   const [preview, setPreview] = useState<string | null>(null);
   const { data, setData, post, processing, errors } = useForm<FormData>({
     name: '',
@@ -42,6 +45,7 @@ export default function Create({ roles }: { roles: Role[] }) {
     address: '',
     avatar: null,
     role_ids: [],
+    permission_ids: [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -212,6 +216,30 @@ export default function Create({ roles }: { roles: Role[] }) {
               Create User
             </Button>
           </div>
+            <div>
+              <Label>Direct Permissions</Label>
+              <div className="mt-2 space-y-2">
+                {permissions.map(p => (
+                  <div key={p.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`permission-${p.id}`}
+                      checked={(data.permission_ids ?? []).includes(p.id)}
+                      onCheckedChange={(checked) => {
+                        const current = data.permission_ids ?? [];
+                        setData('permission_ids', checked
+                          ? [...current, p.id]
+                          : current.filter(id => id !== p.id)
+                        );
+                      }}
+                    />
+                    <Label htmlFor={`permission-${p.id}`}>{p.name}</Label>
+                  </div>)
+                )}
+              </div>
+              {errors.permission_ids && (
+                <p className="text-red-500 text-sm mt-1">{errors.permission_ids}</p>
+              )}
+            </div>
         </form>
       </div>
     </DashboardLayout>

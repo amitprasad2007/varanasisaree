@@ -14,7 +14,7 @@ export default function AdminNav() {
   const { auth } = usePage().props as unknown as { auth: Auth };
 
   const handleLogout = () => {
-    router.post('/admin/logout');
+    router.post(route('logout'));
   };
 
   return (
@@ -31,6 +31,18 @@ export default function AdminNav() {
                 className="border-transparent text-gray-900 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               >
                 Categories
+              </Link>
+              <Link
+                href="/admin/roles"
+                className="border-transparent text-gray-900 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+              >
+                Roles
+              </Link>
+              <Link
+                href="/admin/permissions"
+                className="border-transparent text-gray-900 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+              >
+                Permissions
               </Link>
               <Link
                 href="/admin/subcategories"

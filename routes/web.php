@@ -20,6 +20,7 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\ProductBulkUploadController;
 use App\Http\Controllers\ApiPlaygroundController;
 use App\Http\Controllers\RoleManagementController;
+use App\Http\Controllers\PermissionManagementController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -109,19 +110,23 @@ Route::middleware('auth')->group(function () {
     Route::put('products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->name('product-variants.update');
     Route::delete('products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])->name('product-variants.destroy');
 
-     // Product Variant Images
-     Route::get('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'index'])->name('product-variant-images.index');
-     Route::get('variants/{variant}/images/create', [App\Http\Controllers\ProductVariantImageController::class, 'create'])->name('product-variant-images.create');
-     Route::post('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'store'])->name('product-variant-images.store');
-     Route::put('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'update'])->name('product-variant-images.update');
-     Route::delete('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'destroy'])->name('product-variant-images.destroy');
-     Route::post('variant-images/{image}/set-primary', [App\Http\Controllers\ProductVariantImageController::class, 'setPrimary'])->name('product-variant-images.set-primary');
-     Route::post('variants/{variant}/images/update-order', [App\Http\Controllers\ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
+    // Product Variant Images
+    Route::get('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'index'])->name('product-variant-images.index');
+    Route::get('variants/{variant}/images/create', [App\Http\Controllers\ProductVariantImageController::class, 'create'])->name('product-variant-images.create');
+    Route::post('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'store'])->name('product-variant-images.store');
+    Route::put('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'update'])->name('product-variant-images.update');
+    Route::delete('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'destroy'])->name('product-variant-images.destroy');
+    Route::post('variant-images/{image}/set-primary', [App\Http\Controllers\ProductVariantImageController::class, 'setPrimary'])->name('product-variant-images.set-primary');
+    Route::post('variants/{variant}/images/update-order', [App\Http\Controllers\ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
 
-     Route::resource('users', UserManagementController::class);
+    // Users
+    Route::resource('users', UserManagementController::class);
 
     // Roles
     Route::resource('roles', RoleManagementController::class);
+
+    // Permissions
+    Route::resource('permissions', PermissionManagementController::class);
 
 });
 

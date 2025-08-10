@@ -21,14 +21,18 @@ interface User {
   name: string;
   email: string;
   roles: Role[];
+  permissions?: { id: number; name: string }[];
 }
 
-export default function Edit({ user, roles }: { user: User; roles: Role[] }) {
+interface Permission { id: number; name: string }
+
+export default function Edit({ user, roles, permissions }: { user: User; roles: Role[]; permissions: Permission[] }) {
   const { data, setData, put, processing, errors } = useForm({
     name: user.name,
     email: user.email,
     password: '',
     role_ids: user.roles.map(role => role.id),
+    permission_ids: (user.permissions ?? []).map(p => p.id),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -78,6 +82,31 @@ export default function Edit({ user, roles }: { user: User; roles: Role[] }) {
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <Label>Direct Permissions</Label>
+              <div className="mt-2 space-y-2">
+                {permissions.map(p => (
+                  <div key={p.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`permission-${p.id}`}
+                      checked={(data.permission_ids ?? []).includes(p.id)}
+                      onCheckedChange={(checked) => {
+                        const current = data.permission_ids ?? [];
+                        setData('permission_ids', checked
+                          ? [...current, p.id]
+                          : current.filter((id: number) => id !== p.id)
+                        );
+                      }}
+                    />
+                    <Label htmlFor={`permission-${p.id}`}>{p.name}</Label>
+                  </div>
+                ))}
+              </div>
+              {errors.permission_ids && (
+                <p className="text-red-500 text-sm mt-1">{errors.permission_ids}</p>
               )}
             </div>
 

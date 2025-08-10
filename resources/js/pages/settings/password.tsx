@@ -1,21 +1,21 @@
 import InputError from '@/components/input-error';
-import AppLayout from '@/layouts/app-layout';
+import DashboardLayout from '@/Layouts/DashboardLayout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ArrowLeft } from 'lucide-react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Password settings',
-        href: '/settings/password',
-    },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Password settings', href: route('password.edit') },
 ];
 
 export default function Password() {
@@ -49,10 +49,21 @@ export default function Password() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
-
-            <SettingsLayout>
+        <DashboardLayout title="Password settings">
+            <Head title="Password settings" />
+            <div className="space-y-4 pb-6">
+                <div className="flex items-center mb-6 justify-between">
+                    <h1 className="text-2xl font-bold">Password settings</h1>
+                    <Link href={route('dashboard')}>
+                        <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Dashboard
+                        </Button>
+                    </Link>
+                </div>
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </div>
+            <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
                 <div className="space-y-6">
                     <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
 
@@ -122,7 +133,7 @@ export default function Password() {
                         </div>
                     </form>
                 </div>
-            </SettingsLayout>
-        </AppLayout>
+            </div>
+        </DashboardLayout>
     );
 }

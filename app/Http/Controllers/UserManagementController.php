@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,9 +23,11 @@ class UserManagementController extends Controller
     public function create()
     {
         $roles = Role::with('permissions')->get();
+        $permissions = Permission::orderBy('name')->get();
 
         return Inertia::render('Admin/Users/Create', [
-            'roles' => $roles
+            'roles' => $roles,
+            'permissions' => $permissions,
         ]);
     }
 
@@ -35,7 +38,9 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role_ids' => 'required|array',
-            'role_ids.*' => 'exists:roles,id'
+            'role_ids.*' => 'exists:roles,id',
+            'permission_ids' => 'array',
+            'permission_ids.*' => 'exists:permissions,id',
         ]);
 
         $user = User::create([
@@ -45,6 +50,7 @@ class UserManagementController extends Controller
         ]);
 
         $user->syncRoles($validated['role_ids']);
+        $user->syncPermissions($validated['permission_ids'] ?? []);
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
@@ -53,10 +59,12 @@ class UserManagementController extends Controller
     public function edit(User $user)
     {
         $roles = Role::with('permissions')->get();
+        $permissions = Permission::orderBy('name')->get();
 
         return Inertia::render('Admin/Users/Edit', [
-            'user' => $user->load('roles'),
-            'roles' => $roles
+            'user' => $user->load('roles', 'permissions'),
+            'roles' => $roles,
+            'permissions' => $permissions,
         ]);
     }
 
@@ -67,7 +75,9 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
             'role_ids' => 'required|array',
-            'role_ids.*' => 'exists:roles,id'
+            'role_ids.*' => 'exists:roles,id',
+            'permission_ids' => 'array',
+            'permission_ids.*' => 'exists:permissions,id',
         ]);
 
         $user->update([
@@ -80,6 +90,7 @@ class UserManagementController extends Controller
         }
 
         $user->syncRoles($validated['role_ids']);
+        $user->syncPermissions($validated['permission_ids'] ?? []);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');
