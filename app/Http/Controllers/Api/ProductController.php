@@ -84,13 +84,62 @@ class ProductController extends Controller
      */
 
     public function getProductDetails($slug) {
+
         $product = Product::where('slug', $slug)
-                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'videos', 'primaryImage', 'featuredVideo'])
+                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'variants.color', 'videos', 'primaryImage', 'featuredVideo'])
                 ->first();
+               // dd($product);
 
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
+
+        // Build colors list based on variants' colors
+        $colors = collect($product->variants)
+            ->filter(fn($variant) => $variant->color)
+            ->groupBy('color_id')
+            ->map(function ($variantsByColor) {
+                $variantSample = $variantsByColor->first();
+                $color = $variantSample->color;
+                $available = $variantsByColor->contains(function ($variant) {
+                    $status = $variant->status;
+                    $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1');
+                    return $variant->stock_quantity > 0 && ($status === null ? true : $isActive);
+                });
+                return [
+                    'name' => $color->name,
+                    'value' => $color->hex_code,
+                    'available' => $available,
+                ];
+            })
+            ->values();
+
+        // Build specifications as name/value pairs from ProductSpecification
+        $specifications = collect($product->specifications)
+            ->map(fn($spec) => [
+                'name' => $spec->name,
+                'value' => $spec->value,
+            ])
+            ->values();
+
+        // Add additional specifications from product fields
+        $additionalSpecifications = collect([
+            'fabric' => $product->fabric,
+            'size' => $product->size,
+            'work_type' => $product->work_type,
+            'occasion' => $product->occasion,
+            'weight' => $product->weight,
+        ])
+            ->filter(fn($value) => !is_null($value) && $value !== '')
+            ->map(function ($value, $key) {
+                return [
+                    'name' => ucwords(str_replace('_', ' ', $key)),
+                    'value' => $value,
+                ];
+            })
+            ->values();
+
+        $specifications = $specifications->merge($additionalSpecifications)->values();
 
         return response()->json([
             'id' => $product->id,
@@ -105,24 +154,11 @@ class ProductController extends Controller
             'category'=> $product->category,
             'subCategory'=> $product->subcategory,
             'images'=> $product->resolveImagePaths()->map(fn($path) => asset('storage/' . $path)),
-            'colors' => [
-                ['name' => "Gold", 'value' => "#D4AF37", 'available' => true],
-                ['name' => "Red", 'value' => "#9E2A2B", 'available' => true],
-                ['name' => "Maroon", 'value' => "#800020", 'available' => true],
-                ['name' => "Navy Blue", 'value' => "#000080", 'available' => false],
-            ],
+            'colors' => $colors,
             'sizes'=> $product->size,
             'stock'=> $product->stock_quantity,
             'description'=> $product->description,
-            'specifications'=> [
-                [ 'name'=> 'Material', 'value'=> 'Pure Katan Silk' ],
-                [ 'name'=> 'Weave', 'value'=> 'Handloom' ],
-                [ 'name'=> 'Zari Type', 'value'=> 'Real Gold Zari (tested)' ],
-                [ 'name'=> 'Length', 'value'=> '5.5 meters (saree), 0.8 meters (blouse)' ],
-                [ 'name'=> 'Width', 'value'=> '45 inches' ],
-                [ 'name'=> 'Weight', 'value'=> '750-800 grams' ],
-                [ 'name'=> 'Care', 'value'=> 'Dry Clean Only' ]
-            ],
+            'specifications'=> $specifications,
             'isBestseller'=> $product->is_bestseller
         ]);
     }
