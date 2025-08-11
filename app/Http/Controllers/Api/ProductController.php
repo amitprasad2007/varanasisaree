@@ -10,18 +10,23 @@ class ProductController extends Controller
 {
     public function getFeaturedProducts()
     {
-        $products = Product::with(['imageproducts', 'category'])
+        $products = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('status', 'active')
             ->where('stock_quantity', '>', 0)
             ->latest()
-            ->take(10)
+            ->take(20)
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($product) {
+                $imagePaths = $product->resolveImagePaths();
+                if ($imagePaths->isEmpty()) {
+                    return null;
+                }
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
-                    'images' => $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+                    'images' => $imagePaths->map(fn($path) => asset('storage/' . $path)),
                     'price' => (float) $product->price,
                     'originalPrice' => (float) ($product->price + ($product->price * $product->discount / 100)),
                     'rating' => 4.8, // Placeholder - you might want to implement a real rating system
@@ -29,7 +34,9 @@ class ProductController extends Controller
                     'category' => $product->category->name,
                     'isNew' => $product->created_at->gt(now()->subDays(7)),
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         return response()->json($products);
     }
@@ -39,18 +46,23 @@ class ProductController extends Controller
      */
     public function getBestsellerProducts()
     {
-        $products = Product::with(['imageproducts', 'category'])
+        $products = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('status', 'active')
             ->where('is_bestseller', true)
             ->where('stock_quantity', '>', 0)
-            ->take(5)
+            ->take(20)
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($product) {
+                $imagePaths = $product->resolveImagePaths();
+                if ($imagePaths->isEmpty()) {
+                    return null;
+                }
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
-                    'images' => $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+                    'images' => $imagePaths->map(fn($path) => asset('storage/' . $path)),
                     'price' => (float) $product->price,
                     'originalPrice' => $product->discount > 0 ?
                         (float) ($product->price + ($product->price * $product->discount / 100)) :
@@ -60,7 +72,9 @@ class ProductController extends Controller
                     'category' => $product->category->title,
                     'isBestseller' => true
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         return response()->json($products);
     }
@@ -71,7 +85,7 @@ class ProductController extends Controller
 
     public function getProductDetails($slug) {
         $product = Product::where('slug', $slug)
-                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'videos', 'primaryImage', 'featuredVideo'])
+                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'videos', 'primaryImage', 'featuredVideo'])
                 ->first();
 
         if (!$product) {
@@ -90,7 +104,7 @@ class ProductController extends Controller
             'reviewCount'=> $product->reviewCount,
             'category'=> $product->category,
             'subCategory'=> $product->subcategory,
-            'images'=> $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+            'images'=> $product->resolveImagePaths()->map(fn($path) => asset('storage/' . $path)),
             'colors' => [
                 ['name' => "Gold", 'value' => "#D4AF37", 'available' => true],
                 ['name' => "Red", 'value' => "#9E2A2B", 'available' => true],
@@ -121,7 +135,7 @@ class ProductController extends Controller
         }
 
         // Find related products based on category, subcategory, brand, and price
-        $relatedProducts = Product::with(['imageproducts', 'category'])
+        $relatedProducts = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('id', '!=', $currentProduct->id) // Exclude the current product
             ->where('category_id', $currentProduct->category_id)
             ->orWhere('subcategory_id', $currentProduct->subcategory_id)
@@ -131,19 +145,26 @@ class ProductController extends Controller
                 $currentProduct->price + 10
             ])
             ->where('status', 'active')
-            ->take(5) // Limit the number of related products
+            ->take(20) // Limit the number of related products
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($product) {
+                $imagePaths = $product->resolveImagePaths();
+                if ($imagePaths->isEmpty()) {
+                    return null;
+                }
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
-                    'images' => $product->imageproducts->map(fn($img) => asset('storage/' . $img->image_path)),
+                    'images' => $imagePaths->map(fn($path) => asset('storage/' . $path)),
                     'price' => (float) $product->price,
                     'originalPrice' => (float) ($product->price + ($product->price * $product->discount / 100)),
                     'category' => $product->category->name,
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         return response()->json($relatedProducts);
     }

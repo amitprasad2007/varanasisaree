@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
@@ -91,5 +92,31 @@ class Product extends Model
     {
         return $this->hasMany(Size::class);
     }
-  
+
+    /**
+     * Resolve image paths for API consumers with fallback order:
+     * 1) Product imageproducts
+     * 2) Product variants' image_path
+     * 3) Product variant images' image_path
+     */
+    public function resolveImagePaths(): Collection
+    {
+        $productImages = $this->imageproducts ?? collect();
+        if ($productImages->isNotEmpty()) {
+            return $productImages->pluck('image_path')->filter()->values();
+        }
+
+        $variants = $this->variants ?? collect();
+
+        $variantImagePaths = $variants->pluck('image_path')->filter()->values();
+        if ($variantImagePaths->isNotEmpty()) {
+            return $variantImagePaths;
+        }
+
+        $variantImages = $variants->flatMap(function ($variant) {
+            return ($variant->images ?? collect());
+        });
+
+        return $variantImages->pluck('image_path')->filter()->unique()->values();
+    }
 }
