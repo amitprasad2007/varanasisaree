@@ -17,6 +17,7 @@ class ProductVariant extends Model
         'color_id',
         'size_id',
         'sku',
+        'barcode',
         'price',
         'discount',
         'stock_quantity',
@@ -44,7 +45,7 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Size::class);
     }
-    
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductVariantImage::class)->orderBy('display_order');
