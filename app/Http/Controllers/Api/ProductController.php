@@ -14,7 +14,7 @@ class ProductController extends Controller
             ->where('status', 'active')
             ->where('stock_quantity', '>', 0)
             ->latest()
-            ->take(3)
+            ->take(10)
             ->get()
             ->map(function ($product) {
                 return [

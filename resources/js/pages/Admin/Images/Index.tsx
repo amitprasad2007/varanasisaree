@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useForm } from '@inertiajs/react';
-import { DropResult } from 'react-beautiful-dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -172,7 +172,13 @@ export default function Index({ product, images, success }: IndexProps) {
               </div>
             </div>
             ) : (
-            <EmptyState productId={product.id} />
+            <EmptyState
+              productId={product.id}
+              title="No images yet"
+              description="Add images to showcase this product."
+              actionText="Add Images"
+              actionHref={route('product-images.create', product.id)}
+            />
           )}
         </div>
       </DashboardLayout>
