@@ -94,8 +94,21 @@ class ProductController extends Controller
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        // Build colors list based on variants' colors
-        $colors = collect($product->variants)
+        // Prepare variants and derive colors/default variant
+        $variantCollection = collect($product->variants ?? []);
+
+        // Determine default variant: prefer active with stock, otherwise first available
+        $defaultVariant = $variantCollection
+            ->first(function ($variant) {
+                $status = $variant->status;
+                $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1' || $status === null);
+                return $isActive && (int) $variant->stock_quantity > 0;
+            }) ?? $variantCollection->first();
+
+        $defaultVariantId = optional($defaultVariant)->id;
+
+        // Build colors list based on variants' colors (attach a representative variantId)
+        $colors = $variantCollection
             ->filter(fn($variant) => $variant->color)
             ->groupBy('color_id')
             ->map(function ($variantsByColor) {
@@ -104,12 +117,13 @@ class ProductController extends Controller
                 $available = $variantsByColor->contains(function ($variant) {
                     $status = $variant->status;
                     $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1');
-                    return $variant->stock_quantity > 0 && ($status === null ? true : $isActive);
+                    return (int) $variant->stock_quantity > 0 && ($status === null ? true : $isActive);
                 });
                 return [
                     'name' => $color->name,
                     'value' => $color->hex_code,
                     'available' => $available,
+                    'variantId' => $variantSample->id,
                 ];
             })
             ->values();
@@ -141,20 +155,82 @@ class ProductController extends Controller
 
         $specifications = $specifications->merge($additionalSpecifications)->values();
 
+        // Build variants payload
+        $variants = $variantCollection->map(function ($variant) use ($product) {
+            // Variant images: prefer variant->images list, then variant->image_path
+            $variantImages = collect($variant->images ?? [])
+                ->pluck('image_path')
+                ->filter()
+                ->values();
+            if ($variantImages->isEmpty() && !empty($variant->image_path)) {
+                $variantImages = collect([$variant->image_path]);
+            }
+
+            $status = $variant->status;
+            $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1' || $status === null);
+            $available = $isActive && (int) $variant->stock_quantity > 0;
+
+            $price = (float) ($variant->price ?? $product->price);
+            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $originalPrice = (float) ($price + ($price * $discount / 100));
+
+            return [
+                'id' => $variant->id,
+                'color' => $variant->color ? [
+                    'name' => $variant->color->name,
+                    'value' => $variant->color->hex_code,
+                ] : null,
+                'sku' => $variant->sku,
+                'images' => $variantImages->map(fn($path) => asset('storage/' . $path)),
+                'stock' => (int) $variant->stock_quantity,
+                'available' => $available,
+                'price' => $price,
+                'originalPrice' => $originalPrice,
+            ];
+        })->values();
+
+        // Top-level images and sku should match the default variant when present
+        $topImages = $product->resolveImagePaths()->map(fn($path) => asset('storage/' . $path));
+        $topSku = null;
+        if ($defaultVariant) {
+            $dvImages = collect($defaultVariant->images ?? [])->pluck('image_path')->filter()->values();
+            if ($dvImages->isEmpty() && !empty($defaultVariant->image_path)) {
+                $dvImages = collect([$defaultVariant->image_path]);
+            }
+            if ($dvImages->isNotEmpty()) {
+                $topImages = $dvImages->map(fn($path) => asset('storage/' . $path));
+            }
+            $topSku = $defaultVariant->sku;
+        }
+
+        // Price/discount should reflect default variant when available
+        $basePrice = $defaultVariant ? (float) ($defaultVariant->price ?? $product->price) : (float) $product->price;
+        $baseDiscount = $defaultVariant && $defaultVariant->discount !== null
+            ? (float) $defaultVariant->discount
+            : (float) $product->discount;
+        $baseOriginalPrice = (float) ($basePrice + ($basePrice * $baseDiscount / 100));
+
         return response()->json([
             'id' => $product->id,
             'name' => $product->name,
             'slug' => $product->slug,
-            'brand'=> $product->brand,
-            'price'=> (float)$product->price,
-            'originalPrice'=> (float) ($product->price + ($product->price * $product->discount / 100)),
-            'discountPercentage'=> $product->discount,
+            'brand'=> $product->brand ? [
+                'id' => $product->brand->id,
+                'name' => $product->brand->name,
+                'slug' => $product->brand->slug,
+            ] : null,
+            'price'=> $basePrice,
+            'originalPrice'=> $baseOriginalPrice,
+            'discountPercentage'=> number_format($baseDiscount, 2, '.', ''),
             'rating'=> $product->rating,
             'reviewCount'=> $product->reviewCount,
             'category'=> $product->category,
             'subCategory'=> $product->subcategory,
-            'images'=> $product->resolveImagePaths()->map(fn($path) => asset('storage/' . $path)),
+            'sku' => $topSku,
+            'images'=> $topImages,
             'colors' => $colors,
+            'defaultVariantId' => $defaultVariantId,
+            'variants' => $variants,
             'sizes'=> $product->size,
             'stock'=> $product->stock_quantity,
             'description'=> $product->description,
