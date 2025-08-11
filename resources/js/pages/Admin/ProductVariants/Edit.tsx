@@ -7,14 +7,6 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -61,6 +53,7 @@ interface Props {
 }
 
 export default function Edit({ product, variant, colors, sizes }: Props) {
+
   const { data, setData, post, processing, errors } = useForm({
     color_id: variant.color?.id?.toString() || '',
     size_id: variant.size?.id?.toString() || '',
@@ -126,154 +119,162 @@ export default function Edit({ product, variant, colors, sizes }: Props) {
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.color_id}
-                      onValueChange={(value) => setData('color_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colors.map((color) => (
-                          <SelectItem key={color.id} value={color.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              {color.hex_code && (
-                                <div
-                                  className="w-4 h-4 rounded-full border border-gray-300"
-                                  style={{ backgroundColor: color.hex_code }}
-                                />
-                              )}
-                              {color.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.color_id && <FormMessage>{errors.color_id}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={data.size_id}
-                      onValueChange={(value) => setData('size_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizes.map((size) => (
-                          <SelectItem key={size.id} value={size.id.toString()}>
-                            {size.name} {size.code && `(${size.code})`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  {errors.size_id && <FormMessage>{errors.size_id}</FormMessage>}
-                </FormItem>
-              </div>
-
-              <FormItem>
-                <FormLabel>SKU <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <Input
-                    value={data.sku}
-                    onChange={e => setData('sku', e.target.value)}
-                    placeholder="Product variant SKU"
-                  />
-                </FormControl>
-                {errors.sku && <FormMessage>{errors.sku}</FormMessage>}
-              </FormItem>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormItem>
-                  <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.price}
-                      onChange={e => setData('price', e.target.value)}
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.price && <FormMessage>{errors.price}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Discount (%)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.discount}
-                      onChange={e => setData('discount', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                    />
-                  </FormControl>
-                  {errors.discount && <FormMessage>{errors.discount}</FormMessage>}
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Stock Quantity <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={data.stock_quantity}
-                      onChange={e => setData('stock_quantity', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                    />
-                  </FormControl>
-                  {errors.stock_quantity && <FormMessage>{errors.stock_quantity}</FormMessage>}
-                </FormItem>
-              </div>
-
-              <FormItem>
-                <FormLabel>Variant Image</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    {variant.image_path && (
-                      <div className="text-sm text-gray-600">
-                        Current image: {variant.image_path}
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => setData('image', e.target.files?.[0] || null)}
-                    />
-                  </div>
-                </FormControl>
-                {errors.image && <FormMessage>{errors.image}</FormMessage>}
-              </FormItem>
-
-              <FormItem>
-                <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Color</label>
                   <Select
-                    value={data.status}
-                    onValueChange={(value) => setData('status', value as 'active' | 'inactive')}
+                    value={data.color_id}
+                    onValueChange={(value) => setData('color_id', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select a color" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      {colors.map((color) => (
+                        <SelectItem key={color.id} value={color.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            {color.hex_code && (
+                              <div
+                                className="w-4 h-4 rounded-full border border-gray-300"
+                                style={{ backgroundColor: color.hex_code }}
+                              />
+                            )}
+                            {color.name}
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                </FormControl>
-                {errors.status && <FormMessage>{errors.status}</FormMessage>}
-              </FormItem>
+                  {errors.color_id && (
+                    <p className="text-sm text-red-600">{errors.color_id}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Size</label>
+                  <Select
+                    value={data.size_id}
+                    onValueChange={(value) => setData('size_id', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sizes.map((size) => (
+                        <SelectItem key={size.id} value={size.id.toString()}>
+                          {size.name} {size.code && `(${size.code})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.size_id && (
+                    <p className="text-sm text-red-600">{errors.size_id}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  SKU <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={data.sku}
+                  onChange={e => setData('sku', e.target.value)}
+                  placeholder="Product variant SKU"
+                />
+                {errors.sku && (
+                  <p className="text-sm text-red-600">{errors.sku}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Price <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={data.price}
+                    onChange={e => setData('price', e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                  {errors.price && (
+                    <p className="text-sm text-red-600">{errors.price}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discount (%)</label>
+                  <Input
+                    type="number"
+                    value={data.discount}
+                    onChange={e => setData('discount', e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    max="100"
+                  />
+                  {errors.discount && (
+                    <p className="text-sm text-red-600">{errors.discount}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Stock Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={data.stock_quantity}
+                    onChange={e => setData('stock_quantity', e.target.value)}
+                    placeholder="0"
+                    min="0"
+                  />
+                  {errors.stock_quantity && (
+                    <p className="text-sm text-red-600">{errors.stock_quantity}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Variant Image</label>
+                <div className="space-y-2">
+                  {variant.image_path && (
+                    <div className="text-sm text-gray-600">
+                      Current image: {variant.image_path}
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setData('image', e.target.files?.[0] || null)}
+                  />
+                </div>
+                {errors.image && (
+                  <p className="text-sm text-red-600">{errors.image}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={data.status}
+                  onValueChange={(value) => setData('status', value as 'active' | 'inactive')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.status && (
+                  <p className="text-sm text-red-600">{errors.status}</p>
+                )}
+              </div>
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={processing}>
