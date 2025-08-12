@@ -30,7 +30,7 @@ Route::get('/aboutus', [ApiAboutusController::class, 'show']);
 Route::get('/products/{categories}', [CategoryController::class, 'catproducts']);
 Route::get('/categories/{categories}/details', [CategoryController::class, 'catdetails']);
 
-Route::get('getcategorybyname/{title}', [CategoryController::class, 'getcategorybyname']);
+Route::get('getcategorybyname/{slug}', [CategoryController::class, 'getcategorybyname']);
 
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
