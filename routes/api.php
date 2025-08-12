@@ -31,6 +31,8 @@ Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
 Route::get('/getProductDetails/{slug}',[ProductController::class, 'getProductDetails']);
 Route::get('/getRelatedProducts/{slug}',[ProductController::class, 'getRelatedProducts']);
+Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
+
 
 // Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);

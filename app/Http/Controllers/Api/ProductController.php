@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -279,6 +280,64 @@ class ProductController extends Controller
             ->values();
 
         return response()->json($relatedProducts);
+    }
+
+    public function getallproducts(){
+        $products = Product::with(['imageproducts', 'variants.images', 'category'])
+            ->where('status', 'active')
+            ->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+
+        // Aggregate approved reviews: count and average rating
+        $reviewStats = DB::table('product_reviews')
+            ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
+            ->whereIn('product_id', $products->pluck('id'))
+            ->where('is_approved', true)
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        $result = $products->map(function (Product $product) use ($reviewStats) {
+            // Resolve images; skip products without any
+            $imagePaths = $product->resolveImagePaths();
+            if ($imagePaths->isEmpty()) {
+                return null;
+            }
+
+            // Prices
+            $basePrice = (float) $product->price;
+            $discountPercent = (float) ($product->discount ?? 0);
+            $finalPrice = (int) round($basePrice - ($basePrice * $discountPercent / 100));
+
+            // Reviews
+            $stats = $reviewStats->get($product->id);
+            $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
+            $reviewCount = $stats ? (int) $stats->review_count : 0;
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'images' => $imagePaths->map(fn($path) => asset('storage/' . ltrim($path, '/')))->values(),
+                'price' => $finalPrice,
+                'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
+                'rating' => round($avgRating, 1),
+                'reviewCount' => $reviewCount,
+                'category' => optional($product->category)->title,
+                'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
+                'isBestseller' => (bool) ($product->is_bestseller ?? false),
+            ];
+        })->filter()->map(function ($item) {
+            if ($item['originalPrice'] === null) {
+                unset($item['originalPrice']);
+            }
+            return $item;
+        })->values();
+
+        return response()->json($result);
     }
 
 }
