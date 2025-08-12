@@ -59,7 +59,12 @@ class ProductVariantController extends Controller
             $data['image_path'] = $imagePath;
         }
 
-        ProductVariant::create($data);
+        $variant = ProductVariant::create($data);
+
+        if (empty($variant->barcode)) {
+            $variant->barcode = 'VAR-' . strtoupper(\Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string)$variant->id, 6, '0', STR_PAD_LEFT);
+            $variant->save();
+        }
 
         return redirect()->route('product-variants.index', $product)->with('success', 'Product variant created successfully.');
     }
@@ -104,6 +109,10 @@ class ProductVariantController extends Controller
         }
 
         $variant->update($data);
+        if (empty($variant->barcode)) {
+            $variant->barcode = 'VAR-' . strtoupper(\Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string)$variant->id, 6, '0', STR_PAD_LEFT);
+            $variant->save();
+        }
 
         return redirect()->route('product-variants.index', $product)->with('success', 'Product variant updated successfully.');
     }

@@ -2,6 +2,7 @@ export interface Product {
     id: number;
     name: string;
     slug: string;
+    barcode?: string;
     category_id: number;
     subcategory_id: number;
     brand_id: number;
@@ -95,6 +96,7 @@ export interface Color {
     color_id?: number;
     size_id?: number;
     sku: string;
+    barcode?: string;
     price: number;
     discount: number;
     stock_quantity: number;

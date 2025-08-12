@@ -80,7 +80,13 @@ class ProductController extends Controller
         // Add authenticated user ID
         $validated['added_by'] = auth()->id();
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        // Auto-generate barcode if not provided
+        if (empty($product->barcode)) {
+            $product->barcode = 'PRD-' . strtoupper(Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT);
+            $product->save();
+        }
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
@@ -131,6 +137,10 @@ class ProductController extends Controller
 
 
         $product->update($validated);
+        if (empty($product->barcode)) {
+            $product->barcode = 'PRD-' . strtoupper(Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT);
+            $product->save();
+        }
 
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }

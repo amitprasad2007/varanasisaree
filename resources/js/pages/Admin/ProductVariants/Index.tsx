@@ -35,6 +35,7 @@ interface Size {
 interface ProductVariant {
   id: number;
   sku: string;
+  barcode?: string;
   price: number;
   discount: number;
   stock_quantity: number;
@@ -126,7 +127,15 @@ export default function Index({ product, variants }: Props) {
           <TableBody>
             {variants.map((variant) => (
               <TableRow key={variant.id}>
-                <TableCell className="font-medium">{variant.sku}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex flex-col">
+                    <span>{variant.sku}</span>
+                    <div className="text-xs text-gray-500 flex gap-2">
+                      <Link href={route('variants.barcode', variant.id)} target="_blank" className="underline">Barcode</Link>
+                      <Link href={route('variants.qr', variant.id)} target="_blank" className="underline">QR</Link>
+                    </div>
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {variant.color?.hex_code && (

@@ -42,6 +42,7 @@ interface product {
     weight:number;
     work_type:string;
     occasion:string;
+    barcode?: string;
   }
 
   interface Props {
@@ -142,6 +143,14 @@ export default function Show({ product }: Props) {
                   <TableRow>
                     <TableHead>Description</TableHead>
                     <TableCell>{product.description || 'No description provided'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead>Barcode Value</TableHead>
+                    <TableCell className="flex items-center gap-3">
+                      <span className="font-mono text-sm">{product.barcode ?? 'Will be generated'}</span>
+                      <Link href={route('products.barcode', product.id)} target="_blank" className="text-blue-600 underline">View Barcode</Link>
+                      <Link href={route('products.qr', product.id)} target="_blank" className="text-blue-600 underline">View QR</Link>
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableHead>Status</TableHead>
