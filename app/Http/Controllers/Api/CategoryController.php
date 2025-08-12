@@ -238,5 +238,9 @@ class CategoryController extends Controller
             'productsCount' => $productsCount,
         ]);
     }
+    public function getcategorybyname($title){
+        $category = Category::where('title', $title)->where('status', 'active')->first();
+        return response()->json($category);
+    }
 
 }

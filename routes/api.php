@@ -22,10 +22,15 @@ Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']
 // Category APIs
 Route::get('/categories', [CategoryController::class, 'apiIndex']);
 
+// About Us API
+Route::get('/aboutus', [ApiAboutusController::class, 'show']);
+
 
 // Category APIs - products and details
 Route::get('/products/{categories}', [CategoryController::class, 'catproducts']);
 Route::get('/categories/{categories}/details', [CategoryController::class, 'catdetails']);
+
+Route::get('getcategorybyname/{title}', [CategoryController::class, 'getcategorybyname']);
 
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
@@ -39,8 +44,7 @@ Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 
-// About Us API
-Route::get('/aboutus', [ApiAboutusController::class, 'show']);
+
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
