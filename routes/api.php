@@ -21,6 +21,11 @@ Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']
 // Category APIs
 Route::get('/categories', [CategoryController::class, 'apiIndex']);
 
+
+// Category APIs - products and details
+Route::get('/products/{categories}', [CategoryController::class, 'catproducts']);
+Route::get('/categories/{categories}/details', [CategoryController::class, 'catdetails']);
+
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
