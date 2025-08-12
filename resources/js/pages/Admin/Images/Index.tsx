@@ -3,7 +3,6 @@ import { Link, useForm } from '@inertiajs/react';
 import type { DropResult } from '@hello-pangea/dnd';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import { PlusCircle, ArrowLeft } from 'lucide-react';
 import { Product, ProductImage } from '@/types/product';
 import { ProductImageCarousel } from '@/components/ProductImages/ProductImageCarousel';
