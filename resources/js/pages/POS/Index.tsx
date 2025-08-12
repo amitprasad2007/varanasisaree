@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
+import { Html5Qrcode } from 'html5-qrcode';
 
 type ProductHit = {
   id: number;
@@ -23,6 +24,8 @@ export default function POSPage() {
   const [results, setResults] = useState<ProductHit[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [barcode, setBarcode] = useState('');
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [discountType, setDiscountType] = useState<'percent' | 'fixed' | ''>('');
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [taxPercent, setTaxPercent] = useState<number>(0);
@@ -104,6 +107,62 @@ export default function POSPage() {
     }
   }
 
+  useEffect(() => {
+    async function startCamera() {
+      try {
+        const id = 'pos-qr-region';
+        if (!document.getElementById(id)) return;
+        const html5Qrcode = new Html5Qrcode(id);
+        scannerRef.current = html5Qrcode;
+        await html5Qrcode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: 250 },
+          async (decodedText) => {
+          setBarcode(decodedText);
+          // trigger add to cart via scan API
+          try {
+            const { data } = await axios.get('/pos/scan', { params: { code: decodedText } });
+            if (data) {
+              if (data.variantId) {
+                setCart(prev => {
+                  const key = `${data.productId}:${data.variantId}`;
+                  const existing = prev.find(x => x.key === key);
+                  if (existing) return prev.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x);
+                  return [...prev, { key, productId: data.productId, variantId: data.variantId, name: data.name + (data.color ? ` - ${data.color}` : ''), sku: data.sku, qty: 1, price: data.price }];
+                });
+              } else {
+                setCart(prev => {
+                  const key = `${data.productId}:base`;
+                  const existing = prev.find(x => x.key === key);
+                  if (existing) return prev.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x);
+                  return [...prev, { key, productId: data.productId, name: data.name, qty: 1, price: data.price }];
+                });
+              }
+            }
+          } catch (_) {}
+          },
+          () => { /* ignore scan errors */ }
+        );
+      } catch (e) {
+        setCameraEnabled(false);
+      }
+    }
+    if (cameraEnabled) {
+      startCamera();
+    } else {
+      if (scannerRef.current) {
+        scannerRef.current.stop().finally(() => scannerRef.current?.clear());
+        scannerRef.current = null;
+      }
+    }
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().finally(() => scannerRef.current?.clear());
+        scannerRef.current = null;
+      }
+    };
+  }, [cameraEnabled]);
+
   async function checkout() {
     const payload = {
       customer: customerName ? { name: customerName } : null,
@@ -133,7 +192,9 @@ export default function POSPage() {
         <input value={barcode} onChange={e => setBarcode(e.target.value)} onKeyDown={scanAdd} placeholder="Scan barcode or enter SKU and press Enter" className="border px-3 py-2 w-1/2" />
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by code, name…" className="border px-3 py-2 w-full" />
         <button onClick={search} className="bg-blue-600 text-white px-4 py-2">Search</button>
+        <button onClick={() => setCameraEnabled(v => !v)} className="bg-gray-700 text-white px-4 py-2">{cameraEnabled ? 'Stop Camera' : 'Start Camera'}</button>
       </div>
+      {cameraEnabled ? <div id="pos-qr-region" className="mb-4 w-80 h-80 border" /> : null}
 
       <div className="grid grid-cols-2 gap-6">
         <div>

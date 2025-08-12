@@ -18,6 +18,7 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'variant_id' => 'nullable|exists:product_variants,id',
             'address_id' => 'required|exists:address_users,id',
             'payment_method' => 'required|in:cod,razorpay,paytm,others',
         ]);
@@ -28,18 +29,25 @@ class OrderController extends Controller
 
         $user = $request->user();
         $product = Product::findOrFail($request->product_id);
+        $variant = null;
+        if ($request->filled('variant_id')) {
+            $variant = \App\Models\ProductVariant::where('id', $request->variant_id)
+                ->where('product_id', $product->id)
+                ->firstOrFail();
+        }
         $address = AddressUser::findOrFail($request->address_id);
 
         try {
             DB::beginTransaction();
 
             // Create order
+            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
             $order = Order::create([
                 'user_id' => $user->id,
                 'address_id' => $address->id,
-                'sub_total' => $product->price * $request->quantity,
+                'sub_total' => $unitPrice * $request->quantity,
                 'quantity' => $request->quantity,
-                'total_amount' => $product->price * $request->quantity,
+                'total_amount' => $unitPrice * $request->quantity,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
                 'status' => 'pending'
@@ -49,10 +57,11 @@ class OrderController extends Controller
             Cart::create([
                 'user_id' => $user->id,
                 'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
                 'order_id' => $order->id,
-                'price' => $product->price,
+                'price' => $unitPrice,
                 'quantity' => $request->quantity,
-                'amount' => $product->price * $request->quantity,
+                'amount' => $unitPrice * $request->quantity,
                 'status' => 'new'
             ]);
 
@@ -60,7 +69,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $order->load('cartItems.product')
+                'order' => $order->load(['cartItems.product', 'cartItems.productVariant'])
             ]);
 
         } catch (\Exception $e) {
@@ -85,7 +94,7 @@ class OrderController extends Controller
         $address = AddressUser::findOrFail($request->address_id);
         $cartItems = Cart::where('user_id', $user->id)
             ->whereNull('order_id')
-            ->with('product')
+            ->with(['product', 'productVariant'])
             ->get();
 
         if ($cartItems->isEmpty()) {

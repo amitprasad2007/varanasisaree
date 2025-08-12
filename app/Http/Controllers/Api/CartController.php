@@ -16,6 +16,7 @@ class CartController extends Controller
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'variant_id' => 'nullable|exists:product_variants,id',
         ]);
 
         if ($validator->fails()) {
@@ -25,31 +26,53 @@ class CartController extends Controller
         $user = $request->user();
         $product = Product::findOrFail($request->product_id);
 
+        $variantId = $request->input('variant_id');
+        $variant = null;
+        if ($variantId) {
+            $variant = \App\Models\ProductVariant::where('id', $variantId)
+                ->where('product_id', $product->id)
+                ->firstOrFail();
+        }
+
         // Check if product already exists in cart
         $existingCart = Cart::where('user_id', $user->id)
             ->where('product_id', $product->id)
+            ->when($variantId, function ($q) use ($variantId) {
+                $q->where('product_variant_id', $variantId);
+            }, function ($q) {
+                $q->whereNull('product_variant_id');
+            })
             ->whereNull('order_id')
             ->first();
 
         if ($existingCart) {
             $existingCart->quantity += $request->quantity;
-            $existingCart->amount = $existingCart->quantity * $product->price;
+            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+            $existingCart->price = $unitPrice;
+            $existingCart->amount = $existingCart->quantity * $unitPrice;
             $existingCart->save();
         } else {
+            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
             Cart::create([
                 'user_id' => $user->id,
                 'product_id' => $product->id,
-                'price' => $product->price,
+                'product_variant_id' => $variant?->id,
+                'price' => $unitPrice,
                 'quantity' => $request->quantity,
-                'amount' => $product->price * $request->quantity,
+                'amount' => $unitPrice * $request->quantity,
                 'status' => 'new'
             ]);
         }
 
         // After adding or updating the cart, fetch the latest cart item for this product
-        $cartItem = Cart::with('product')
+        $cartItem = Cart::with(['product', 'productVariant', 'productVariant.images'])
             ->where('user_id', $user->id)
             ->where('product_id', $product->id)
+            ->when($variantId, function ($q) use ($variantId) {
+                $q->where('product_variant_id', $variantId);
+            }, function ($q) {
+                $q->whereNull('product_variant_id');
+            })
             ->whereNull('order_id')
             ->latest('updated_at')
             ->first();
@@ -59,10 +82,13 @@ class CartController extends Controller
             'item' => [
                 'id' => $cartItem->id,
                 'product_id' => $cartItem->product_id,
+                'variant_id' => $cartItem->product_variant_id,
                 'quantity' => $cartItem->quantity,
                 'name' => $cartItem->product->name ?? '',
                 'price' => $cartItem->price,
-                'image' => $cartItem->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                'image' => ($cartItem->product_variant_id ? ($cartItem->productVariant?->primaryImage()?->image_path ?? null) : null)
+                    ?? $cartItem->product->primaryImage->first()?->image_url
+                    ?? 'https://via.placeholder.com/150',
                 'color' => $cartItem->product->color ?? '',
                 'slug' => $cartItem->product->slug ?? '',
             ]
@@ -123,7 +149,7 @@ class CartController extends Controller
 
     public function getUserCart($userId)
     {
-        return Cart::with('product', 'product.primaryImage')
+        return Cart::with(['product', 'product.primaryImage', 'productVariant', 'productVariant.images'])
             ->where('user_id', $userId)
             ->whereNull('order_id')
             ->get();
@@ -140,7 +166,9 @@ class CartController extends Controller
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
-                'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? null) : null)
+                    ?? $item->product->primaryImage->first()?->image_path
+                    ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
                 'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
                 'quantity' => $item->quantity,

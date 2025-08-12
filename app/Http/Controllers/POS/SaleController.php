@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\{Product, ProductVariant, Sale, SaleItem, SalePayment, Customer};
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
@@ -245,6 +246,10 @@ class SaleController extends Controller
     {
         $sale = Sale::with(['customer', 'items.product', 'items.variant', 'payments'])
             ->findOrFail($id);
+        if (request()->query('format') === 'pdf') {
+            $pdf = Pdf::loadView('sales.invoice', compact('sale')); // simple A4
+            return $pdf->download('invoice-'.$sale->invoice_number.'.pdf');
+        }
         return view('sales.invoice', compact('sale'));
     }
 

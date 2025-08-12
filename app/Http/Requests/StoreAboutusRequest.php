@@ -11,7 +11,7 @@ class StoreAboutusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreAboutusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'page_title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'required|image|mimes:jpeg,jpg,png,webp,gif|max:2048',
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

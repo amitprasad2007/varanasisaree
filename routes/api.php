@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -37,6 +38,9 @@ Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
 // Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
+
+// About Us API
+Route::get('/aboutus', [ApiAboutusController::class, 'show']);
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');

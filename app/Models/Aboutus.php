@@ -16,4 +16,9 @@ class Aboutus extends Model
     public function sections() {
         return $this->hasMany(AboutUsSection::class, 'aboutus_id');
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
 }

@@ -21,7 +21,8 @@ use App\Http\Controllers\ProductBulkUploadController;
 use App\Http\Controllers\ApiPlaygroundController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\PermissionManagementController;
-use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\AboutusController as AdminAboutusController;
+use App\Http\Controllers\AboutusSectionController;
 
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -55,9 +56,6 @@ Route::middleware('auth')->group(function () {
 
     // Products
     Route::resource('products', ProductController::class);
-    // Barcode & QR for Products
-    Route::get('products/{product}/barcode', [BarcodeController::class, 'productBarcode'])->name('products.barcode');
-    Route::get('products/{product}/qr', [BarcodeController::class, 'productQr'])->name('products.qr');
     // Products Images
     Route::get('products/{product}/images', [ImageProductController::class, 'index'])->name('product-images.index');
     Route::get('products/{product}/images/create', [ImageProductController::class, 'create'])->name('product-images.create');
@@ -93,6 +91,15 @@ Route::middleware('auth')->group(function () {
     Route::post('banners/update-order', [BannerController::class, 'updateOrder'])->name('banners.update-order');
     Route::post('banners/{banner}/update-status', [BannerController::class, 'updateStatus'])->name('banners.update-status');
 
+    // About Us (single or multiple records with sections)
+    Route::resource('aboutus', AdminAboutusController::class);
+    Route::get('aboutus/{aboutus}/sections', [AboutusSectionController::class, 'index'])->name('aboutus.sections.index');
+    Route::get('aboutus/{aboutus}/sections/create', [AboutusSectionController::class, 'create'])->name('aboutus.sections.create');
+    Route::post('aboutus/sections', [AboutusSectionController::class, 'store'])->name('aboutus.sections.store');
+    Route::get('aboutus/{aboutus}/sections/{section}/edit', [AboutusSectionController::class, 'edit'])->name('aboutus.sections.edit');
+    Route::put('aboutus/{aboutus}/sections/{section}', [AboutusSectionController::class, 'update'])->name('aboutus.sections.update');
+    Route::delete('aboutus/{aboutus}/sections/{section}', [AboutusSectionController::class, 'destroy'])->name('aboutus.sections.destroy');
+
     // Coupons
     Route::resource('coupons', CouponController::class);
     Route::post('coupons/{coupon}/update-status', [CouponController::class, 'updateStatus'])->name('coupons.update-status');
@@ -113,9 +120,6 @@ Route::middleware('auth')->group(function () {
     Route::get('products/{product}/variants/{variant}/edit', [ProductVariantController::class, 'edit'])->name('product-variants.edit');
     Route::put('products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->name('product-variants.update');
     Route::delete('products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])->name('product-variants.destroy');
-    // Barcode & QR for Variants
-    Route::get('variants/{variant}/barcode', [BarcodeController::class, 'variantBarcode'])->name('variants.barcode');
-    Route::get('variants/{variant}/qr', [BarcodeController::class, 'variantQr'])->name('variants.qr');
 
     // Product Variant Images
     Route::get('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'index'])->name('product-variant-images.index');

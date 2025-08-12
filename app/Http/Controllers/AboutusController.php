@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Aboutus;
 use App\Http\Requests\StoreAboutusRequest;
 use App\Http\Requests\UpdateAboutusRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class AboutusController extends Controller
 {
@@ -13,7 +16,10 @@ class AboutusController extends Controller
      */
     public function index()
     {
-        //
+        $aboutUs = Aboutus::with('sections')->orderBy('id', 'desc')->get();
+        return Inertia::render('Admin/Aboutus/Index', [
+            'aboutus' => $aboutUs,
+        ]);
     }
 
     /**
@@ -21,7 +27,7 @@ class AboutusController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Admin/Aboutus/Create');
     }
 
     /**
@@ -29,7 +35,18 @@ class AboutusController extends Controller
      */
     public function store(StoreAboutusRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('aboutus', 'public');
+        }
+        $about = Aboutus::create([
+            'page_title' => $validated['page_title'],
+            'description' => $validated['description'] ?? null,
+            'image' => $imagePath,
+            'status' => $validated['status'],
+        ]);
+        return redirect()->route('aboutus.index')->with('success', 'About Us created successfully.');
     }
 
     /**
@@ -37,7 +54,9 @@ class AboutusController extends Controller
      */
     public function show(Aboutus $aboutus)
     {
-        //
+        return Inertia::render('Admin/Aboutus/Show', [
+            'aboutus' => $aboutus->load('sections'),
+        ]);
     }
 
     /**
@@ -45,7 +64,9 @@ class AboutusController extends Controller
      */
     public function edit(Aboutus $aboutus)
     {
-        //
+        return Inertia::render('Admin/Aboutus/Edit', [
+            'aboutus' => $aboutus,
+        ]);
     }
 
     /**
@@ -53,7 +74,20 @@ class AboutusController extends Controller
      */
     public function update(UpdateAboutusRequest $request, Aboutus $aboutus)
     {
-        //
+        $validated = $request->validated();
+        $data = [
+            'page_title' => $validated['page_title'],
+            'description' => $validated['description'] ?? null,
+            'status' => $validated['status'],
+        ];
+        if ($request->hasFile('image')) {
+            if ($aboutus->image) {
+                Storage::disk('public')->delete($aboutus->image);
+            }
+            $data['image'] = $request->file('image')->store('aboutus', 'public');
+        }
+        $aboutus->update($data);
+        return redirect()->route('aboutus.index')->with('success', 'About Us updated successfully.');
     }
 
     /**
@@ -61,6 +95,10 @@ class AboutusController extends Controller
      */
     public function destroy(Aboutus $aboutus)
     {
-        //
+        if ($aboutus->image) {
+            Storage::disk('public')->delete($aboutus->image);
+        }
+        $aboutus->delete();
+        return redirect()->route('aboutus.index')->with('success', 'About Us deleted successfully.');
     }
 }
