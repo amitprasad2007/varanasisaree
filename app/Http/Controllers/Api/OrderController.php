@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\AddressUser;
+use App\Models\Coupon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
@@ -27,7 +28,7 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+        $customer = $request->user();
         $product = Product::findOrFail($request->product_id);
         $variant = null;
         if ($request->filled('variant_id')) {
@@ -43,7 +44,7 @@ class OrderController extends Controller
             // Create order
             $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
             $order = Order::create([
-                'user_id' => $user->id,
+                'customer_id' => $customer->id,
                 'address_id' => $address->id,
                 'sub_total' => $unitPrice * $request->quantity,
                 'quantity' => $request->quantity,
@@ -55,7 +56,7 @@ class OrderController extends Controller
 
             // Create cart item for the order
             Cart::create([
-                'user_id' => $user->id,
+                'customer_id' => $customer->id,
                 'product_id' => $product->id,
                 'product_variant_id' => $variant?->id,
                 'order_id' => $order->id,
@@ -90,9 +91,9 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+        $customer = $request->user();
         $address = AddressUser::findOrFail($request->address_id);
-        $cartItems = Cart::where('user_id', $user->id)
+        $cartItems = Cart::where('customer_id', $customer->id)
             ->whereNull('order_id')
             ->with(['product', 'productVariant'])
             ->get();
@@ -122,7 +123,7 @@ class OrderController extends Controller
             // Create order
             $order = Order::create([
                 'order_id' => 'ORD-' . strtoupper(uniqid()), // Generate a unique order ID
-                'user_id' => $user->id,
+                'customer_id' => $customer->id,
                 'address_id' => $address->id,
                 'sub_total' => $subTotal,
                 'shipping_id' => 1, // Assuming a fixed shipping ID for this example
@@ -137,7 +138,7 @@ class OrderController extends Controller
             ]);
 
             // Update cart items with order_id
-            Cart::where('user_id', $user->id)
+            Cart::where('customer_id', $customer->id)
                 ->whereNull('order_id')
                 ->update(['order_id' => $order->id]);
 
@@ -164,8 +165,8 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
-        $query = Order::where('user_id', $user->id)
+        $customer = $request->user();
+        $query = Order::where('customer_id', $customer->id)
             ->with(['cartItems.product', 'address'])
             ->orderBy('created_at', 'desc');
 
@@ -183,9 +184,9 @@ class OrderController extends Controller
 
     public function getOrderHistory(Request $request)
     {
-        $user = $request->user();
+        $customer = $request->user();
 
-        $orders = Order::where('user_id', $user->id)
+        $orders = Order::where('customer_id', $customer->id)
             ->with(['orderItems.product'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -241,8 +242,8 @@ class OrderController extends Controller
                 'order_state' => $item->address->state,
                 'order_zip' => $item->address->postal_code,
                 'order_country' => $item->address->country,
-                'order_phone' => auth()->user()->mobile,
-                'order_email' => $item->user->email,
+                'order_phone' => auth()->user()->phone,
+                'order_email' => $item->customer->email,
                 'payment_status'=> $item->payment_status,
                 'tax'=> $item->tax,
                 'payment_method' => $item->payment_method,

@@ -10,9 +10,9 @@ class WishlistController extends Controller
 {
     public function getWishlistItems(Request $request)
     {
-        $user = $request->user();
+        $customer = $request->user();
 
-        $wishlistItems = Wishlist::where('user_id', $user->id)
+        $wishlistItems = Wishlist::where('customer_id', $customer->id)
             ->with(['product.category'])
             ->get()
             ->map(function ($wishlist) {

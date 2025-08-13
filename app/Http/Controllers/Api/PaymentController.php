@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Razorpay\Api\Api;
-use App\User;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\Order;
@@ -17,10 +16,10 @@ use App\Models\Payment;
 class PaymentController extends Controller
 {
     public function createOrder(Request $request){
-        $user = auth()->user();
+        $customer = auth()->user();
         $order = Order::create([
             'order_id' => 'ORD'.time().bin2hex(random_bytes(5)), // Generate a unique order ID
-            'user_id' => auth()->user()->id,
+            'customer_id' => $customer->id,
             'address_id' => $request->address_id,
             'sub_total' => $request->subtotal,
             'quantity' => $request->totalquantity,
@@ -47,7 +46,7 @@ class PaymentController extends Controller
                 $cart->save();
             }
         }
-        $customer_name = $user->name;
+        $customer_name = $customer->name;
         $amountto = $order->total_amount;
         $amounttotal = round($amountto * 100);
 
@@ -57,7 +56,7 @@ class PaymentController extends Controller
             'amount'          => $amounttotal,
             'currency'        => 'INR',
             'payment_capture' => 1,
-            'notes'=> array('customer_name'=> $customer_name,'Customer_mobile'=> $user->mobile)
+            'notes'=> array('customer_name'=> $customer_name,'Customer_mobile'=> $customer->phone)
         ];
       //  \Log::info('Creating Razorpay order with data:', $orderData);
 
@@ -82,7 +81,7 @@ class PaymentController extends Controller
     }
 
     public function paychecksave(Request $request){
-        $user = auth()->user();
+        $customer = auth()->user();
         $payment_id = $request->response['razorpay_payment_id'];
         $order_id = $request->response['razorpay_order_id'];
         $signature = $request->response['razorpay_signature'];
@@ -100,7 +99,7 @@ class PaymentController extends Controller
                 'card_id' => $payment->card_id,
                 'email' => $payment->email,
                 'contact'=> $payment->contact,
-                'user_id' =>auth()->user()->id,
+                'customer_id' =>$customer->id,
                 'payment_details'=> json_encode($payment->toArray())
             ]);
             Order::where('transaction_id', $payment->order_id)->update(['payment_status' => 'paid','status'=>'processing']);
@@ -120,7 +119,7 @@ class PaymentController extends Controller
                 'card_id' => $response->card_id,
                 'email' => $response->email,
                 'contact'=> $response->contact,
-                'user_id' =>auth()->user()->id,
+                'customer_id' =>$customer->id,
                 'payment_details'=> json_encode($response->toArray())
             ]);
             Order::where('transaction_id', $response->order_id)->update(['payment_status' => 'paid','status'=>'process']);

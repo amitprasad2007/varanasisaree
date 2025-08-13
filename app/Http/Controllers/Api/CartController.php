@@ -23,7 +23,7 @@ class CartController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+		$customer = $request->user();
         $product = Product::findOrFail($request->product_id);
 
         $variantId = $request->input('variant_id');
@@ -35,14 +35,14 @@ class CartController extends Controller
         }
 
         // Check if product already exists in cart
-        $existingCart = Cart::where('user_id', $user->id)
+		$existingCart = Cart::where('customer_id', $customer->id)
             ->where('product_id', $product->id)
             ->when($variantId, function ($q) use ($variantId) {
                 $q->where('product_variant_id', $variantId);
             }, function ($q) {
                 $q->whereNull('product_variant_id');
             })
-            ->whereNull('order_id')
+			->whereNull('order_id')
             ->first();
 
         if ($existingCart) {
@@ -53,8 +53,8 @@ class CartController extends Controller
             $existingCart->save();
         } else {
             $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
-            Cart::create([
-                'user_id' => $user->id,
+			Cart::create([
+				'customer_id' => $customer->id,
                 'product_id' => $product->id,
                 'product_variant_id' => $variant?->id,
                 'price' => $unitPrice,
@@ -65,8 +65,8 @@ class CartController extends Controller
         }
 
         // After adding or updating the cart, fetch the latest cart item for this product
-        $cartItem = Cart::with(['product', 'productVariant', 'productVariant.images'])
-            ->where('user_id', $user->id)
+		$cartItem = Cart::with(['product', 'productVariant', 'productVariant.images'])
+			->where('customer_id', $customer->id)
             ->where('product_id', $product->id)
             ->when($variantId, function ($q) use ($variantId) {
                 $q->where('product_variant_id', $variantId);
@@ -77,7 +77,7 @@ class CartController extends Controller
             ->latest('updated_at')
             ->first();
 
-        return response()->json([
+		return response()->json([
             'message' => 'Product added to cart successfully',
             'item' => [
                 'id' => $cartItem->id,
@@ -96,7 +96,7 @@ class CartController extends Controller
 
     }
 
-    public function updateCart(Request $request)
+	public function updateCart(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'cart_id' => 'required|exists:carts,id',
@@ -107,9 +107,9 @@ class CartController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
-        $cart = Cart::where('id', $request->cart_id)
-            ->where('user_id', $user->id)
+		$customer = $request->user();
+		$cart = Cart::where('id', $request->cart_id)
+			->where('customer_id', $customer->id)
             ->whereNull('order_id')
             ->firstOrFail();
 
@@ -117,13 +117,13 @@ class CartController extends Controller
         $cart->amount = $cart->price * $request->quantity;
         $cart->save();
 
-        return response()->json([
+		return response()->json([
             'message' => 'Cart updated successfully',
-            'cart' => $this->getUserCart($user->id)
+			'cart' => $this->getCustomerCart($customer->id)
         ]);
     }
 
-    public function removeFromCart(Request $request)
+	public function removeFromCart(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'cart_id' => 'required|exists:carts,id',
@@ -133,32 +133,32 @@ class CartController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
-        $cart = Cart::where('id', $request->cart_id)
-            ->where('user_id', $user->id)
+		$customer = $request->user();
+		$cart = Cart::where('id', $request->cart_id)
+			->where('customer_id', $customer->id)
             ->whereNull('order_id')
             ->firstOrFail();
 
         $cart->delete();
 
-        return response()->json([
+		return response()->json([
             'message' => 'Product removed from cart successfully',
-            'cart' => $this->getUserCart($user->id)
+			'cart' => $this->getCustomerCart($customer->id)
         ]);
     }
 
-    public function getUserCart($userId)
+	public function getCustomerCart($customerId)
     {
-        return Cart::with(['product', 'product.primaryImage', 'productVariant', 'productVariant.images'])
-            ->where('user_id', $userId)
+		return Cart::with(['product', 'product.primaryImage', 'productVariant', 'productVariant.images'])
+			->where('customer_id', $customerId)
             ->whereNull('order_id')
             ->get();
     }
 
-    public function getCheckoutCart(Request $request)
+	public function getCheckoutCart(Request $request)
     {
-        $user = $request->user();
-        $cartItems = $this->getUserCart($user->id);
+		$customer = $request->user();
+		$cartItems = $this->getCustomerCart($customer->id);
 
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
@@ -182,7 +182,7 @@ class CartController extends Controller
         $quantity = $cartItems->sum('quantity');
         $shipping = 0; // You can implement shipping calculation logic here
         $total = $subTotal + $shipping;
-        $cartdetails = $this->getUserCart($user->id);
+		$cartdetails = $this->getCustomerCart($customer->id);
         return response()->json([
             'cartdetails' => $cartdetails,
             'cart_items' => $formattedCartItems,
@@ -195,11 +195,11 @@ class CartController extends Controller
         ]);
     }
 
-    public function getCartSummary(Request $request)
+	public function getCartSummary(Request $request)
     {
-        $user = $request->user()->load('addressesdefault');
+		$customer = $request->user()->load('addressesdefault');
 
-        $cartItems = Cart::where('user_id', $user->id)
+		$cartItems = Cart::where('customer_id', $customer->id)
             ->whereNull('order_id')
             ->with('product')
             ->get();
@@ -230,8 +230,8 @@ class CartController extends Controller
             ];
         });
 
-        return response()->json([
-            'address' => $user->addressesdefault,
+		return response()->json([
+			'address' => $customer->addressesdefault,
             'items' => $formattedItems,
             'subtotal' => $subtotal,
             'discount' => $discount,
