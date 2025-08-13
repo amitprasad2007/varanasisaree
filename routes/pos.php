@@ -2,9 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\POS\SaleController;
+use Inertia\Inertia;
 
-// Standalone POS APIs (not under dashboard middleware)
+// POS Page and APIs
 Route::prefix('pos')->group(function () {
+    // Inertia view for POS UI
+    Route::get('/', function () { return Inertia::render('POS/Index'); })->name('pos.index');
     Route::get('/products/search', [SaleController::class, 'searchProducts']);
     Route::get('/scan', [SaleController::class, 'scan']);
     Route::post('/sales', [SaleController::class, 'createSale']);

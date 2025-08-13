@@ -38,12 +38,14 @@ type MenuSection = {
 const Sidebar = () => {
   const { url, props } = usePage();
   const auth = (props as any)?.auth;
+  const aboutusId = (props as any)?.aboutusId;
 
   const sections: MenuSection[] = useMemo(() => ([
     {
       label: 'Overview',
       items: [
         { icon: Home, label: 'Dashboard', path: '/dashboard' },
+        
       ],
     },
     {
@@ -55,6 +57,14 @@ const Sidebar = () => {
         { icon: FileText, label: 'Product Bulk Upload', path: '/products/bulkupload' },
         { icon: Palette, label: 'Colors', path: '/colors' },
         { icon: Ruler, label: 'Sizes', path: '/sizes' },
+				{
+					icon: FileText,
+					label: 'About Us',
+					path: '/aboutus',
+					subItems: [
+						{ icon: FileText, label: 'Sections', path: aboutusId ? `/aboutus/${aboutusId}/sections` : '/aboutus' },
+					],
+				},
         {
           icon: Captions,
           label: 'Categories',

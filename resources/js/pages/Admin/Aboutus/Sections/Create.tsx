@@ -24,8 +24,22 @@ const Create: React.FC<Props> = ({ aboutus }) => {
     status: 'active',
   });
 
+  const [sectionContentInput, setSectionContentInput] = useState<string>(
+    JSON.stringify({}, null, 2)
+  );
+  const [sectionContentError, setSectionContentError] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate JSON before submit
+    try {
+      const parsed = JSON.parse(sectionContentInput || '{}');
+      setData('section_content', parsed);
+      setSectionContentError(null);
+    } catch (err) {
+      setSectionContentError('Please enter valid JSON');
+      return;
+    }
     post(route('aboutus.sections.store'), { forceFormData: true });
   };
 
@@ -68,16 +82,22 @@ const Create: React.FC<Props> = ({ aboutus }) => {
                 <Label>Content (JSON)</Label>
                 <Textarea
                   rows={10}
-                  value={JSON.stringify(data.section_content, null, 2)}
+                  value={sectionContentInput}
                   onChange={e => {
+                    const value = e.target.value;
+                    setSectionContentInput(value);
                     try {
-                      const json = JSON.parse(e.target.value || '{}');
-                      setData('section_content', json);
+                      const parsed = JSON.parse(value || '{}');
+                      setData('section_content', parsed);
+                      setSectionContentError(null);
                     } catch (err) {
-                      // ignore type until valid
+                      setSectionContentError('Invalid JSON');
                     }
                   }}
                 />
+                {sectionContentError && (
+                  <p className="text-sm text-red-500">{sectionContentError}</p>
+                )}
                 {errors.section_content && <p className="text-sm text-red-500">{errors.section_content}</p>}
               </div>
               <div className="space-y-2">
