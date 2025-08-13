@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Builder;
 
 class Customer extends Authenticatable
@@ -71,6 +72,10 @@ class Customer extends Authenticatable
     public function addresses(): HasMany
     {
         return $this->hasMany(AddressUser::class);
+    }
+    public function addressesdefault(): HasOne
+    {
+        return $this->hasOne(AddressUser::class)->where('is_default', true);
     }
     public function cartItems(): HasMany
     {
