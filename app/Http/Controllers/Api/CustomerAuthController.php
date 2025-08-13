@@ -7,9 +7,17 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use App\Services\CustomerService;
 
 class CustomerAuthController extends Controller
 {
+    protected $customerService;
+
+    public function __construct(CustomerService $customerService)
+    {
+        $this->customerService = $customerService;
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -67,7 +75,8 @@ class CustomerAuthController extends Controller
 
     public function profile(Request $request)
     {
-        return response()->json($request->user());
+        $customer = $request->user()->load(['orders.orderItems.product', 'wishlists.product', 'addresses', 'cartItems.product']);
+        return response()->json($this->customerService->formatCustomerData($customer));
     }
 
     public function logout(Request $request)

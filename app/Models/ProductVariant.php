@@ -51,11 +51,20 @@ class ProductVariant extends Model
         return $this->hasMany(ProductVariantImage::class)->orderBy('display_order');
     }
 
-    public function primaryImage()
+    public function primaryImage(): HasMany
     {
         return $this->hasMany(ProductVariantImage::class)->where('is_primary', true)->first();
     }
 
+    public function productRatings(): HasMany
+    {
+        return $this->hasMany(ProductRating::class);
+    }
+
+    public function productReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
 
     public function getFinalPriceAttribute()
     {

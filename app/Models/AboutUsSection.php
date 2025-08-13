@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AboutUsSection extends Model
 {
@@ -14,7 +15,8 @@ class AboutUsSection extends Model
         'order' => 'integer',
     ];
 
-    public function aboutus() {
+    public function aboutus(): BelongsTo
+    {
         return $this->belongsTo(Aboutus::class, 'aboutus_id');
     }
 }

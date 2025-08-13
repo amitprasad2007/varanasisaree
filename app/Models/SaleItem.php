@@ -11,8 +11,7 @@ class SaleItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sale_id', 'product_id', 'product_variant_id', 'name', 'sku', 'quantity', 'price', 'line_total'
-    ];
+        'sale_id', 'product_id', 'product_variant_id', 'name', 'sku', 'quantity', 'price', 'line_total', 'status', 'discount_type', 'discount_value', 'tax_percent', 'tax_amount'];
 
     public function sale(): BelongsTo
     {

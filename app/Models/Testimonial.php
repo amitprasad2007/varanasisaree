@@ -13,7 +13,7 @@ class Testimonial extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'name',
         'email',
         'photo',
@@ -32,9 +32,9 @@ class Testimonial extends Model
         'rating' => 'integer',
     ];
 
-    public function user(): BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function scopeActive($query)
@@ -62,7 +62,7 @@ class Testimonial extends Model
         if ($language === 'hi' && !empty($this->content_hi)) {
             return $this->content_hi;
         }
-        
+
         return $this->content;
     }
 

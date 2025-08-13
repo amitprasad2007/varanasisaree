@@ -11,8 +11,7 @@ class SalePayment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sale_id', 'method', 'amount', 'reference'
-    ];
+        'sale_id', 'method', 'amount', 'reference', 'status', 'payment_date', 'payment_details'];
 
     public function sale(): BelongsTo
     {

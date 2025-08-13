@@ -12,8 +12,7 @@ class SaleReturn extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sale_id', 'reason', 'refund_total'
-    ];
+        'sale_id', 'reason', 'refund_total', 'status', 'return_date', 'return_details'];
 
     public function sale(): BelongsTo
     {

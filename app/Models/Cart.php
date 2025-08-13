@@ -18,7 +18,7 @@ class Cart extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'product_id',
         'product_variant_id',
         'order_id',
@@ -31,15 +31,15 @@ class Cart extends Model
     /**
      * Get the user that owns the cart item.
      */
-    public function user()
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 
     /**
      * Get the product associated with the cart item.
      */
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
@@ -52,12 +52,13 @@ class Cart extends Model
     /**
      * Get the order associated with the cart item.
      */
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id');
     }
 
-    public function cartItems(){
+    public function cartItems(): HasMany
+    {
         return $this->hasMany(CartItem::class);
     }
 }

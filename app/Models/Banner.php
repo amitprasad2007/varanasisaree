@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Banner extends Model
 {
@@ -19,12 +20,12 @@ class Banner extends Model
         'order'
     ];
 
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeOrdered($query)
+    public function scopeOrdered($query): Builder   
     {
         return $query->orderBy('order', 'asc');
     }

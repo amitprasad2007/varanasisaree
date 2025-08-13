@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
@@ -19,7 +20,7 @@ class Order extends Model
      */
     protected $fillable = [
         'order_id',
-        'user_id',
+        'customer_id',
         'address_id',
         'sub_total',
         'quantity',
@@ -34,15 +35,15 @@ class Order extends Model
     /**
      * Get the user that owns the order.
      */
-    public function user()
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 
     /**
      * Get the address associated with the order.
      */
-    public function address()
+    public function address(): BelongsTo
     {
         return $this->belongsTo(AddressUser::class, 'address_id');
     }
@@ -50,24 +51,28 @@ class Order extends Model
     /**
      * Get the cart items for the order.
      */
-    public function cartItems()
+    public function cartItems(): HasMany
     {
         return $this->hasMany(Cart::class);
     }
 
-    public function orderItems() {
+    public function orderItems(): HasMany
+    {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function vendor() {
+    public function vendor(): BelongsTo
+    {
         return $this->belongsTo(Vendor::class);
     }
 
-    public function warehouse() {
+    public function warehouse(): BelongsTo
+    {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function payment(){
+    public function payment(): HasOne
+    {
         return $this->hasOne(Payment::class,'order_id','order_number');
     }
 }

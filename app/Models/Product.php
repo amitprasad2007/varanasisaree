@@ -71,17 +71,17 @@ class Product extends Model
         return $this->hasMany(ProductVideo::class)->orderBy('display_order');
     }
 
-    public function primaryImage()
+    public function primaryImage(): HasMany
     {
         return $this->hasMany(ImageProduct::class)->where('is_primary', true);
     }
 
-    public function featuredVideo()
+    public function featuredVideo(): HasMany
     {
         return $this->hasMany(ProductVideo::class)->where('is_featured', true);
     }
 
-    public function variants()
+    public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }

@@ -40,8 +40,8 @@ class AddressUser extends Model
     /**
      * Get the user that owns the address.
      */
-    public function user()
+    public function customer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Customer::class);
     }
 }
