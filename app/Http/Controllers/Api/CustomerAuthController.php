@@ -3,28 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\UserService;
+use App\Models\Customer;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
+class CustomerAuthController extends Controller
 {
-    protected $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
-
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:15|unique:users',
+            'email' => 'required|string|email|max:255|unique:customers',
+            'phone' => 'nullable|string|max:20|unique:customers,phone',
             'password' => 'required|string|min:8',
         ]);
 
@@ -32,19 +23,19 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::create([
+        $customer = Customer::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('authToken', ['user'])->plainTextToken;
+        $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'token' => $token
+            'message' => 'Customer registered successfully',
+            'customer' => $customer,
+            'token' => $token,
         ], 201);
     }
 
@@ -59,25 +50,24 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $customer = Customer::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $customer || ! Hash::check($request->password, $customer->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        $token = $user->createToken('authToken', ['user'])->plainTextToken;
+        $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
-            'token' => $token
+            'customer' => $customer,
+            'token' => $token,
         ]);
     }
 
     public function profile(Request $request)
     {
-        $user = $request->user()->load(['orders.orderItems.product', 'wishlists.product', 'addresses', 'cartItems.product']);
-        return response()->json($this->userService->formatUserData($user));
+        return response()->json($request->user());
     }
 
     public function logout(Request $request)
@@ -86,3 +76,5 @@ class UserController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 }
+
+

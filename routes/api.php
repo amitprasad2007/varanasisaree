@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CartController;
@@ -49,14 +50,18 @@ Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
 
-// Customer Authentication APIs
-Route::post('/register', [UserController::class, 'register']);
-Route::post('/login', [UserController::class, 'login']);
+// User Authentication APIs (admin/staff app users)
+// Route::post('/register', [UserController::class, 'register']);
+// Route::post('/login', [UserController::class, 'login']);
+
+// Customer Authentication APIs (separate guard)
+Route::post('/register', [CustomerAuthController::class, 'register']);
+Route::post('/login', [CustomerAuthController::class, 'login']);
 
 // Protected routes that require authentication
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [UserController::class, 'profile']);
-    Route::post('/logout', [UserController::class, 'logout']);
+Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
+    Route::get('/user', [CustomerAuthController::class, 'profile']);
+    Route::post('/logout', [CustomerAuthController::class, 'logout']);
 
     // Cart operations
     Route::post('/cart/add', [CartController::class, 'addToCart']);
@@ -87,6 +92,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Wishlist operations
     Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
 });
+
+// // Protected customer routes
+// Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
+//     Route::get('/customer/me', [CustomerAuthController::class, 'profile']);
+//     Route::post('/customer/logout', [CustomerAuthController::class, 'logout']);
+// });
 
 
 
