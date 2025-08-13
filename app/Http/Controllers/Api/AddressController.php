@@ -14,8 +14,8 @@ class AddressController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $addresses = AddressUser::where('user_id', $user->id)->get();
+        $customer = $request->user();
+        $addresses = AddressUser::where('customer_id', $customer->id)->get();
 
         return response()->json([
             'addresses' => $addresses
@@ -36,6 +36,7 @@ class AddressController extends Controller
             'state' => 'required|string|max:100',
             'country' => 'required|string|max:100',
             'postal_code' => 'required|string|max:20',
+            'address_type' => 'nullable|in:home,work,other',
             'is_default' => 'nullable|boolean',
         ]);
 
@@ -43,26 +44,26 @@ class AddressController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+        $customer = $request->user();
 
         // If this is the first address or is_default is true, set it as default
         $isDefault = $request->is_default ?? false;
 
         // If this is the first address, make it default
-        $addressCount = AddressUser::where('user_id', $user->id)->count();
+        $addressCount = AddressUser::where('customer_id', $customer->id)->count();
         if ($addressCount === 0) {
             $isDefault = true;
         }
 
         // If this address is set as default, unset other default addresses
         if ($isDefault) {
-            AddressUser::where('user_id', $user->id)
+            AddressUser::where('customer_id', $customer->id)
                 ->where('is_default', true)
                 ->update(['is_default' => false]);
         }
 
         $address = AddressUser::create([
-            'user_id' => $user->id,
+            'customer_id' => $customer->id,
             'full_name' => $request->full_name,
             'phone' => $request->phone,
             'address_line1' => $request->address_line1,
@@ -71,6 +72,7 @@ class AddressController extends Controller
             'state' => $request->state,
             'country' => $request->country,
             'postal_code' => $request->postal_code,
+            'address_type' => $request->address_type ?? 'home',
             'is_default' => $isDefault,
         ]);
 
@@ -86,7 +88,7 @@ class AddressController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address_line1' => 'required|string|max:255',
             'address_line2' => 'nullable|string|max:255',
@@ -94,6 +96,7 @@ class AddressController extends Controller
             'state' => 'required|string|max:100',
             'country' => 'required|string|max:100',
             'postal_code' => 'required|string|max:20',
+            'address_type' => 'nullable|in:home,work,other',
             'is_default' => 'nullable|boolean',
         ]);
 
@@ -101,21 +104,21 @@ class AddressController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = $request->user();
+        $customer = $request->user();
         $address = AddressUser::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('customer_id', $customer->id)
             ->firstOrFail();
 
         // If this address is set as default, unset other default addresses
         if ($request->is_default) {
-            AddressUser::where('user_id', $user->id)
+            AddressUser::where('customer_id', $customer->id)
                 ->where('id', '!=', $id)
                 ->where('is_default', true)
                 ->update(['is_default' => false]);
         }
 
         $address->update([
-            'name' => $request->name,
+            'full_name' => $request->full_name,
             'phone' => $request->phone,
             'address_line1' => $request->address_line1,
             'address_line2' => $request->address_line2,
@@ -123,6 +126,7 @@ class AddressController extends Controller
             'state' => $request->state,
             'country' => $request->country,
             'postal_code' => $request->postal_code,
+            'address_type' => $request->address_type ?? $address->address_type,
             'is_default' => $request->is_default ?? $address->is_default,
         ]);
 
@@ -137,9 +141,9 @@ class AddressController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        $user = $request->user();
+        $customer = $request->user();
         $address = AddressUser::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('customer_id', $customer->id)
             ->firstOrFail();
 
         $address->delete();
@@ -151,9 +155,9 @@ class AddressController extends Controller
 
     public function getAddresses(Request $request)
     {
-        $user = $request->user();
+        $customer = $request->user();
 
-        $addresses = AddressUser::where('user_id', $user->id)
+        $addresses = AddressUser::where('customer_id', $customer->id)
             ->orderBy('is_default', 'desc')
             ->orderBy('created_at', 'desc')
             ->get()
