@@ -16,7 +16,7 @@ class AddressUser extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'full_name',
         'phone',
         'address_line1',
@@ -25,6 +25,7 @@ class AddressUser extends Model
         'state',
         'country',
         'postal_code',
+        'address_type',
         'is_default',
     ];
 
