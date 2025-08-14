@@ -4,8 +4,8 @@ import { Head } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-
 import Swal from 'sweetalert2';
+
 
 interface FormData {
   email: string;
