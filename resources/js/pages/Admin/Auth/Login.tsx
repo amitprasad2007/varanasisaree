@@ -1,8 +1,10 @@
 import React, { FormEvent, ChangeEvent,useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+
 import Swal from 'sweetalert2';
 
 interface FormData {
@@ -18,6 +20,7 @@ export default function Login() {
     password: '',
     remember: false,
   });
+  const { status } = usePage().props as { status?: string };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
