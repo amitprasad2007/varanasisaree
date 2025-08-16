@@ -9,10 +9,11 @@ const appName = window.document.getElementsByTagName('title')[0]?.innerText || '
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+    resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob('./Pages/**/*.tsx')),
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />);
-      },
+        const root = createRoot(el);
+        root.render(<App {...props} />);
+    },
     progress: {
         color: '#8989DE',
     },
