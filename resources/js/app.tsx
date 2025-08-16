@@ -11,9 +11,8 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
-        const root = createRoot(el);
-        root.render(<App {...props} />);
-    },
+        createRoot(el).render(<App {...props} />);
+      },
     progress: {
         color: '#8989DE',
     },
