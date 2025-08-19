@@ -24,7 +24,8 @@ use App\Http\Controllers\PermissionManagementController;
 use App\Http\Controllers\AboutusController as AdminAboutusController;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
-
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorAuthController;
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
 
@@ -146,8 +147,28 @@ Route::middleware('auth')->group(function () {
     // Permissions
     Route::resource('permissions', PermissionManagementController::class);
 
+
+    Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');
+    Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');
+    Route::post('admin/vendors/{id}/approve', [VendorController::class, 'approve'])->name('admin.vendors.approve');
+    Route::post('admin/vendors/{id}/suspend', [VendorController::class, 'suspend'])->name('admin.vendors.suspend');
+    Route::post('admin/vendors/{id}/activate', [VendorController::class, 'activate'])->name('admin.vendors.activate');
+    Route::post('admin/vendors/{id}/reject', [VendorController::class, 'reject'])->name('admin.vendors.reject');
+    Route::put('admin/vendors/{id}/commission', [VendorController::class, 'updateCommission'])->name('admin.vendors.commission');
+    Route::put('admin/vendors/{id}/payment-terms', [VendorController::class, 'updatePaymentTerms'])->name('admin.vendors.payment-terms');
+    Route::delete('admin/vendors/{id}', [VendorController::class, 'destroy'])->name('admin.vendors.destroy');
+    Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
+
 });
 
+
+Route::prefix('vendor')->group(function () {
+    Route::get('register', [VendorAuthController::class, 'showRegistrationForm'])->name('vendor.register');
+    Route::post('register', [VendorAuthController::class, 'register'])->name('vendor.register.store');
+    Route::get('login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
+    Route::post('login', [VendorAuthController::class, 'login'])->name('vendor.login.store');
+    Route::post('check-subdomain', [VendorAuthController::class, 'checkSubdomain'])->name('vendor.check-subdomain');
+});
 
 
 
