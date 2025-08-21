@@ -45,7 +45,7 @@ const Sidebar = () => {
       label: 'Overview',
       items: [
         { icon: Home, label: 'Dashboard', path: '/dashboard' },
-        
+
       ],
     },
     {
@@ -89,6 +89,7 @@ const Sidebar = () => {
         { icon: User, label: 'User Management', path: '/users' },
         { icon: User, label: 'Roles', path: '/roles' },
         { icon: User, label: 'Permissions', path: '/permissions' },
+        { icon: User, label: 'Vendor', path: '/admin/vendors' },
       ],
     },
     {

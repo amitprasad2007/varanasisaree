@@ -25,7 +25,7 @@ use App\Http\Controllers\AboutusController as AdminAboutusController;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
-use App\Http\Controllers\VendorAuthController;
+
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
 
@@ -160,21 +160,6 @@ Route::middleware('auth')->group(function () {
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
 
 });
-
-
-Route::prefix('vendor')->group(function () {
-    Route::get('register', [VendorAuthController::class, 'showRegistrationForm'])->name('vendor.register');
-    Route::post('register', [VendorAuthController::class, 'register'])->name('vendor.register.store');
-    Route::get('login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
-    Route::post('login', [VendorAuthController::class, 'login'])->name('vendor.login.store');
-    Route::post('check-subdomain', [VendorAuthController::class, 'checkSubdomain'])->name('vendor.check-subdomain');
-});
-
-
-
-
-
-
 
 
 
