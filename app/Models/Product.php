@@ -19,6 +19,7 @@ class Product extends Model
         'category_id',
         'subcategory_id',
         'brand_id',
+        'vendor_id',
         'description',
         'price',
         'discount',
@@ -54,6 +55,11 @@ class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     public function imageproducts(): HasMany
@@ -94,6 +100,10 @@ class Product extends Model
         return $this->hasMany(Size::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
     /**
      * Resolve image paths for API consumers with fallback order:
      * 1) Product imageproducts

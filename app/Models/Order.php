@@ -23,6 +23,7 @@ class Order extends Model
         'customer_id',
         'address_id',
         'sub_total',
+        'vendor_id',
         'quantity',
         'total_amount',
         'coupon',
