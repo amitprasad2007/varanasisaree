@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import axios from 'axios';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import Swal from "sweetalert2";
+
 import { Eye, EyeOff, CheckCircle, XCircle, Building2 } from 'lucide-react';
 
 export default function VendorRegister() {
@@ -37,31 +40,44 @@ export default function VendorRegister() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/vendor/register');
+        post(route('vendor.register.store'), {
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Vendor created successfully',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
+            }
+        });
+
     };
+
 
     const checkSubdomain = async () => {
         if (!data.username) return;
-
         setCheckingSubdomain(true);
         try {
-            const response = await fetch('/vendor/check-subdomain', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                },
-                body: `subdomain=${data.username}`,
-            });
 
-            const result = await response.json();
-            setSubdomainAvailable(result.available);
+          const response = await axios.get(`/vendor/check-subdomain${data.username}`);
+          const result = await response;
+          setSubdomainAvailable(response.data.available);
         } catch (error) {
-            console.error('Error checking subdomain:', error);
-        } finally {
-            setCheckingSubdomain(false);
+
+          Swal.fire({
+            title: 'Error!',
+            text: 'Error fetching subcategories'+error,
+            icon: 'error',
+            timer: 3000,
+            showConfirmButton: false
+        });
         }
-    };
+      };
+
+
+
+
 
     const handleUsernameChange = (value: string) => {
         setData('username', value);

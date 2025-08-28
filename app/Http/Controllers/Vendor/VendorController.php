@@ -130,7 +130,7 @@ class VendorController extends Controller
         ])->withInput();
     }
 
-    public function profile(Request $request): Response
+    public function profile(Request $domain): Response
     {
         $vendor = Auth::guard('vendor')->user();
 
@@ -206,18 +206,10 @@ class VendorController extends Controller
             ->with('success', 'Logged out successfully');
     }
 
-    public function checkSubdomain(Request $request)
+    public function checkSubdomain($domain)
     {
-        $validator = Validator::make($request->all(), [
-            'subdomain' => 'required|string|alpha_dash|max:50',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $exists = Vendor::where('subdomain', $request->subdomain)->exists();
-
+        $exists = Vendor::where('subdomain', $domain)->exists();
         return response()->json([
             'available' => !$exists,
             'subdomain' => $request->subdomain,

@@ -26,6 +26,11 @@ use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
 
+
+require __DIR__.'/vendor.php';
+
+
+
 // Admin Auth Routes
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
 
@@ -166,4 +171,5 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-require __DIR__.'/pos.php';
+
+
