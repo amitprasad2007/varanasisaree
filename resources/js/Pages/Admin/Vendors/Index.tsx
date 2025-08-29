@@ -73,6 +73,11 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
 
     const { delete: destroy, post } = useForm();
 
+    // Get appUrl from Inertia props
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const appUrl = import.meta.env.VITE_APP_URL;
+
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Vendors', href: '/admin/vendors' },
@@ -225,7 +230,7 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
                                 id="status"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All Statuses</option>
                                 <option value="pending">Pending</option>
@@ -309,12 +314,12 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
                                 </TableCell>
                                 <TableCell>
                                     <a
-                                        href={`http://${vendor.subdomain}.localhost:8000`}
+                                        href={`http://${vendor.subdomain}.${appUrl}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:text-blue-500 text-sm"
                                     >
-                                        {vendor.subdomain}.localhost:8000
+                                        {vendor.subdomain}.{appUrl}
                                     </a>
                                 </TableCell>
                                 <TableCell>
@@ -331,32 +336,32 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
+                                            <DropdownMenuContent className="bg-white  " >
                                                 {vendor.status === 'pending' && (
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(vendor.id, 'approve')}>
+                                                    <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' onClick={() => handleStatusChange(vendor.id, 'approve')}>
                                                         <CheckCircle className="h-4 w-4 mr-2" />
                                                         Approve
                                                     </DropdownMenuItem>
                                                 )}
                                                 {vendor.status === 'suspended' && (
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(vendor.id, 'activate')}>
+                                                    <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' onClick={() => handleStatusChange(vendor.id, 'activate')}>
                                                         <Play className="h-4 w-4 mr-2" />
                                                         Activate
                                                     </DropdownMenuItem>
                                                 )}
                                                 {vendor.status === 'active' && (
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(vendor.id, 'suspend')}>
+                                                    <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' onClick={() => handleStatusChange(vendor.id, 'suspend')}>
                                                         <Pause className="h-4 w-4 mr-2" />
                                                         Suspend
                                                     </DropdownMenuItem>
                                                 )}
                                                 {vendor.status === 'pending' && (
-                                                    <DropdownMenuItem onClick={() => handleStatusChange(vendor.id, 'reject')}>
+                                                    <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' onClick={() => handleStatusChange(vendor.id, 'reject')}>
                                                         <XCircle className="h-4 w-4 mr-2" />
                                                         Reject
                                                     </DropdownMenuItem>
                                                 )}
-                                                <DropdownMenuItem onClick={() => handleDelete(vendor.id)} className="text-red-600">
+                                                <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600' onClick={() => handleDelete(vendor.id)}>
                                                     <Trash2 className="h-4 w-4 mr-2" />
                                                     Delete
                                                 </DropdownMenuItem>
