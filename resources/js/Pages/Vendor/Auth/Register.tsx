@@ -44,7 +44,7 @@ export default function VendorRegister() {
             onSuccess: () => {
                 Swal.fire({
                     title: 'Success!',
-                    text: 'Vendor created successfully',
+                    text: 'Vendor registered successfully. Please wait for admin approval',
                     icon: 'success',
                     timer: 4000,
                     showConfirmButton: false
@@ -59,12 +59,10 @@ export default function VendorRegister() {
         if (!data.username) return;
         setCheckingSubdomain(true);
         try {
-
-          const response = await axios.get(`/vendor/check-subdomain${data.username}`);
+          const response = await axios.get(`/vendor/check-subdomain/${data.username}`);
           const result = await response;
           setSubdomainAvailable(response.data.available);
         } catch (error) {
-
           Swal.fire({
             title: 'Error!',
             text: 'Error fetching subcategories'+error,

@@ -56,4 +56,12 @@ class VendorController  extends Controller
         ]);
     }
 
+    public function show($id) : Response 
+    {
+        $vendor = Vendor::find($id);        
+        return Inertia::render('Admin/Vendors/Show', [
+            'vendor' => $vendor          
+        ]);
+    }
+
 }
