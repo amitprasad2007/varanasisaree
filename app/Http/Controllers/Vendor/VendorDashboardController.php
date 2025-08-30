@@ -19,7 +19,6 @@ class VendorDashboardController extends Controller
     public function dashboard(Request $request): Response
     {
         $vendor = Auth::guard('vendor')->user();
-
         // Get date range for filtering
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth());
@@ -69,6 +68,7 @@ class VendorDashboardController extends Controller
         $monthlyRevenue = $this->getMonthlyRevenue($vendor);
 
         return Inertia::render('Vendor/Dashboard', [
+            'vendor'=> $vendor,
             'stats' => $stats,
             'recent_orders' => $recentOrders,
             'top_products' => $topProducts,

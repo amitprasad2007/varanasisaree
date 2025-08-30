@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 import DashboardLayout from '@/Layouts/DashboardLayout';
+
 import {
     Search,
     Filter,
@@ -27,7 +29,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import Swal from 'sweetalert2';
+
 
 interface Vendor {
     id: number;
@@ -102,7 +104,17 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
 
         const action = actionMap[newStatus as keyof typeof actionMap];
         if (action) {
-            post(`/admin/vendors/${vendorId}/${action}`);
+            post(`/admin/vendors/${vendorId}/${action}`, {
+                onSuccess: () => {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'SubCategory updated successfully',
+                        icon: 'success',
+                        timer: 4000,
+                        showConfirmButton: false
+                    });
+                }
+            });
         }
     };
 

@@ -78,7 +78,7 @@ class VendorController extends Controller
             // Log in the vendor
             Auth::guard('vendor')->login($vendor);
 
-            return redirect()->route('vendor.dashboard')
+            return redirect()->route('vendor.dashboard', ['domain' => $request->route('domain')])
                 ->with('success', 'Vendor registered successfully. Please wait for admin approval.');
 
         } catch (\Exception $e) {
@@ -121,7 +121,7 @@ class VendorController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->intended(route('vendor.dashboard'))
+            return redirect()->intended(route('vendor.dashboard', ['domain' => $request->route('domain')]))
                 ->with('success', 'Login successful');
         }
 
@@ -202,7 +202,7 @@ class VendorController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('vendor.login')
+        return redirect()->route('vendor.login', ['domain' => $request->route('domain')])
             ->with('success', 'Logged out successfully');
     }
 

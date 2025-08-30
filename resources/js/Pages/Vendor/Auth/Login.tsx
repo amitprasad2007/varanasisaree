@@ -5,18 +5,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Building2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function VendorLogin() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
+        domain: window.location.hostname.split('.')[0],
     });
 
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/vendor/login');
+        post(route('vendor.login.store', { domain: data.domain }),{
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'You have successfully logged in',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            onFinish: () => reset('password'),
+        });
     };
 
     return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,12 @@ import {
     Users,
     BarChart3,
     Calendar,
-    Eye
+    Eye,
+    LogOut
 } from 'lucide-react';
 
 interface DashboardProps {
+    vendor: {business_name:string};
     stats: {
         total_products: number;
         active_products: number;
@@ -38,7 +40,9 @@ interface DashboardProps {
     };
 }
 
+
 export default function VendorDashboard({
+    vendor,
     stats,
     recent_orders,
     top_products,
@@ -52,6 +56,12 @@ export default function VendorDashboard({
     const handleDateFilter = () => {
         // Redirect with new date range
         window.location.href = `/vendor/dashboard?start_date=${startDate}&end_date=${endDate}`;
+    };
+
+    const domain = window.location.hostname.split('.')[0];
+
+    const handleLogout = () => {
+        router.post(route('vendor.logout', {domain}));
     };
 
     const formatCurrency = (amount: number) => {
@@ -81,9 +91,19 @@ export default function VendorDashboard({
             <div className="min-h-screen bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
+                    <div className="mb-8 flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Dashboard ({vendor.business_name})</h1>
+                            <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleLogout}
+                            className="flex items-center space-x-2"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span>Logout</span>
+                        </Button>
                     </div>
 
                     {/* Date Filter */}

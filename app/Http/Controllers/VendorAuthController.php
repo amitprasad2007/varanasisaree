@@ -117,8 +117,8 @@ class VendorAuthController extends Controller
             $vendor->update(['last_login_at' => now()]);
 
             $request->session()->regenerate();
-
-            return redirect()->intended(route('vendor.dashboard'))
+           // dd($vendor);
+            return redirect()->intended(route('vendor.dashboard', ['domain' => $request->route('domain')]))
                 ->with('success', 'Login successful');
         }
 
@@ -199,7 +199,7 @@ class VendorAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('vendor.login')
+        return redirect()->route('vendor.login', ['domain' => $request->route('domain')])
             ->with('success', 'Logged out successfully');
     }
 
