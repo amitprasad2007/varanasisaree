@@ -295,7 +295,7 @@ class ProductController extends Controller
         $reviewStats = DB::table('product_reviews')
             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
             ->whereIn('product_id', $products->pluck('id'))
-            ->where('is_approved', true)
+            ->where('status', 'approved')
             ->groupBy('product_id')
             ->get()
             ->keyBy('product_id');
