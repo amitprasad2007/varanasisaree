@@ -21,7 +21,7 @@ use App\Http\Controllers\ProductBulkUploadController;
 use App\Http\Controllers\ApiPlaygroundController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\PermissionManagementController;
-use App\Http\Controllers\AboutusController as AdminAboutusController;
+use App\Http\Controllers\AboutusController ;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
@@ -100,7 +100,9 @@ Route::middleware('auth')->group(function () {
     Route::post('banners/{banner}/update-status', [BannerController::class, 'updateStatus'])->name('banners.update-status');
 
     // About Us (single or multiple records with sections)
-    Route::resource('aboutus', AdminAboutusController::class);
+    Route::resource('aboutus', AboutusController::class)->parameters([
+        'aboutus' => 'aboutus'
+    ]);
     Route::get('aboutus/{aboutus}/sections', [AboutusSectionController::class, 'index'])->name('aboutus.sections.index');
     Route::get('aboutus/{aboutus}/sections/create', [AboutusSectionController::class, 'create'])->name('aboutus.sections.create');
     Route::post('aboutus/sections', [AboutusSectionController::class, 'store'])->name('aboutus.sections.store');

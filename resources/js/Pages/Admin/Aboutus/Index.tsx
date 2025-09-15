@@ -4,6 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, Plus, ListTree } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface AboutUsSection {
   id: number;
@@ -30,7 +31,31 @@ const Index: React.FC<Props> = ({ aboutus }) => {
   const { delete: destroy } = useForm();
 
   const handleDelete = (id: number) => {
-    destroy(route('aboutus.destroy', id));
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Are you sure you want to delete this about us?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+        destroy(route('aboutus.destroy', id), {
+            onSuccess: () => {
+            Swal.fire({
+                title: 'Deleted!',
+                text: 'Your About Us has been deleted.',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            }
+        });
+        }
+    });
+
   };
 
   return (

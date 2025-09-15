@@ -17,6 +17,7 @@ class AboutusController extends Controller
     public function index()
     {
         $aboutUs = Aboutus::with('sections')->orderBy('id', 'desc')->get();
+        //dd($aboutUs);
         return Inertia::render('Admin/Aboutus/Index', [
             'aboutus' => $aboutUs,
         ]);
@@ -95,6 +96,7 @@ class AboutusController extends Controller
      */
     public function destroy(Aboutus $aboutus)
     {
+       // dd($aboutus->page_title);
         if ($aboutus->image) {
             Storage::disk('public')->delete($aboutus->image);
         }
