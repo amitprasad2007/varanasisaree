@@ -233,4 +233,84 @@ class SearchController extends Controller
 
         return response()->json($filterOptions);
     }
+
+	public function getbestsellerfillters(){
+		$products = Product::with(['imageproducts', 'category', 'variants.images'])
+			->where('status', 'active')
+			->where('is_bestseller', true)
+			->where('stock_quantity', '>', 0)
+			->orderBy('created_at', 'desc')
+			->get();
+
+		// Collect product ids for variant lookup
+		$productIds = $products->pluck('id');
+		$variants = ProductVariant::whereIn('product_id', $productIds)
+			->where('status', 'active')
+			->with('color')
+			->get();
+
+		// Price filter options (constant)
+		$priceOptions = [
+			['id' => 'price-1', 'name' => 'Under ₹10,000', 'value' => 'under-10000'],
+			['id' => 'price-2', 'name' => '₹10,000 - ₹25,000', 'value' => '10000-25000'],
+			['id' => 'price-3', 'name' => '₹25,000 - ₹50,000', 'value' => '25000-50000'],
+			['id' => 'price-4', 'name' => 'Above ₹50,000', 'value' => 'above-50000'],
+		];
+
+		// Colors from variants (preferred) and products (fallback)
+		$colors = collect();
+		$variantColors = $variants->whereNotNull('color')->pluck('color')->unique('id');
+		foreach ($variantColors as $color) {
+			$colors->push([
+				'id' => 'color-' . $color->id,
+				'name' => $color->name,
+				'value' => $color->hex_code
+			]);
+		}
+		$productColors = $products->whereNotNull('color')->pluck('color')->unique();
+		foreach ($productColors as $colorName) {
+			if (!$colors->contains('name', $colorName)) {
+				$colors->push([
+					'id' => 'color-product-' . md5($colorName),
+					'name' => $colorName,
+					'value' => '#000000'
+				]);
+			}
+		}
+
+		// Materials from products' fabric
+		$materials = $products->whereNotNull('fabric')
+			->pluck('fabric')
+			->unique()
+			->values()
+			->map(function ($fabric, $index) {
+				return [
+					'id' => 'material-' . ($index + 1),
+					'name' => $fabric,
+					'value' => strtolower(str_replace(' ', '-', $fabric))
+				];
+			});
+
+		// Designs from products' work_type
+		$designs = $products->whereNotNull('work_type')
+			->pluck('work_type')
+			->unique()
+			->values()
+			->map(function ($workType, $index) {
+				return [
+					'id' => 'design-' . ($index + 1),
+					'name' => $workType,
+					'value' => strtolower(str_replace(' ', '-', $workType))
+				];
+			});
+
+		$filterOptions = [
+			'price' => $priceOptions,
+			'colors' => $colors->values()->toArray(),
+			'material' => $materials->toArray(),
+			'design' => $designs->toArray(),
+		];
+
+		return response()->json($filterOptions);
+	}
 }

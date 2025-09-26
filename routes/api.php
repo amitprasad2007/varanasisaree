@@ -54,6 +54,7 @@ Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('a
 // Search suggestions
 Route::get('/search/suggestions', [ApiSearchController::class, 'suggestions']);
 Route::get('/getcategoryfillters/{slug}', [ApiSearchController::class, 'getcategoryfillters']);
+Route::get('/getbestsellerfillters/bestsellers/', [ApiSearchController::class, 'getbestsellerfillters']);
 
 // User Authentication APIs (admin/staff app users)
 // Route::post('/register', [UserController::class, 'register']);
