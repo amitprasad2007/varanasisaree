@@ -143,8 +143,8 @@ class SearchController extends Controller
 		return response()->json($suggestions);
 	}
 
-    public function getcategoryfillters(Category $categories){
-       // dd($categories);
+    public function getcategoryfillters($slug){
+        $categories = Category::where('slug', $slug)->where('status', 'active')->first();
         // Get all products in this category and its subcategories
         $categoryIds = [$categories->id];
 
