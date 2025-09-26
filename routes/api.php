@@ -53,6 +53,7 @@ Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('a
 
 // Search suggestions
 Route::get('/search/suggestions', [ApiSearchController::class, 'suggestions']);
+Route::get('/getcategoryfillters/{categories}', [ApiSearchController::class, 'getcategoryfillters']);
 
 // User Authentication APIs (admin/staff app users)
 // Route::post('/register', [UserController::class, 'register']);
@@ -96,7 +97,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     // Wishlist operations
     Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
 
-   
+
 
 });
 

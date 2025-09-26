@@ -142,4 +142,95 @@ class SearchController extends Controller
 
 		return response()->json($suggestions);
 	}
+
+    public function getcategoryfillters(Category $categories){
+       // dd($categories);
+        // Get all products in this category and its subcategories
+        $categoryIds = [$categories->id];
+
+        // Get subcategories if any
+        $subcategories = Category::where('parent_id', $categories->id)->pluck('id');
+        $categoryIds = array_merge($categoryIds, $subcategories->toArray());
+
+        // Get all products in this category and subcategories
+        $products = Product::whereIn('category_id', $categoryIds)
+            ->orWhereIn('subcategory_id', $categoryIds)
+            ->where('status', 'active')
+            ->get();
+
+        // Get all product variants for these products
+        $productIds = $products->pluck('id');
+        $variants = ProductVariant::whereIn('product_id', $productIds)
+            ->where('status', 'active')
+            ->with('color')
+            ->get();
+
+        // Price filter options (constant)
+        $priceOptions = [
+            ['id' => 'price-1', 'name' => 'Under ₹10,000', 'value' => 'under-10000'],
+            ['id' => 'price-2', 'name' => '₹10,000 - ₹25,000', 'value' => '10000-25000'],
+            ['id' => 'price-3', 'name' => '₹25,000 - ₹50,000', 'value' => '25000-50000'],
+            ['id' => 'price-4', 'name' => 'Above ₹50,000', 'value' => 'above-50000'],
+        ];
+
+        // Colors from products and variants
+        $colors = collect();
+
+        // Get colors from product variants
+        $variantColors = $variants->whereNotNull('color')->pluck('color')->unique('id');
+        foreach ($variantColors as $color) {
+            $colors->push([
+                'id' => 'color-' . $color->id,
+                'name' => $color->name,
+                'value' => $color->hex_code
+            ]);
+        }
+
+        // Get colors from products (if they have color field)
+        $productColors = $products->whereNotNull('color')->pluck('color')->unique();
+        foreach ($productColors as $colorName) {
+            if (!$colors->contains('name', $colorName)) {
+                $colors->push([
+                    'id' => 'color-product-' . md5($colorName),
+                    'name' => $colorName,
+                    'value' => '#000000' // Default color if no hex code
+                ]);
+            }
+        }
+
+        // Material (fabric) options from products
+        $materials = $products->whereNotNull('fabric')
+            ->pluck('fabric')
+            ->unique()
+            ->values()
+            ->map(function ($fabric, $index) {
+                return [
+                    'id' => 'material-' . ($index + 1),
+                    'name' => $fabric,
+                    'value' => strtolower(str_replace(' ', '-', $fabric))
+                ];
+            });
+
+        // Design (work_type) options from products
+        $designs = $products->whereNotNull('work_type')
+            ->pluck('work_type')
+            ->unique()
+            ->values()
+            ->map(function ($workType, $index) {
+                return [
+                    'id' => 'design-' . ($index + 1),
+                    'name' => $workType,
+                    'value' => strtolower(str_replace(' ', '-', $workType))
+                ];
+            });
+
+        $filterOptions = [
+            'price' => $priceOptions,
+            'colors' => $colors->values()->toArray(),
+            'material' => $materials->toArray(),
+            'design' => $designs->toArray(),
+        ];
+
+        return response()->json($filterOptions);
+    }
 }
