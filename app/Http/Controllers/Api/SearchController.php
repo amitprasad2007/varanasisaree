@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Aboutus;
+use App\Models\ProductVariant;
 
 class SearchController extends Controller
 {
@@ -33,6 +34,34 @@ class SearchController extends Controller
 					'type' => 'product',
 					'label' => (string) $row->label,
 					'slug' => (string) $row->slug,
+				];
+			});
+
+		// Product Variants (search by SKU or barcode; navigate to parent product)
+		$variants = ProductVariant::query()
+			->where('status', 'active')
+			->where(function ($q) use ($query) {
+				$q->where('sku', 'like', "%{$query}%")
+					->orWhere('barcode', 'like', "%{$query}%");
+			})
+			->with(['product:id,name,slug,status'])
+			->limit($limitPerType)
+			->get()
+			->filter(function ($variant) {
+				return $variant->product && $variant->product->status === 'active';
+			})
+			->map(function ($variant) {
+				$labelParts = [
+					(string) $variant->product->name,
+				];
+				if (!empty($variant->sku)) {
+					$labelParts[] = "SKU: " . (string) $variant->sku;
+				}
+				return [
+					'id' => $variant->id,
+					'type' => 'product',
+					'label' => implode(' - ', $labelParts),
+					'slug' => (string) $variant->product->slug,
 				];
 			});
 
@@ -104,7 +133,8 @@ class SearchController extends Controller
 			});
 		$pages = $pages->concat($postPages)->take($limitPerType);
 
-		$suggestions = $products
+		$suggestions = $variants
+			->concat($products)
 			->concat($categories)
 			->concat($collections)
 			->concat($pages)
