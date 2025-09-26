@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
+use App\Http\Controllers\Api\SearchController as ApiSearchController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -49,6 +50,9 @@ Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
+
+// Search suggestions
+Route::get('/search/suggestions', [ApiSearchController::class, 'suggestions']);
 
 // User Authentication APIs (admin/staff app users)
 // Route::post('/register', [UserController::class, 'register']);
@@ -91,6 +95,9 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     // Wishlist operations
     Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
+
+   
+
 });
 
 // // Protected customer routes

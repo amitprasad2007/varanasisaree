@@ -30,7 +30,8 @@ use App\Http\Controllers\VendorController;
 require __DIR__.'/vendor.php';
 
 // Admin Auth Routes
-Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login');
+// Show login form at root, but avoid conflicting with auth 'login' route name
+Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login.form');
 
 
 Route::middleware('auth')->group(function () {
