@@ -206,7 +206,7 @@ class SearchController extends Controller
             ->map(function ($fabric, $index) {
                 return [
                     'id' => 'material-' . ($index + 1),
-                    'name' => $fabric,
+                    'name' => ucwords($fabric),
                     'value' => strtolower(str_replace(' ', '-', $fabric))
                 ];
             });
@@ -219,7 +219,7 @@ class SearchController extends Controller
             ->map(function ($workType, $index) {
                 return [
                     'id' => 'design-' . ($index + 1),
-                    'name' => $workType,
+                    'name' => ucwords($workType),
                     'value' => strtolower(str_replace(' ', '-', $workType))
                 ];
             });
@@ -286,7 +286,7 @@ class SearchController extends Controller
 			->map(function ($fabric, $index) {
 				return [
 					'id' => 'material-' . ($index + 1),
-					'name' => $fabric,
+					'name' => ucwords($fabric),
 					'value' => strtolower(str_replace(' ', '-', $fabric))
 				];
 			});
@@ -299,7 +299,7 @@ class SearchController extends Controller
 			->map(function ($workType, $index) {
 				return [
 					'id' => 'design-' . ($index + 1),
-					'name' => $workType,
+					'name' => ucwords($workType),
 					'value' => strtolower(str_replace(' ', '-', $workType))
 				];
 			});
@@ -365,7 +365,7 @@ class SearchController extends Controller
 			->map(function ($fabric, $index) {
 				return [
 					'id' => 'material-' . ($index + 1),
-					'name' => $fabric,
+					'name' => ucwords($fabric),
 					'value' => strtolower(str_replace(' ', '-', $fabric))
 				];
 			});
@@ -378,7 +378,7 @@ class SearchController extends Controller
 			->map(function ($workType, $index) {
 				return [
 					'id' => 'design-' . ($index + 1),
-					'name' => $workType,
+					'name' => ucwords($workType),
 					'value' => strtolower(str_replace(' ', '-', $workType))
 				];
 			});
