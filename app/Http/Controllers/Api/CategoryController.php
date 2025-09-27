@@ -38,7 +38,10 @@ class CategoryController extends Controller
         // Build base query
         $query = Product::query()
             ->where('status', 'active')
-            ->where('category_id', $categories->id)
+            ->where(function ($q) use ($categories) {
+                $q->where('category_id', $categories->id)
+                  ->orWhere('subcategory_id', $categories->id);
+            })
             ->with(['imageproducts', 'variants.images', 'category']);
 
         // Parse filters
