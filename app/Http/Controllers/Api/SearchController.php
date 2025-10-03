@@ -280,8 +280,9 @@ class SearchController extends Controller
 		foreach ($desiredSlugs as $slug) {
 			if (isset($categories[$slug])) {
 				$category = $categories[$slug];
+				$titleProperCase = ucwords(strtolower((string) $category->title));
 				$categoryItems[] = [
-					'title' => (string) $category->title,
+					'title' => $titleProperCase,
 					'path' => '/category/' . (string) $category->slug,
 				];
 			}
