@@ -56,6 +56,7 @@ Route::get('/search/suggestions', [ApiSearchController::class, 'suggestions']);
 Route::get('/getcategoryfillters/{slug}', [ApiSearchController::class, 'getcategoryfillters']);
 Route::get('/getbestsellerfillters/bestsellers/', [ApiSearchController::class, 'getbestsellerfillters']);
 Route::get('/getfeaturedfillters/featured/', [ApiSearchController::class, 'getfeaturedfillters']);
+Route::get('/navitems', [ApiSearchController::class, 'navitems']);
 
 
 // User Authentication APIs (admin/staff app users)

@@ -257,4 +257,43 @@ class SearchController extends Controller
 
 		return response()->json($filterOptions);
 	}
+
+	public function navitems(){
+		$prefixItems = [
+			['title' => 'Home', 'path' => '/'],
+		];
+
+		$desiredSlugs = [
+			'silk',
+			'mashru-silk',
+			'shiffon',
+			'kattan-saree',
+		];
+
+		$categories = Category::query()
+			->where('status', 'active')
+			->whereIn('slug', $desiredSlugs)
+			->get(['title', 'slug'])
+			->keyBy('slug');
+
+		$categoryItems = [];
+		foreach ($desiredSlugs as $slug) {
+			if (isset($categories[$slug])) {
+				$category = $categories[$slug];
+				$categoryItems[] = [
+					'title' => (string) $category->title,
+					'path' => '/category/' . (string) $category->slug,
+				];
+			}
+		}
+
+		$suffixItems = [
+			['title' => 'About', 'path' => '/about'],
+			['title' => 'Contact', 'path' => '/contact'],
+		];
+
+		$navItems = array_merge($prefixItems, $categoryItems, $suffixItems);
+
+		return response()->json(['navItems' => $navItems]);
+	}
 }
