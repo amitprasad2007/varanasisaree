@@ -294,6 +294,6 @@ class SearchController extends Controller
 
 		$navItems = array_merge($prefixItems, $categoryItems, $suffixItems);
 
-		return response()->json(['navItems' => $navItems]);
+		return response()->json($navItems);
 	}
 }
