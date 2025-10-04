@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Exception;
+use Laravel\Socialite\Facades\Socialite;
 
 class VendorController  extends Controller
 {
@@ -215,4 +217,49 @@ class VendorController  extends Controller
         return redirect()->back()->with('success', $message);
     }
 
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            
+            // Check if user already exists
+            $user = \App\Models\User::where('email', $googleUser->getEmail())->first();
+            
+            if (!$user) {
+                // Create new user
+                $user = \App\Models\User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                // Update existing user with Google ID if not set
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'avatar' => $googleUser->getAvatar(),
+                    ]);
+                }
+            }
+            
+            // Create token for API authentication
+            $token = $user->createToken('google-auth', ['customer'])->plainTextToken;
+            
+            // Redirect to frontend with token
+            $frontendUrl = config('app.frontend_url', 'http://localhost:8080');
+            return redirect($frontendUrl . '/oauth/callback?token=' . $token . '&provider=google');
+            
+        } catch (\Exception $e) {
+            \Log::error('Google OAuth Error: ' . $e->getMessage());
+            $frontendUrl = config('app.frontend_url', 'http://localhost:8080');
+            return redirect($frontendUrl . '/oauth/callback?error=oauth_failed');
+        }
+    }
 }

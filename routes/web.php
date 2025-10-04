@@ -27,6 +27,15 @@ use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
 
 
+
+
+
+
+Route::get('auth/google', [VendorController::class, 'redirectToGoogle'] )->name('auth.google');
+Route::get('auth/google/callback',[VendorController::class, 'handleGoogleCallback']);
+
+
+
 require __DIR__.'/vendor.php';
 
 // Admin Auth Routes
@@ -166,7 +175,6 @@ Route::middleware('auth')->group(function () {
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
 
 });
-
 
 
 
