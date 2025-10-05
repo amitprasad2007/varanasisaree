@@ -25,18 +25,16 @@ use App\Http\Controllers\AboutusController ;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\Api\CustomerAuthController;
 
-
-
-
-
-
-Route::get('auth/google', [VendorController::class, 'redirectToGoogle'] )->name('auth.google');
-Route::get('auth/google/callback',[VendorController::class, 'handleGoogleCallback']);
 
 
 
 require __DIR__.'/vendor.php';
+
+// OAuth routes (require session support)
+Route::get('/auth/{provider}', [CustomerAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/{provider}/callback', [CustomerAuthController::class, 'handleGoogleCallback']);
 
 // Admin Auth Routes
 // Show login form at root, but avoid conflicting with auth 'login' route name

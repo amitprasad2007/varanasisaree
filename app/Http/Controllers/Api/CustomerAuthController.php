@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Services\CustomerService;
+use Laravel\Socialite\Facades\Socialite;
 
 class CustomerAuthController extends Controller
 {
@@ -84,6 +85,57 @@ class CustomerAuthController extends Controller
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
+
+    public function redirectToGoogle($provider)
+    {
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleGoogleCallback($provider)
+    {
+        try {
+            $socialUser = Socialite::driver($provider)->user();
+
+            // Check if user exists by provider-specific ID
+            $customer = null;
+            if ($provider === 'google') {
+                $customer = Customer::where('google_id', $socialUser->id)->first();
+            } elseif ($provider === 'facebook') {
+                $customer = Customer::where('facebook_id', $socialUser->id)->first();
+            }
+
+            // If customer doesn't exist, create new one
+            if (!$customer) {
+                $customerData = [
+                    'name' => $socialUser->name,
+                    'email' => $socialUser->email,
+                    'avatar' => $socialUser->avatar,
+                ];
+
+                // Add provider-specific ID
+                if ($provider === 'google') {
+                    $customerData['google_id'] = $socialUser->id;
+                } elseif ($provider === 'facebook') {
+                    $customerData['facebook_id'] = $socialUser->id;
+                }
+
+                $customer = Customer::create($customerData);
+            }
+
+            $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
+
+            // Redirect to frontend with token
+            $frontendUrl = 'http://localhost:8080';
+            return redirect($frontendUrl . '/oauth/callback?token=' . $token . '&provider=' . $provider);
+
+        } catch (\Exception $e) {
+            \Log::error($provider . ' OAuth Error: ' . $e->getMessage());
+            $frontendUrl = 'http://localhost:8080';
+            return redirect($frontendUrl . '/oauth/callback?error=oauth_failed');
+        }
+    }
+
+
 }
 
 

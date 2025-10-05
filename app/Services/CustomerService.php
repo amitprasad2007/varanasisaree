@@ -25,8 +25,45 @@ class CustomerService
             'name' => $customer->name,
             'email' => $customer->email,
             'phone' => $customer->phone,
+            'avatar' => $this->processAvatarUrl($customer->avatar),
+            'google_id' => $customer->google_id,
             'created_at' => $customer->created_at->format('Y-m-d H:i:s')
         ];
+    }
+
+    private function processAvatarUrl($avatar)
+    {
+        if (!$avatar) {
+            return null;
+        }
+
+        // Log the original avatar URL for debugging
+        \Log::info('Processing avatar URL: ' . $avatar);
+
+        // If it's already a full URL, return as is
+        if (filter_var($avatar, FILTER_VALIDATE_URL)) {
+            \Log::info('Avatar URL is valid: ' . $avatar);
+            return $avatar;
+        }
+
+        // If it's a relative path, make it absolute
+        if (str_starts_with($avatar, 'storage/') || str_starts_with($avatar, 'public/')) {
+            $processedUrl = asset($avatar);
+            \Log::info('Processed relative path to: ' . $processedUrl);
+            return $processedUrl;
+        }
+
+        // For Google OAuth avatars, ensure they have proper parameters
+        if (str_contains($avatar, 'googleusercontent.com')) {
+            // Remove existing size parameters and add our preferred size
+            $avatar = preg_replace('/[?&]sz=\d+/', '', $avatar);
+            $processedUrl = $avatar . (str_contains($avatar, '?') ? '&' : '?') . 'sz=150';
+            \Log::info('Processed Google avatar to: ' . $processedUrl);
+            return $processedUrl;
+        }
+
+        \Log::info('Returning original avatar URL: ' . $avatar);
+        return $avatar;
     }
 
     private function formatOrders($orders)

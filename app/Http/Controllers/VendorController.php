@@ -58,18 +58,18 @@ class VendorController  extends Controller
         ]);
     }
 
-    public function show($id) : Response 
+    public function show($id) : Response
     {
-        $vendor = Vendor::find($id);        
+        $vendor = Vendor::find($id);
         return Inertia::render('Admin/Vendors/Show', [
-            'vendor' => $vendor          
+            'vendor' => $vendor
         ]);
     }
 
     public function approve($id)
     {
         $vendor = Vendor::findOrFail($id);
-        
+
         // Update vendor status to active and mark as verified
         $vendor->update([
             'status' => 'active',
@@ -82,7 +82,7 @@ class VendorController  extends Controller
     public function suspend($id)
     {
         $vendor = Vendor::findOrFail($id);
-        
+
         // Update vendor status to suspended
         $vendor->update([
             'status' => 'suspended'
@@ -94,7 +94,7 @@ class VendorController  extends Controller
     public function activate($id)
     {
         $vendor = Vendor::findOrFail($id);
-        
+
         // Update vendor status to active
         $vendor->update([
             'status' => 'active'
@@ -106,7 +106,7 @@ class VendorController  extends Controller
     public function reject($id)
     {
         $vendor = Vendor::findOrFail($id);
-        
+
         // Update vendor status to rejected and unverify
         $vendor->update([
             'status' => 'inactive',
@@ -147,7 +147,7 @@ class VendorController  extends Controller
     public function destroy($id)
     {
         $vendor = Vendor::findOrFail($id);
-        
+
         // Check if vendor has any products, orders, or sales
         if ($vendor->products()->count() > 0 || $vendor->orders()->count() > 0 || $vendor->sales()->count() > 0) {
             return redirect()->back()->with('error', 'Cannot delete vendor with existing products, orders, or sales.');
@@ -217,49 +217,5 @@ class VendorController  extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-    public function redirectToGoogle()
-    {
-        return Socialite::driver('google')->redirect();
-    }
-
-    public function handleGoogleCallback()
-    {
-        try {
-            $googleUser = Socialite::driver('google')->user();
-            
-            // Check if user already exists
-            $user = \App\Models\User::where('email', $googleUser->getEmail())->first();
-            
-            if (!$user) {
-                // Create new user
-                $user = \App\Models\User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'avatar' => $googleUser->getAvatar(),
-                    'email_verified_at' => now(),
-                ]);
-            } else {
-                // Update existing user with Google ID if not set
-                if (!$user->google_id) {
-                    $user->update([
-                        'google_id' => $googleUser->getId(),
-                        'avatar' => $googleUser->getAvatar(),
-                    ]);
-                }
-            }
-            
-            // Create token for API authentication
-            $token = $user->createToken('google-auth', ['customer'])->plainTextToken;
-            
-            // Redirect to frontend with token
-            $frontendUrl = config('app.frontend_url', 'http://localhost:8080');
-            return redirect($frontendUrl . '/oauth/callback?token=' . $token . '&provider=google');
-            
-        } catch (\Exception $e) {
-            \Log::error('Google OAuth Error: ' . $e->getMessage());
-            $frontendUrl = config('app.frontend_url', 'http://localhost:8080');
-            return redirect($frontendUrl . '/oauth/callback?error=oauth_failed');
-        }
-    }
+   
 }
