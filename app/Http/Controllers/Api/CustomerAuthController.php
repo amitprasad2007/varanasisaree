@@ -125,12 +125,12 @@ class CustomerAuthController extends Controller
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
             // Redirect to frontend with token
-            $frontendUrl = 'http://localhost:8080';
+            $frontendUrl = env('FRONTEND_URL');
             return redirect($frontendUrl . '/oauth/callback?token=' . $token . '&provider=' . $provider);
 
         } catch (\Exception $e) {
             \Log::error($provider . ' OAuth Error: ' . $e->getMessage());
-            $frontendUrl = 'http://localhost:8080';
+            $frontendUrl = env('FRONTEND_URL');
             return redirect($frontendUrl . '/oauth/callback?error=oauth_failed');
         }
     }
