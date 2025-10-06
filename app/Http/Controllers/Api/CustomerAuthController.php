@@ -126,12 +126,12 @@ class CustomerAuthController extends Controller
 
             // Redirect to frontend with token
             $frontendUrl = env('FRONTEND_URL');
-            return redirect($frontendUrl . '/oauth/callback?token=' . $token . '&provider=' . $provider);
+            return redirect($frontendUrl . 'oauth/callback?token=' . $token . '&provider=' . $provider);
 
         } catch (\Exception $e) {
             \Log::error($provider . ' OAuth Error: ' . $e->getMessage());
             $frontendUrl = env('FRONTEND_URL');
-            return redirect($frontendUrl . '/oauth/callback?error=oauth_failed');
+            return redirect($frontendUrl . 'oauth/callback?error=oauth_failed');
         }
     }
 
