@@ -25,6 +25,8 @@ use App\Http\Controllers\AboutusController ;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\CollectionTypeController as AdminCollectionTypeController;
+use App\Http\Controllers\CollectionController as AdminCollectionController;
 use App\Http\Controllers\Api\CustomerAuthController;
 
 
@@ -171,6 +173,12 @@ Route::middleware('auth')->group(function () {
     Route::put('admin/vendors/{id}/payment-terms', [VendorController::class, 'updatePaymentTerms'])->name('admin.vendors.payment-terms');
     Route::delete('admin/vendors/{id}', [VendorController::class, 'destroy'])->name('admin.vendors.destroy');
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
+
+    // Collection Types & Collections
+    Route::resource('collection-types', AdminCollectionTypeController::class)->parameters([
+        'collection-types' => 'collection_type'
+    ]);
+    Route::resource('collections', AdminCollectionController::class);
 
 });
 

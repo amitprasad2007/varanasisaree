@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
 use App\Http\Controllers\Api\SearchController as ApiSearchController;
+use App\Http\Controllers\Api\CollectionController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -57,6 +58,11 @@ Route::get('/getcategoryfillters/{slug}', [ApiSearchController::class, 'getcateg
 Route::get('/getbestsellerfillters/bestsellers/', [ApiSearchController::class, 'getbestsellerfillters']);
 Route::get('/getfeaturedfillters/featured/', [ApiSearchController::class, 'getfeaturedfillters']);
 Route::get('/navitems', [ApiSearchController::class, 'navitems']);
+
+// Collections
+Route::get('/collection-types', [CollectionController::class, 'types']);
+Route::get('/collections', [CollectionController::class, 'index']);
+Route::get('/collections/{slug}', [CollectionController::class, 'show']);
 
 
 // User Authentication APIs (admin/staff app users)

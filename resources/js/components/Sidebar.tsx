@@ -13,7 +13,9 @@ import {
   Palette,
   Ruler,
   FileText,
-  Key
+  Key,
+  Layers,
+  Tags
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -57,6 +59,8 @@ const Sidebar = () => {
         { icon: FileText, label: 'Product Bulk Upload', path: '/products/bulkupload' },
         { icon: Palette, label: 'Colors', path: '/colors' },
         { icon: Ruler, label: 'Sizes', path: '/sizes' },
+        { icon: Layers, label: 'Collection Types', path: '/collection-types' },
+        { icon: Tags, label: 'Collections', path: '/collections' },
 				{
 					icon: FileText,
 					label: 'About Us',
