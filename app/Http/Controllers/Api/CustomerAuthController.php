@@ -171,7 +171,7 @@ class CustomerAuthController extends Controller
         
         $customer = Customer::where('remember_token', $request->token)->first();
         if (!$customer) {
-            return response()->json(['message' => 'Customer not found'], 404);
+            return response()->json(['status' => FALSE]);
         }
         return response()->json(['status' => TRUE]);
     }
