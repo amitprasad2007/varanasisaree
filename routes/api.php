@@ -65,9 +65,8 @@ Route::get('/collections', [CollectionController::class, 'index']);
 Route::get('/collections/{slug}', [CollectionController::class, 'show']);
 
 
-// User Authentication APIs (admin/staff app users)
-// Route::post('/register', [UserController::class, 'register']);
-// Route::post('/login', [UserController::class, 'login']);
+//customer forgot password
+Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
 
 // Customer Authentication APIs (separate guard)
 Route::post('/register', [CustomerAuthController::class, 'register']);

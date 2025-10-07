@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Services\CustomerService;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ForgetPasswordSendEmail;
 
 class CustomerAuthController extends Controller
 {
@@ -133,6 +136,35 @@ class CustomerAuthController extends Controller
             $frontendUrl = env('FRONTEND_URL');
             return redirect($frontendUrl . 'oauth/callback?error=oauth_failed');
         }
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $customer = Customer::where('email', $request->email)->first();
+
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+
+        $token = Str::random(60);
+
+        $customer->remember_token = $token;
+        $customer->save();
+
+        Mail::to($customer->email)->send(new ForgetPasswordSendEmail([
+            'subject' => 'Password Reset Link',
+            'data' => $customer,
+        ]));
+        
+        return response()->json(['status' => TRUE]);
     }
 
 
