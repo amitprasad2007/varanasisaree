@@ -68,6 +68,8 @@ Route::get('/collections/{slug}', [CollectionController::class, 'show']);
 //customer forgot password
 Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
 Route::post('/change-token-check',[CustomerAuthController::class, 'changetokencheck']);
+Route::post('/changepassword',[CustomerAuthController::class, 'changepassword']);
+
 
 // Customer Authentication APIs (separate guard)
 Route::post('/register', [CustomerAuthController::class, 'register']);

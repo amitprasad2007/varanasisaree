@@ -176,6 +176,15 @@ class CustomerAuthController extends Controller
         return response()->json(['status' => TRUE]);
     }
 
+    public function changepassword (Request $request){        
+        $customer = Customer::where('remember_token', $request->token)->first();
+        if (!$customer) {
+            return response()->json(['status' => FALSE]);
+        }        
+        $customer->password = Hash::make($request->password);
+        $customer->save();
+        return response()->json(['status' => TRUE]);
+    }
 
 }
 
