@@ -182,6 +182,7 @@ class CustomerAuthController extends Controller
             return response()->json(['status' => FALSE]);
         }        
         $customer->password = Hash::make($request->password);
+        $customer->remember_token =null;
         $customer->save();
         return response()->json(['status' => TRUE]);
     }
