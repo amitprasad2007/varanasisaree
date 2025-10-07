@@ -163,7 +163,16 @@ class CustomerAuthController extends Controller
             'subject' => 'Password Reset Link',
             'data' => $customer,
         ]));
+
+        return response()->json(['status' => TRUE]);
+    }
+
+    public function changetokencheck (Request $request){
         
+        $customer = Customer::where('remember_token', $request->token)->first();
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
         return response()->json(['status' => TRUE]);
     }
 
