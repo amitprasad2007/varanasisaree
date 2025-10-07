@@ -11,7 +11,7 @@ class StoreProductReviewRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreProductReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'productSlug' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+            'reviewText' => 'required|string|max:1000',
+            'userId' => 'required|integer'
         ];
     }
 }

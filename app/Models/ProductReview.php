@@ -29,4 +29,28 @@ class ProductReview extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * Get the product slug through the product relationship
+     */
+    public function getProductSlugAttribute(): string
+    {
+        return $this->product->slug ?? '';
+    }
+
+    /**
+     * Get the review text (alias for review field)
+     */
+    public function getReviewTextAttribute(): string
+    {
+        return $this->review ?? '';
+    }
+
+    /**
+     * Get the user ID (alias for customer_id field)
+     */
+    public function getUserIdAttribute(): int
+    {
+        return $this->customer_id;
+    }
 }

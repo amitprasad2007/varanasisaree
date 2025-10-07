@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
 use App\Http\Controllers\Api\SearchController as ApiSearchController;
 use App\Http\Controllers\Api\CollectionController;
+use App\Http\Controllers\Api\ProductReviewController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -47,7 +48,9 @@ Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
 Route::get('/getheriBanner', [BannerController::class, 'apiGetheriBanner']);
 
-
+// Product Review APIs
+Route::get('/product-reviews', [ProductReviewController::class, 'getProductReviews']);
+Route::get('/product-reviews/stats', [ProductReviewController::class, 'getReviewStats']);
 
 // API Coupon Validation
 Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('api.coupons.validate');
@@ -109,7 +112,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     // Wishlist operations
     Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
 
-
+    // Product Review operations (authenticated)
+    Route::post('/product-reviews', [ProductReviewController::class, 'storeReview']);
 
 });
 
