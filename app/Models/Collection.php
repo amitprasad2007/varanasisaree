@@ -30,7 +30,7 @@ class Collection extends Model
         'is_active' => 'boolean',
     ];
 
-    public function type(): BelongsTo
+    public function collectionType(): BelongsTo
     {
         return $this->belongsTo(CollectionType::class, 'collection_type_id');
     }

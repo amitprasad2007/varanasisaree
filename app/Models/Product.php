@@ -130,4 +130,11 @@ class Product extends Model
 
         return $variantImages->pluck('image_path')->filter()->unique()->values();
     }
+
+    public function collections()
+    {
+        return $this->belongsToMany(Collection::class, 'collection_product')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
 }

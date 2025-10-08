@@ -4,20 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\CollectionType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class CollectionTypeController extends Controller
 {
     public function index()
     {
-        $types = CollectionType::query()
+        $collectionTypes = CollectionType::query()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(20);
-
+       // dd($collectionTypes);
         return Inertia::render('Admin/CollectionTypes/Index', [
-            'types' => $types,
+            'collectionTypes' => $collectionTypes,
         ]);
     }
 
@@ -30,17 +32,37 @@ class CollectionTypeController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:collection_types,slug'],
             'description' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'string', 'max:2048'],
-            'thumbnail_image' => ['nullable', 'string', 'max:2048'],
+            'banner_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'thumbnail_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
+            'meta' => ['nullable'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ]);
+        $data = $validated;
+        $data['slug'] = Str::slug($validated['name']);
+        // Allow sending meta as JSON string from the frontend
+        $metaInput = $request->input('meta');
+        if (is_string($metaInput)) {
+            $decoded = json_decode($metaInput, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data['meta'] = $decoded;
+            }
+        }
 
-        CollectionType::create($validated);
+        if ($request->hasFile('banner_image')) {
+            $path = $request->file('banner_image')->store('collection_types', 'public');
+            $data['banner_image'] = $path;
+        }
+
+        if ($request->hasFile('thumbnail_image')) {
+            $path = $request->file('thumbnail_image')->store('collection_types', 'public');
+            $data['thumbnail_image'] = $path;
+        }
+
+        CollectionType::create($data);
 
         return redirect()->route('collection-types.index')->with('success', 'Collection type created');
     }
@@ -48,7 +70,7 @@ class CollectionTypeController extends Controller
     public function edit(CollectionType $collection_type)
     {
         return Inertia::render('Admin/CollectionTypes/Edit', [
-            'type' => $collection_type,
+            'collectionType' => $collection_type,
         ]);
     }
 
@@ -58,15 +80,43 @@ class CollectionTypeController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('collection_types', 'slug')->ignore($collection_type->id)],
             'description' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'string', 'max:2048'],
-            'thumbnail_image' => ['nullable', 'string', 'max:2048'],
+            'banner_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'thumbnail_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
+            'meta' => ['nullable'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ]);
+        $data = $validated;
+        $data['slug'] = Str::slug($validated['name']);
+        // Allow sending meta as JSON string from the frontend
+        $metaInput = $request->input('meta');
+        if (is_string($metaInput)) {
+            $decoded = json_decode($metaInput, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data['meta'] = $decoded;
+            }
+        }
 
-        $collection_type->update($validated);
+        if ($request->hasFile('banner_image')) {
+            // delete old if present
+            if ($collection_type->banner_image) {
+                Storage::disk('public')->delete($collection_type->banner_image);
+            }
+            $path = $request->file('banner_image')->store('collection_types', 'public');
+            $data['banner_image'] = $path;
+        }
+
+        if ($request->hasFile('thumbnail_image')) {
+            if ($collection_type->thumbnail_image) {
+                Storage::disk('public')->delete($collection_type->thumbnail_image);
+            }
+            $path = $request->file('thumbnail_image')->store('collection_types', 'public');
+            $data['thumbnail_image'] = $path;
+        }
+       // dd($data);
+        $collection_type->update($data);
 
         return redirect()->route('collection-types.index')->with('success', 'Collection type updated');
     }

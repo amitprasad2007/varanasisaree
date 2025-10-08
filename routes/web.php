@@ -25,6 +25,7 @@ use App\Http\Controllers\AboutusController ;
 use App\Http\Controllers\AboutusSectionController;
 use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\ProductVariantImageController;
 use App\Http\Controllers\CollectionTypeController as AdminCollectionTypeController;
 use App\Http\Controllers\CollectionController as AdminCollectionController;
 use App\Http\Controllers\Api\CustomerAuthController;
@@ -145,13 +146,13 @@ Route::middleware('auth')->group(function () {
     Route::get('variants/{variant}/qr', [BarcodeController::class, 'variantQr'])->name('variants.qr');
 
     // Product Variant Images
-    Route::get('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'index'])->name('product-variant-images.index');
-    Route::get('variants/{variant}/images/create', [App\Http\Controllers\ProductVariantImageController::class, 'create'])->name('product-variant-images.create');
-    Route::post('variants/{variant}/images', [App\Http\Controllers\ProductVariantImageController::class, 'store'])->name('product-variant-images.store');
-    Route::put('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'update'])->name('product-variant-images.update');
-    Route::delete('variant-images/{image}', [App\Http\Controllers\ProductVariantImageController::class, 'destroy'])->name('product-variant-images.destroy');
-    Route::post('variant-images/{image}/set-primary', [App\Http\Controllers\ProductVariantImageController::class, 'setPrimary'])->name('product-variant-images.set-primary');
-    Route::post('variants/{variant}/images/update-order', [App\Http\Controllers\ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
+    Route::get('variants/{variant}/images', [ProductVariantImageController::class, 'index'])->name('product-variant-images.index');
+    Route::get('variants/{variant}/images/create', [ProductVariantImageController::class, 'create'])->name('product-variant-images.create');
+    Route::post('variants/{variant}/images', [ProductVariantImageController::class, 'store'])->name('product-variant-images.store');
+    Route::put('variant-images/{image}', [ProductVariantImageController::class, 'update'])->name('product-variant-images.update');
+    Route::delete('variant-images/{image}', [ProductVariantImageController::class, 'destroy'])->name('product-variant-images.destroy');
+    Route::post('variant-images/{image}/set-primary', [ProductVariantImageController::class, 'setPrimary'])->name('product-variant-images.set-primary');
+    Route::post('variants/{variant}/images/update-order', [ProductVariantImageController::class, 'updateOrder'])->name('product-variant-images.update-order');
 
     // Users
     Route::resource('users', UserManagementController::class);
@@ -174,11 +175,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('admin/vendors/{id}', [VendorController::class, 'destroy'])->name('admin.vendors.destroy');
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
 
-    // Collection Types & Collections
-    Route::resource('collection-types', AdminCollectionTypeController::class)->parameters([
-        'collection-types' => 'collection_type'
-    ]);
+    // Collection Types
+    Route::resource('collection-types', AdminCollectionTypeController::class);
+
+    // Collections
     Route::resource('collections', AdminCollectionController::class);
+    Route::get('collections/{collection}/products', [AdminCollectionController::class, 'products'])->name('collections.products');
+    Route::post('collections/{collection}/products', [AdminCollectionController::class, 'addProduct'])->name('collections.products.add');
+    Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.products.remove');
+    Route::put('collections/{collection}/products/order', [AdminCollectionController::class, 'updateProductOrder'])->name('collections.products.order');
 
 });
 

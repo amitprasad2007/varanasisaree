@@ -25,7 +25,6 @@ interface Props {
 }
 
 export default function Edit({ brand }: Props) {
-    console.log(brand);
   const { data, setData, post, processing, errors } = useForm({
     name: brand.name ||'',
     slug: brand.slug || '',

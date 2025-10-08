@@ -1,87 +1,166 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from "@/components/ui/input";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-type FormData = {
-  name: string;
-  slug: string;
-  description: string;
-  banner_image: string;
-  thumbnail_image: string;
-  seo_title: string;
-  seo_description: string;
-  sort_order: number;
-  is_active: boolean;
-};
+import { Switch } from '@/components/ui/switch';
 
-const Create = () => {
-  const { data, setData, post, processing, errors } = useForm<FormData>({
-    name: '', slug: '', description: '', banner_image: '', thumbnail_image: '', seo_title: '', seo_description: '', sort_order: 0, is_active: true as boolean,
+export default function Create() {
+  const { data, setData, post, processing, errors } = useForm<{[
+    key: string]: any
+  }>({
+    name: '',
+    description: '',
+    banner_image: null as File | null,
+    thumbnail_image: null as File | null,
+    seo_title: '',
+    seo_description: '',
+    meta: '', // JSON string or left empty
+    sort_order: 0,
+    is_active: true as boolean,
   });
 
-  const submit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('collection-types.store'));
+    // Inertia will convert to FormData automatically when File is present
+    post(route('collection-types.store'), { forceFormData: true });
   };
 
   return (
-    <DashboardLayout title="Create Collection Type">
+    <DashboardLayout title="Create Collections Types">
       <Head title="Create Collection Type" />
-      <form onSubmit={submit} className="space-y-4 bg-white p-6 rounded-md shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium">Name</label>
-            <Input className="form-input" value={data.name} onChange={e => setData('name', e.target.value)} />
-            {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Slug</label>
-            <Input className="form-input" value={data.slug} onChange={e => setData('slug', e.target.value)} />
-            {errors.slug && <p className="text-red-600 text-sm">{errors.slug}</p>}
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium">Description</label>
-            <Textarea className="form-textarea" value={data.description} onChange={e => setData('description', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Banner Image (path/url)</label>
-            <Input className="form-input" value={data.banner_image} onChange={e => setData('banner_image', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Thumbnail Image (path/url)</label>
-            <Input className="form-input" value={data.thumbnail_image} onChange={e => setData('thumbnail_image', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">SEO Title</label>
-            <Input className="form-input" value={data.seo_title} onChange={e => setData('seo_title', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">SEO Description</label>
-            <Textarea className="form-textarea" value={data.seo_description} onChange={e => setData('seo_description', e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Sort Order</label>
-            <Input type="number" className="form-input" value={data.sort_order} onChange={e => setData('sort_order', Number(e.target.value))} />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox id="is_active" checked={data.is_active} onCheckedChange={(checked) => setData('is_active', checked as boolean)} />
-            <label htmlFor="is_active" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Active</label>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button type="submit" disabled={processing} className="bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">Save</Button>
-          <Link href={route('collection-types.index')}>
-            <Button type="button" variant="outline" className="cursor-pointer">Cancel</Button>
+      
+      <div className="p-6">
+        <div className="mb-6">
+          <Link href={route('collection-types.index')} >
+            <Button variant="outline">← Back to Collection Types</Button>
           </Link>
         </div>
-      </form>
+
+        <div className="max-w-2xl">
+          <h1 className="text-3xl font-bold mb-6">Create Collection Type</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+            <div>
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={data.name}
+                onChange={(e) => setData('name', e.target.value)}
+                className={errors.name ? 'border-red-500' : ''}
+                placeholder="e.g., Featured, Seasonal, Sale"
+              />
+              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={data.description}
+                onChange={(e) => setData('description', e.target.value)}
+                rows={4}
+                placeholder="Describe this collection type..."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="banner_image">Banner Image</Label>
+              <Input
+                id="banner_image"
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                  setData('banner_image', file);
+                }}
+                
+              />
+              {errors.banner_image && <p className="text-red-500 text-sm mt-1">{errors.banner_image}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="thumbnail_image">Thumbnail Image</Label>
+              <Input
+                id="thumbnail_image"
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                  setData('thumbnail_image', file);
+                }}
+                
+              />
+              {errors.thumbnail_image && <p className="text-red-500 text-sm mt-1">{errors.thumbnail_image}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="seo_title">SEO Title</Label>
+              <Input
+                id="seo_title"
+                value={data.seo_title}
+                onChange={(e) => setData('seo_title', e.target.value)}
+                placeholder="SEO title"
+              />
+              {errors.seo_title && <p className="text-red-500 text-sm mt-1">{errors.seo_title}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="seo_description">SEO Description</Label>
+              <Textarea
+                id="seo_description"
+                value={data.seo_description}
+                onChange={(e) => setData('seo_description', e.target.value)}
+                rows={3}
+                placeholder="Short SEO description"
+              />
+              {errors.seo_description && <p className="text-red-500 text-sm mt-1">{errors.seo_description}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="meta">Meta (JSON)</Label>
+              <Textarea
+                id="meta"
+                value={data.meta}
+                onChange={(e) => setData('meta', e.target.value)}
+                rows={4}
+                placeholder='{"key":"value"}'
+              />
+              {errors.meta && <p className="text-red-500 text-sm mt-1">{errors.meta}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="sort_order">Sort Order</Label>
+              <Input
+                id="sort_order"
+                type="number"
+                value={data.sort_order}
+                onChange={(e) => setData('sort_order', Number(e.target.value))}
+              />
+              {errors.sort_order && <p className="text-red-500 text-sm mt-1">{errors.sort_order}</p>}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_active"
+                checked={!!data.is_active}
+                onCheckedChange={(checked) => setData('is_active', checked)}
+              />
+              <Label htmlFor="is_active">Active</Label>
+            </div>
+
+            <div className="flex gap-4">
+              <Button type="submit" disabled={processing}>
+                Create Collection Type
+              </Button>
+              <Link href="/admin/collection-types">
+                <Button type="button" variant="outline">Cancel</Button>
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
     </DashboardLayout>
   );
-};
-
-export default Create;
-
-
+}
