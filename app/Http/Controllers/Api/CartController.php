@@ -227,7 +227,11 @@ class CartController extends Controller
                 'name' => $item->product->name,
                 'price' => $item->price,
                 'quantity' => $item->quantity,
-                'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
+                ?? $item->product->primaryImage->first()?->image_path
+                ?? 'https://via.placeholder.com/150',
+                'color' => ($item->product_variant_id ? ($item->productVariant->color->name ??  null) : null) ?? $item->product->color ?? '',
+                'slug' => $item->product->slug ?? '',
             ];
         });
 
