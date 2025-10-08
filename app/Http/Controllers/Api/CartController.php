@@ -172,7 +172,7 @@ class CartController extends Controller
                 'price' => $item->price,
                 'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
                 'quantity' => $item->quantity,
-                'color' => $item->product->color ?? '',
+                'color' => ($item->product_variant_id ? ($item->productVariant?->color() ??  null) : null) ?? $item->product->color ?? '',
                 'maxQuantity' => $item->product->max_quantity ?? 10, // fallback if not available
             ];
         });
