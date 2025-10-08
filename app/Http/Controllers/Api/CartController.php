@@ -166,7 +166,7 @@ class CartController extends Controller
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
-                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? null) : null)
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
                     ?? $item->product->primaryImage->first()?->image_path
                     ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
