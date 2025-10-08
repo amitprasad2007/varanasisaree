@@ -215,7 +215,7 @@ class CartController extends Controller
         $discount = 1000;
 
         // Free shipping for this example
-        $shipping = 0;
+        $shipping = ($subtotal > 50000) ? 0 : 499;
 
         $total = $subtotal + $tax + $shipping - $discount;
 
