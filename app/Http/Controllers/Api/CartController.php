@@ -213,7 +213,7 @@ class CartController extends Controller
         $tax = $subtotal * 0.18;
 
         // For this example, we'll use a fixed discount
-        $discount = ($subtotal > 15000) ? 0 : 1000;
+        $discount = ($subtotal > 15000) ? 1000 : 0 ;
 
         // Free shipping for this example
         $shipping = ($subtotal > 50000) ? 0 : 499;
