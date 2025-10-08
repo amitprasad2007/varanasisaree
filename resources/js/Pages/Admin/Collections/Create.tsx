@@ -42,16 +42,17 @@ export default function Create({ collectionTypes = [] }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/admin/collections');
+    post( route('collections.store'), { forceFormData: true });
+
   };
 
   return (
     <DashboardLayout title="Create Collections">
       <Head title="Create Collection" />
-      
+
       <div className="p-6">
         <div className="mb-6">
-          <Link href="/admin/collections">
+          <Link href={route('collections.index')}>
             <Button variant="outline">← Back to Collections</Button>
           </Link>
         </div>
@@ -83,8 +84,8 @@ export default function Create({ collectionTypes = [] }: Props) {
 
             <div>
             <Label htmlFor="collection_type_id">Collection Type *</Label>
-              <Select 
-                value={data.collection_type_id} 
+              <Select
+                value={data.collection_type_id}
                 onValueChange={(value) => setData('collection_type_id', value)}
               >
                 <SelectTrigger className={errors.collection_type_id ? 'border-red-500' : ''}>
@@ -113,7 +114,7 @@ export default function Create({ collectionTypes = [] }: Props) {
                   const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
                   setData('banner_image', file);
                 }}
-                
+
               />
               {errors.banner_image && <p className="text-red-500 text-sm mt-1">{errors.banner_image}</p>}
             </div>
@@ -127,7 +128,7 @@ export default function Create({ collectionTypes = [] }: Props) {
                   const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
                   setData('thumbnail_image', file);
                 }}
-                
+
               />
               {errors.thumbnail_image && <p className="text-red-500 text-sm mt-1">{errors.thumbnail_image}</p>}
             </div>
@@ -178,7 +179,7 @@ export default function Create({ collectionTypes = [] }: Props) {
               <Button type="submit" disabled={processing}>
                 Create Collection
               </Button>
-              <Link href="/admin/collections">
+              <Link href={route('collections.index')}>
                 <Button type="button" variant="outline">Cancel</Button>
               </Link>
             </div>

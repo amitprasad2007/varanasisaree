@@ -181,8 +181,8 @@ Route::middleware('auth')->group(function () {
     // Collections
     Route::resource('collections', AdminCollectionController::class);
     Route::get('collections/{collection}/products', [AdminCollectionController::class, 'products'])->name('collections.products');
-    Route::post('collections/{collection}/products', [AdminCollectionController::class, 'addProduct'])->name('collections.products.add');
-    Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.products.remove');
+    Route::post('collections/{collection}/products', [AdminCollectionController::class, 'addProduct'])->name('collections.addProduct');
+    Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.removeProduct');
     Route::put('collections/{collection}/products/order', [AdminCollectionController::class, 'updateProductOrder'])->name('collections.products.order');
 
 });
