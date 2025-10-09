@@ -78,8 +78,7 @@ Route::post('/changepassword',[CustomerAuthController::class, 'changepassword'])
 
 // Logs: attach guest session to user
 Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
-// Logs: store user events (also works for guests if token sent)
-Route::post('/logs', [UserLogController::class, 'store']);
+
 
 // Customer Authentication APIs (separate guard)
 Route::post('/register', [CustomerAuthController::class, 'register']);
@@ -116,6 +115,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::put('/addresses/{id}', [AddressController::class, 'update']);
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 
+    // Logs: store user events (also works for guests if token sent)
+    Route::post('/logs', [UserLogController::class, 'store']);
     // Wishlist operations
     Route::get('/wishlist', [WishlistController::class, 'getWishlistItems']);
     Route::post('/wishlist', [WishlistController::class, 'add']);
@@ -151,7 +152,7 @@ Route::prefix('guest')->group(function () {
     // Logs: attach guest session to user
     Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
     // Logs: store user events (also works for guests if token sent)
-   
+    Route::post('/logs', [UserLogController::class, 'store']);
 
 });
 
