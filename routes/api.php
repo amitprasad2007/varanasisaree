@@ -76,6 +76,10 @@ Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword'
 Route::post('/change-token-check',[CustomerAuthController::class, 'changetokencheck']);
 Route::post('/changepassword',[CustomerAuthController::class, 'changepassword']);
 
+// Logs: attach guest session to user
+Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
+// Logs: store user events (also works for guests if token sent)
+Route::post('/logs', [UserLogController::class, 'store']);
 
 // Customer Authentication APIs (separate guard)
 Route::post('/register', [CustomerAuthController::class, 'register']);
@@ -123,10 +127,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::post('/recently-viewed', [RecentlyViewedController::class, 'store']);
     Route::post('/sync-recently-viewed', [RecentlyViewedController::class, 'sync']);
 
-    // Logs: attach guest session to user
-    Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
-    // Logs: store user events (also works for guests if token sent)
-    Route::post('/logs', [UserLogController::class, 'store']);
+
 
     // Claim guest data into the authenticated account while keeping session_token
     Route::post('/guest/claim', [GuestDataController::class, 'claim']);
@@ -150,8 +151,8 @@ Route::prefix('guest')->group(function () {
     // Logs: attach guest session to user
     Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
     // Logs: store user events (also works for guests if token sent)
-    Route::post('/logs', [UserLogController::class, 'store']);
-    
+   
+
 });
 
 // // Protected customer routes
