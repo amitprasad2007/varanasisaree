@@ -130,6 +130,18 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
 });
 
+// Guest endpoints (no auth): use session_token for identification
+Route::prefix('guest')->group(function () {
+    // Guest Wishlist
+    Route::post('/wishlist', [WishlistController::class, 'guestAdd']);
+    Route::delete('/wishlist/{productId}', [WishlistController::class, 'guestRemove']);
+    Route::get('/wishlist', [WishlistController::class, 'guestList']);
+
+    // Guest Recently Viewed
+    Route::post('/recently-viewed', [RecentlyViewedController::class, 'guestStore']);
+    Route::get('/recently-viewed', [RecentlyViewedController::class, 'guestIndex']);
+});
+
 // // Protected customer routes
 // Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 //     Route::get('/customer/me', [CustomerAuthController::class, 'profile']);
