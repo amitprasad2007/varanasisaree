@@ -162,17 +162,18 @@ class CartController extends Controller
 
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
+           // dd($item->productVariant->color->name);
             return [
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
-                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? null) : null)
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
                     ?? $item->product->primaryImage->first()?->image_path
                     ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
                 'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
                 'quantity' => $item->quantity,
-                'color' => $item->product->color ?? '',
+                'color' => ($item->product_variant_id ? ($item->productVariant->color->name ??  null) : null) ?? $item->product->color ?? '',
                 'maxQuantity' => $item->product->max_quantity ?? 10, // fallback if not available
             ];
         });
@@ -212,10 +213,10 @@ class CartController extends Controller
         $tax = $subtotal * 0.18;
 
         // For this example, we'll use a fixed discount
-        $discount = 1000;
+        $discount = ($subtotal > 15000) ? 1000 : 0 ;
 
         // Free shipping for this example
-        $shipping = 0;
+        $shipping = ($subtotal > 50000) ? 0 : 499;
 
         $total = $subtotal + $tax + $shipping - $discount;
 
@@ -226,7 +227,11 @@ class CartController extends Controller
                 'name' => $item->product->name,
                 'price' => $item->price,
                 'quantity' => $item->quantity,
-                'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
+                ?? $item->product->primaryImage->first()?->image_path
+                ?? 'https://via.placeholder.com/150',
+                'color' => ($item->product_variant_id ? ($item->productVariant->color->name ??  null) : null) ?? $item->product->color ?? '',
+                'slug' => $item->product->slug ?? '',
             ];
         });
 

@@ -54,7 +54,7 @@ interface Props {
 
 export default function Products({ collection, collectionProducts, availableProducts }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   const { data, setData, post, processing, reset } = useForm({
     product_id: '',
     display_order: 0,
@@ -62,7 +62,7 @@ export default function Products({ collection, collectionProducts, availableProd
 
   const handleAddProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    post(`/admin/collections/${collection.id}/products`, {
+    post(route('collections.addProduct', { collection: collection.id }), {
       onSuccess: () => {
         setIsDialogOpen(false);
         reset();
@@ -72,22 +72,22 @@ export default function Products({ collection, collectionProducts, availableProd
 
   const handleRemoveProduct = (productId: number) => {
     if (confirm('Are you sure you want to remove this product from the collection?')) {
-      router.delete(`/admin/collections/${collection.id}/products/${productId}`);
+      router.delete(route('collections.removeProduct', { collection: collection.id, product: productId }));
     }
   };
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Collections', href: route('collections.index') },
-    { title: 'Collections Product', href: route('products.create') },
+    { title: 'Collections Product', href: route('collections.products', { collection: collection.id }) },
   ];
 
   return (
     <DashboardLayout title="Collections - Product">
       <Head title={`${collection.name} - Products`} />
-      
+
       <div className="p-6">
         <div className="mb-6">
-          <Link href="/admin/collections">
+          <Link href={route('collections.index')}>
             <Button variant="outline">← Back to Collections</Button>
           </Link>
           <Breadcrumbs breadcrumbs={breadcrumbs} />
@@ -98,12 +98,12 @@ export default function Products({ collection, collectionProducts, availableProd
             <h1 className="text-3xl font-bold">{collection.name}</h1>
             <p className="text-gray-600">Manage products in this collection</p>
           </div>
-          
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>Add Product</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl bg-white">
               <DialogHeader>
                 <DialogTitle>Add Product to Collection</DialogTitle>
               </DialogHeader>
@@ -114,7 +114,7 @@ export default function Products({ collection, collectionProducts, availableProd
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a product" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       {availableProducts.map((product) => (
                         <SelectItem key={product.id} value={product.id.toString()}>
                           {product.name} - ${product.price}

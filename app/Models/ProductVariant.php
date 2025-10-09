@@ -50,7 +50,7 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductVariantImage::class)->orderBy('display_order');
     }
-
+    
     public function primaryImage(): ?ProductVariantImage
     {
         return $this->images()

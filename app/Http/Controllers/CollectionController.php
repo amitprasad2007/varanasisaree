@@ -32,7 +32,7 @@ class CollectionController extends Controller
         //dd($collectionTypes);
         return Inertia::render('Admin/Collections/Create', [
             'collectionTypes' => $collectionTypes,
-        ]);        
+        ]);
     }
 
     public function store(Request $request)
@@ -40,15 +40,14 @@ class CollectionController extends Controller
         $validated = $request->validate([
             'collection_type_id' => ['required', 'exists:collection_types,id'],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:collections,slug'],
             'description' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'string', 'max:2048'],
-            'thumbnail_image' => ['nullable', 'string', 'max:2048'],
+            'banner_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'thumbnail_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
+            'meta' => ['nullable'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'product_ids.*' => ['integer', 'exists:products,id'],
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
@@ -86,7 +85,7 @@ class CollectionController extends Controller
         ]);
         $validated['slug'] = Str::slug($validated['name']);
         $collection->update($validated);
-       
+
 
         return redirect()->route('collections.index')->with('success', 'Collection updated');
     }
@@ -100,11 +99,11 @@ class CollectionController extends Controller
     public function products(Collection $collection)
     {
         $collectionProducts = $collection->products()
-            ->with(['category', 'brand', 'images'])
+            ->with(['category', 'brand'])
             ->get();
 
         $availableProducts = Product::whereNotIn('id', $collectionProducts->pluck('id'))
-            ->with(['category', 'brand', 'images'])
+            ->with(['category', 'brand'])
             ->where('status', 'active')
             ->get();
 
@@ -123,7 +122,7 @@ class CollectionController extends Controller
         ]);
 
         $collection->products()->attach($validated['product_id'], [
-            'display_order' => $validated['display_order'] ?? 0,
+            'sort_order' => $validated['display_order'] ?? 0,
         ]);
 
         return back()->with('success', 'Product added to collection successfully.');
