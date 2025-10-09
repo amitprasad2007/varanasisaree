@@ -152,7 +152,7 @@ Route::prefix('guest')->group(function () {
     // Logs: attach guest session to user
     Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
     // Logs: store user events (also works for guests if token sent)
-    Route::post('/logs', [UserLogController::class, 'store']);
+    Route::post('/guestlogs', [UserLogController::class, 'store']);
 
 });
 
