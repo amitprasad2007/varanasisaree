@@ -146,6 +146,12 @@ Route::prefix('guest')->group(function () {
     // Guest Recently Viewed
     Route::post('/recently-viewed', [RecentlyViewedController::class, 'guestStore']);
     Route::get('/recently-viewed', [RecentlyViewedController::class, 'guestIndex']);
+
+    // Logs: attach guest session to user
+    Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
+    // Logs: store user events (also works for guests if token sent)
+    Route::post('/logs', [UserLogController::class, 'store']);
+    
 });
 
 // // Protected customer routes
