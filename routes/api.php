@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
 use App\Http\Controllers\Api\SearchController as ApiSearchController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\ProductReviewController;
+use App\Http\Controllers\Api\RecentlyViewedController;
+use App\Http\Controllers\Api\UserLogController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -110,7 +112,18 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 
     // Wishlist operations
-    Route::get('/wishlist/items', [WishlistController::class, 'getWishlistItems']);
+    Route::get('/wishlist', [WishlistController::class, 'getWishlistItems']);
+    Route::post('/wishlist', [WishlistController::class, 'add']);
+    Route::delete('/wishlist/{productId}', [WishlistController::class, 'remove']);
+    Route::post('/sync-wishlist', [WishlistController::class, 'sync']);
+
+    // Recently viewed operations
+    Route::get('/recently-viewed', [RecentlyViewedController::class, 'index']);
+    Route::post('/recently-viewed', [RecentlyViewedController::class, 'store']);
+    Route::post('/sync-recently-viewed', [RecentlyViewedController::class, 'sync']);
+
+    // Logs: attach guest session to user
+    Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
 
     // Product Review operations (authenticated)
     Route::post('/product-reviews', [ProductReviewController::class, 'storeReview']);
