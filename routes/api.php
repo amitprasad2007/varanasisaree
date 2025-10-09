@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\RecentlyViewedController;
 use App\Http\Controllers\Api\UserLogController;
+use App\Http\Controllers\Api\GuestDataController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -124,6 +125,9 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     // Logs: attach guest session to user
     Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
+
+    // Claim guest data into the authenticated account while keeping session_token
+    Route::post('/guest/claim', [GuestDataController::class, 'claim']);
 
     // Product Review operations (authenticated)
     Route::post('/product-reviews', [ProductReviewController::class, 'storeReview']);
