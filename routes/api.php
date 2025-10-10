@@ -95,6 +95,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
     Route::get('/cart/checkout', [CartController::class, 'getCheckoutCart']);
     Route::get('/cart/summary', [CartController::class, 'getCartSummary']);
+    Route::get('/recommended-products', [CartController::class, 'getRecommendedProducts']);
 
     // Order operations
     Route::post('/order/buy-now', [OrderController::class, 'buyNow']);

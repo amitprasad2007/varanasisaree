@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
+use App\Models\RecentView;
+use App\Models\Wishlist;
 
 class CartController extends Controller
 {
@@ -167,6 +168,8 @@ class CartController extends Controller
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
+                'category' => $item->product->category->id ?? '',
+                'subcategory' => $item->product->subcategory->id ?? '',
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
                     ?? $item->product->primaryImage->first()?->image_path
                     ?? 'https://via.placeholder.com/150',
@@ -244,5 +247,59 @@ class CartController extends Controller
             'tax' => $tax,
             'total' => $total
         ]);
+    }
+    public function getRecommendedProducts(Request $request)
+    {
+        $customer = $request->user();
+        $cartItems = Cart::where('customer_id', $customer->id)
+                ->whereNull('order_id')
+                ->with('product')
+                ->get();
+        $cartproductIds = $cartItems->pluck('product_id')->toArray();
+        $recentproducts = RecentView::where('customer_id', $customer->id)
+            ->with(['product'])
+            ->whereNotIn('product_id', $cartproductIds)
+            ->latest()
+            ->take(5)
+            ->get();
+        $whislistproducts = Wishlist::where('customer_id', $customer->id)
+            ->with(['product'])
+            ->whereNotIn('product_id', $cartproductIds)
+            ->latest()
+            ->take(5)
+            ->get();
+        $mergedProducts = $recentproducts->merge($whislistproducts);
+        $onlyProducts = $mergedProducts->pluck(['product'])->filter();
+       if(count ($onlyProducts) <10){
+
+            $categoryIds = $cartItems->pluck('product.category_id')->unique()->filter();
+            $subcategoryIds = $cartItems->pluck('product.subcategory_id')->unique()->filter();
+            $additionalProducts = Product::where(function ($query) use ($categoryIds, $subcategoryIds) {
+                    if ($categoryIds->isNotEmpty()) {
+                        $query->whereIn('category_id', $categoryIds);
+                    }
+                    if ($subcategoryIds->isNotEmpty()) {
+                        $query->orWhereIn('subcategory_id', $subcategoryIds);
+                    }
+                })
+                ->where('status', 'active')
+                ->whereNotIn('id', array_merge($cartproductIds, $onlyProducts->pluck('id')->toArray()))
+                ->inRandomOrder()
+                ->take(10 - count($onlyProducts))
+                ->get();
+            $mergedonlyProducts = $onlyProducts->merge($additionalProducts);
+       }
+        $formattedProducts = $mergedonlyProducts->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'price' => $product->price,
+                'images' => $product->resolveImagePaths()->first()?? 'https://via.placeholder.com/150',
+                'color' => $product->color ?? '',
+            ];
+        });
+
+        return response()->json(['recommended_products' => $formattedProducts]);
     }
 }
