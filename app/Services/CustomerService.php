@@ -101,11 +101,24 @@ class CustomerService
     {
         return $wishlists->map(function ($wishlist) {
             $product = $wishlist->product;
+            // Images (resolve and convert to absolute URLs)
+            $images = $product->resolveImagePaths()->map(function ($path) {
+                $path = (string) $path;
+                if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                    return $path;
+                }
+                return asset('storage/' . ltrim($path, '/'));
+            })->values();
+
+            // Skip products with no images
+            if ($images->isEmpty()) {
+                return null;
+            }
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
-                'image' => $product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                'image' => $images,
                 'price' => $product->price,
                 'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
                 'category' => $product->category->name ?? 'Uncategorized',
