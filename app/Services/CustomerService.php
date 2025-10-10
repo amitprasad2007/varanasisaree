@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Customer;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class CustomerService
 {
@@ -161,12 +162,19 @@ class CustomerService
 
         return [
             'items' => $cartItems->map(function ($item) {
+                $images = $item->product->resolveImagePaths()->map(function ($path) {
+                    $path = (string) $path;
+                    if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                        return $path;
+                    }
+                    return asset('storage/' . ltrim($path, '/'));
+                })->values();
                 return [
                     'id' => $item->product_id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                    'image' => $images,
                 ];
             }),
             'subtotal' => $subtotal,

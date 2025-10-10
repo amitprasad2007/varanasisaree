@@ -37,7 +37,6 @@ class UserLogController extends Controller
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
         ]);
-
         DB::table('user_logs')
             ->where('session_token', $validated['session_token'])
             ->whereNull('user_id')
