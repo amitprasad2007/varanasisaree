@@ -9,6 +9,9 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
 use App\Models\RecentView;
 use App\Models\Wishlist;
+use App\Models\ProductReview;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -290,13 +293,50 @@ class CartController extends Controller
             $mergedonlyProducts = $onlyProducts->merge($additionalProducts);
        }
         $formattedProducts = $mergedonlyProducts->map(function ($product) {
+            $reviewStats = ProductReview::where('product_id', $product->id)
+            ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
+            ->whereIn('product_id', $product->pluck('id'))
+            ->where('status', 'approved')
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
+            // Prices
+            $basePrice = (float) $product->price;
+            $discountPercent = (float) ($product->discount ?? 0);
+            $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
+
+            // Images (resolve and convert to absolute URLs)
+            $images = $product->resolveImagePaths()->map(function ($path) {
+                $path = (string) $path;
+                if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                    return $path;
+                }
+                return asset('storage/' . ltrim($path, '/'));
+            })->values();
+
+            // Skip products with no images
+            if ($images->isEmpty()) {
+                return null;
+            }
+
+            // Reviews
+            $stats = $reviewStats->get($product->id);
+            $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
+            $reviewCount = $stats ? (int) $stats->review_count : 0;
+
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
-                'price' => $product->price,
-                'images' => $product->resolveImagePaths()->first()?? 'https://via.placeholder.com/150',
-                'color' => $product->color ?? '',
+                'images' => $images,
+                'price' => (int) round($finalPrice),
+                'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
+                'rating' => round($avgRating, 1),
+                'reviewCount' => $reviewCount,
+                'category' => optional($product->category)->title,
+                'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
+                'isBestseller' => (bool) ($product->is_bestseller ?? false),
             ];
         });
 
