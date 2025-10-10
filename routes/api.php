@@ -77,7 +77,7 @@ Route::post('/change-token-check',[CustomerAuthController::class, 'changetokench
 Route::post('/changepassword',[CustomerAuthController::class, 'changepassword']);
 
 // Logs: attach guest session to user
-Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
+
 Route::post('/guestlogs', [UserLogController::class, 'store']);
 
 // Customer Authentication APIs (separate guard)
@@ -118,6 +118,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     // Logs: store user events (also works for guests if token sent)
     Route::post('/logs', [UserLogController::class, 'store']);
+
+    Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
     // Wishlist operations
     Route::get('/wishlist', [WishlistController::class, 'getWishlistItems']);
     Route::post('/wishlist', [WishlistController::class, 'add']);
