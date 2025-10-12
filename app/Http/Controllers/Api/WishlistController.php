@@ -38,27 +38,31 @@ class WishlistController extends Controller
         $customer = $request->user();
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'variant_id' => ['nullable', 'integer', 'exists:variants,id'],
         ]);
 
         $exists = Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $validated['product_id'])
+            ->where('variant_id', $validated['variant_id'])
             ->exists();
 
         if (!$exists) {
             Wishlist::create([
                 'customer_id' => $customer->id,
                 'product_id' => $validated['product_id'],
+                'variant_id' => $validated['variant_id'],
             ]);
         }
 
         return response()->json(['status' => 'ok']);
     }
 
-    public function remove(Request $request, int $productId)
+    public function remove(Request $request, int $productId, int $variantId)
     {
         $customer = $request->user();
         Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $productId)
+            ->where('variant_id', $variantId)
             ->delete();
         return response()->json(['status' => 'ok']);
     }
