@@ -62,7 +62,7 @@ class WishlistController extends Controller
         $customer = $request->user();
         Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $productId)
-            ->where('product_variant_id', $validated['product_variant_id'])
+            ->where('product_variant_id', $request['product_variant_id'])
             ->delete();
         return response()->json(['status' => 'ok']);
     }
