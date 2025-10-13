@@ -158,4 +158,33 @@ class WishlistController extends Controller
             ->get(['p.id', 'p.name', 'p.slug', 'w.product_variant_id']);
         return response()->json($items);
     }
+
+    public function guestcheckwishlist(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'session_token' => ['required', 'string', 'max:64'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+        ]);
+        $whistcount = Wishlist::where('session_token',$validated['session_token'] )
+            ->where('product_id', $validated['product_id'])
+            ->where('product_variant_id',$validated['product_variant_id'])
+            ->count();
+        return response()->json([$whistcount]);
+    }
+
+    public function checkwishlist(Request $request){
+        $customer = $request->user();
+        $validated = $request->validate([
+            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:variants,id'],
+        ]);
+
+        $whistcount = Wishlist::where('customer_id', $customer->id)
+            ->where('product_id', $validated['product_id'])
+            ->where('product_variant_id', $validated['product_variant_id'])
+            ->count();
+        return response()->json([$whistcount]);
+
+    }
 }
