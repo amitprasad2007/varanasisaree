@@ -111,12 +111,14 @@ class WishlistController extends Controller
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'session_token' => ['required', 'string', 'max:64'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
 
         DB::table('wishlists')->updateOrInsert(
             [
                 'session_token' => $validated['session_token'],
                 'product_id' => $validated['product_id'],
+                'product_variant_id' => $validated['product_variant_id'],
             ],
             [
                 'customer_id' => null,
@@ -132,10 +134,12 @@ class WishlistController extends Controller
     {
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
         DB::table('wishlists')
             ->where('session_token', $validated['session_token'])
             ->where('product_id', $productId)
+            ->where('product_variant_id', $validated['product_variant_id'])
             ->delete();
         return response()->json(['status' => 'ok']);
     }
@@ -144,13 +148,14 @@ class WishlistController extends Controller
     {
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
         $items = DB::table('wishlists as w')
             ->join('products as p', 'p.id', '=', 'w.product_id')
             ->where('w.session_token', $validated['session_token'])
             ->orderByDesc('w.updated_at')
             ->limit(200)
-            ->get(['p.id', 'p.name', 'p.slug']);
+            ->get(['p.id', 'p.name', 'p.slug', 'w.product_variant_id']);
         return response()->json($items);
     }
 }
