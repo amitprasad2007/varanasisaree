@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('wishlists', function (Blueprint $table) {
-            $table->foreignId('variant_id')->nullable()->constrained('variants')->nullOnDelete();
-            $table->index('variant_id');
+            $table->foreignId('product_variant_id')->nullable()->after('product_id')
+                ->constrained('product_variants')->nullOnDelete();
         });
     }
 
@@ -23,8 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('wishlists', function (Blueprint $table) {
-            $table->dropForeign(['variant_id']);
-            $table->dropColumn('variant_id');
+            $table->dropConstrainedForeignId('product_variant_id');
         });
     }
 };
