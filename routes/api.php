@@ -125,6 +125,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::post('/wishlist', [WishlistController::class, 'add']);
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'remove']);
     Route::post('/sync-wishlist', [WishlistController::class, 'sync']);
+    Route::get('/checkwishlist', [WishlistController::class, 'guestList']);
+
 
     // Recently viewed operations
     Route::get('/recently-viewed', [RecentlyViewedController::class, 'index']);
@@ -147,6 +149,7 @@ Route::prefix('guest')->group(function () {
     Route::post('/wishlist', [WishlistController::class, 'guestAdd']);
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'guestRemove']);
     Route::get('/wishlist', [WishlistController::class, 'guestList']);
+    Route::get('/checkwishlist', [WishlistController::class, 'guestList']);
 
     // Guest Recently Viewed
     Route::post('/recently-viewed', [RecentlyViewedController::class, 'guestStore']);
