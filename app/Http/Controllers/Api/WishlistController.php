@@ -177,7 +177,7 @@ class WishlistController extends Controller
         $customer = $request->user();
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
-            'product_variant_id' => ['nullable', 'integer', 'exists:variants,id'],
+            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
 
         $whistcount = Wishlist::where('customer_id', $customer->id)
