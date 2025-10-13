@@ -170,7 +170,7 @@ class WishlistController extends Controller
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id',$validated['product_variant_id'])
             ->count();
-        return response()->json([$whistcount]);
+        return response()->json($whistcount);
     }
 
     public function checkwishlist(Request $request){
@@ -184,7 +184,7 @@ class WishlistController extends Controller
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id', $validated['product_variant_id'])
             ->count();
-        return response()->json([$whistcount]);
+        return response()->json($whistcount);
 
     }
 }
