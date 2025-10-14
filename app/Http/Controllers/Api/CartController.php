@@ -290,9 +290,10 @@ class CartController extends Controller
                 ->inRandomOrder()
                 ->take(10 - count($onlyProducts))
                 ->get();
-            $mergedonlyProducts = $onlyProducts->merge($additionalProducts);
+            $onlyProducts = $onlyProducts->merge($additionalProducts);
+            $onlyProducts =  $onlyProducts->unique('id');
        }
-        $formattedProducts = $mergedonlyProducts->map(function ($product) {
+        $formattedProducts = $onlyProducts->map(function ($product) {
             $reviewStats = ProductReview::where('product_id', $product->id)
             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
             ->whereIn('product_id', $product->pluck('id'))
