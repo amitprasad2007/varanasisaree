@@ -342,4 +342,91 @@ class CartController extends Controller
 
         return response()->json(['recommended_products' => $formattedProducts]);
     }
+
+    public function wishaddToCart(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'wishlistId' => 'required|exists:wishlists,id',            
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+		$customer = $request->user();
+        $product = Product::findOrFail($request->product_id);
+
+        $wishlist =  Wishlist::find($request->wishlistId);
+        $variantId = $wishlist->product_variant_id;
+
+        $variant = null;
+        if ($variantId) {
+            $variant = \App\Models\ProductVariant::where('id', $variantId)
+                ->where('product_id', $product->id)
+                ->firstOrFail();
+        }
+
+        // Check if product already exists in cart
+		$existingCart = Cart::where('customer_id', $customer->id)
+            ->where('product_id', $product->id)
+            ->when($variantId, function ($q) use ($variantId) {
+                $q->where('product_variant_id', $variantId);
+            }, function ($q) {
+                $q->whereNull('product_variant_id');
+            })
+			->whereNull('order_id')
+            ->first();
+
+        if ($existingCart) {
+            $existingCart->quantity += $request->quantity;
+            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+            $existingCart->price = $unitPrice;
+            $existingCart->amount = $existingCart->quantity * $unitPrice;
+            $existingCart->save();
+        } else {
+            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+			Cart::create([
+				'customer_id' => $customer->id,
+                'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
+                'price' => $unitPrice,
+                'quantity' => $request->quantity,
+                'amount' => $unitPrice * $request->quantity,
+                'status' => 'new'
+            ]);
+        }
+
+        // After adding or updating the cart, fetch the latest cart item for this product
+		$cartItem = Cart::with(['product', 'productVariant', 'productVariant.images'])
+			->where('customer_id', $customer->id)
+            ->where('product_id', $product->id)
+            ->when($variantId, function ($q) use ($variantId) {
+                $q->where('product_variant_id', $variantId);
+            }, function ($q) {
+                $q->whereNull('product_variant_id');
+            })
+            ->whereNull('order_id')
+            ->latest('updated_at')
+            ->first();
+
+		return response()->json([
+            'message' => 'Product added to cart successfully',
+            'item' => [
+                'id' => $cartItem->id,
+                'product_id' => $cartItem->product_id,
+                'variant_id' => $cartItem->product_variant_id,
+                'quantity' => $cartItem->quantity,
+                'name' => $cartItem->product->name ?? '',
+                'price' => $cartItem->price,
+                'image' => ($cartItem->product_variant_id ? ($cartItem->productVariant?->primaryImage()?->image_path ?? null) : null)
+                    ?? $cartItem->product->primaryImage->first()?->image_url
+                    ?? 'https://via.placeholder.com/150',
+                'color' => $cartItem->product->color ?? '',
+                'slug' => $cartItem->product->slug ?? '',
+            ]
+        ]);
+
+    }
 }

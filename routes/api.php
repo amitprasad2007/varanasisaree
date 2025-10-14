@@ -91,6 +91,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     // Cart operations
     Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::post('/wishcart/add', [CartController::class, 'wishaddToCart']);
     Route::put('/cart/update', [CartController::class, 'updateCart']);
     Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
     Route::get('/cart/checkout', [CartController::class, 'getCheckoutCart']);
