@@ -293,7 +293,8 @@ class CartController extends Controller
             $onlyProducts = $onlyProducts->merge($additionalProducts);
           //  $onlyProducts =  $onlyProducts->unique('id');
        }
-        $formattedProducts = $onlyProducts->map(function ($product) {
+        $iniqueProducts =  $onlyProducts->unique('id');
+        $formattedProducts = $iniqueProducts->map(function ($product) {
             $reviewStats = ProductReview::where('product_id', $product->id)
             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
             ->whereIn('product_id', $product->pluck('id'))
