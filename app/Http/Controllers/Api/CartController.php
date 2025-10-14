@@ -293,8 +293,8 @@ class CartController extends Controller
             $onlyProducts = $onlyProducts->merge($additionalProducts);
           //  $onlyProducts =  $onlyProducts->unique('id');
        }
-        $iniqueProducts =  $onlyProducts->unique('id');
-        $formattedProducts = $iniqueProducts->map(function ($product) {
+       
+        $formattedProducts = $onlyProducts->map(function ($product) {
             $reviewStats = ProductReview::where('product_id', $product->id)
             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
             ->whereIn('product_id', $product->pluck('id'))
@@ -341,8 +341,8 @@ class CartController extends Controller
                 'isBestseller' => (bool) ($product->is_bestseller ?? false),
             ];
         });
-
-        return response()->json(['recommended_products' => $formattedProducts]);
+        $onlyProducts =  $formattedProducts->unique('id');
+        return response()->json(['recommended_products' => $onlyProducts]);
     }
 
     public function wishaddToCart(Request $request)
