@@ -291,7 +291,7 @@ class CartController extends Controller
                 ->take(10 - count($onlyProducts))
                 ->get();
             $onlyProducts = $onlyProducts->merge($additionalProducts);
-            $onlyProducts =  $onlyProducts->unique('id');
+          //  $onlyProducts =  $onlyProducts->unique('id');
        }
         $formattedProducts = $onlyProducts->map(function ($product) {
             $reviewStats = ProductReview::where('product_id', $product->id)
