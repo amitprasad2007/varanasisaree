@@ -123,6 +123,7 @@ class CustomerService
                 return null;
             }
             return [
+                'wish_id'=>$wishlist->id,
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
