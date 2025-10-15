@@ -682,7 +682,7 @@ class ProductController extends Controller
 			->inRandomOrder()
 			->take(10 - count($onlyProducts))
 			->get();
-		$$query = $onlyProducts->merge($additionalProducts);       
+		$query = $onlyProducts->merge($additionalProducts);       
         
          // Parse filters
          $priceFilters = $request->query('price', []);
