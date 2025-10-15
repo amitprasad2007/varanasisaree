@@ -42,6 +42,8 @@ Route::get('getcategorybyname/{slug}', [CategoryController::class, 'getcategoryb
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
+
+
 Route::get('/getProductDetails/{slug}',[ProductController::class, 'getProductDetails']);
 Route::get('/getRelatedProducts/{slug}',[ProductController::class, 'getRelatedProducts']);
 Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
@@ -62,6 +64,7 @@ Route::post('/coupons/validate', [CouponController::class, 'validate'])->name('a
 Route::get('/search/suggestions', [ApiSearchController::class, 'suggestions']);
 Route::get('/getcategoryfillters/{slug}', [ApiSearchController::class, 'getcategoryfillters']);
 Route::get('/getbestsellerfillters/bestsellers/', [ApiSearchController::class, 'getbestsellerfillters']);
+
 Route::get('/getfeaturedfillters/featured/', [ApiSearchController::class, 'getfeaturedfillters']);
 Route::get('/navitems', [ApiSearchController::class, 'navitems']);
 
@@ -141,6 +144,9 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     // Product Review operations (authenticated)
     Route::post('/product-reviews', [ProductReviewController::class, 'storeReview']);
+
+    Route::get('/getrecommededfillters/recommeded/', [ApiSearchController::class, 'getrecommededfillters']);
+    Route::get('/recommeded-products', [ProductController::class, 'getRecommededProducts']);
 
 });
 

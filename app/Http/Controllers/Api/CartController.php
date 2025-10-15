@@ -340,7 +340,7 @@ class CartController extends Controller
                 'isBestseller' => (bool) ($product->is_bestseller ?? false),
             ];
         });
-        //$onlyProducts =  $formattedProducts->unique('id')->filter();
+
         return response()->json(['recommended_products' => $formattedProducts]);
     }
 

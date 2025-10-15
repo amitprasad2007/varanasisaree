@@ -297,4 +297,49 @@ class SearchController extends Controller
 
 		return response()->json($navItems);
 	}
+
+	public function getrecommededfillters(){
+
+		$customer = $request->user();
+        $cartItems = Cart::where('customer_id', $customer->id)
+                ->whereNull('order_id')
+                ->with('product')
+                ->get();
+        $cartproductIds = $cartItems->pluck('product_id')->toArray();
+        $recentproducts = RecentView::where('customer_id', $customer->id)
+            ->with(['product'])
+            ->whereNotIn('product_id', $cartproductIds)
+            ->latest()
+            ->take(5)
+            ->get();
+        $whislistproducts = Wishlist::where('customer_id', $customer->id)
+            ->with(['product'])
+            ->whereNotIn('product_id', $cartproductIds)
+            ->latest()
+            ->take(5)
+            ->get();
+        $mergedProducts = $recentproducts->merge($whislistproducts);
+        $onlyProducts = $mergedProducts->pluck(['product'])->filter();
+
+		$categoryIds = $cartItems->pluck('product.category_id')->unique()->filter();
+		$subcategoryIds = $cartItems->pluck('product.subcategory_id')->unique()->filter();
+		$additionalProducts = Product::where(function 
+			($query) use ($categoryIds, $subcategoryIds) {
+				if ($categoryIds->isNotEmpty()) {
+					$query->whereIn('category_id', $categoryIds);
+				}
+				if ($subcategoryIds->isNotEmpty()) {
+					$query->orWhereIn('subcategory_id', $subcategoryIds);
+				}
+			})
+			->where('status', 'active')
+			->whereNotIn('id', array_merge($cartproductIds, $onlyProducts->pluck('id')->toArray()))
+			->inRandomOrder()
+			->take(10 - count($onlyProducts))
+			->get();
+		$products  = $onlyProducts->merge($additionalProducts);
+		return $this->getfilteroptions($products);
+	}
+
+
 }
