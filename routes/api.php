@@ -138,6 +138,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::post('/sync-recently-viewed', [RecentlyViewedController::class, 'sync']);
 
 
+    Route::post('/wishlistremovebyid',[WishlistController::class, 'wishlistremovebyid' ]);
 
     // Claim guest data into the authenticated account while keeping session_token
     Route::post('/guest/claim', [GuestDataController::class, 'claim']);

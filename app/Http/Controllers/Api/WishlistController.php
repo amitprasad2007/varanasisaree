@@ -187,4 +187,8 @@ class WishlistController extends Controller
         return response()->json($whistcount);
 
     }
+
+    public function wishlistremovebyid(Request $request){
+        dd($request);
+    }
 }
