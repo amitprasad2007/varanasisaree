@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Cart;
+use App\Models\RecentView;
+use App\Models\Wishlist;
 
 class ProductController extends Controller
 {
