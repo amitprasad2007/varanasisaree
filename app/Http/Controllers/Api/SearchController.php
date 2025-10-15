@@ -298,7 +298,7 @@ class SearchController extends Controller
 		return response()->json($navItems);
 	}
 
-	public function getrecommededfillters(){
+	public function getrecommededfillters(Request $request ){
 
 		$customer = $request->user();
         $cartItems = Cart::where('customer_id', $customer->id)
