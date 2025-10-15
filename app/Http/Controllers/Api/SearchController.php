@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Aboutus;
 use App\Models\ProductVariant;
+use App\Models\Cart;
 
 class SearchController extends Controller
 {
