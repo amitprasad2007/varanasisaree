@@ -682,8 +682,17 @@ class ProductController extends Controller
 			->inRandomOrder()
 			->take(10 - count($onlyProducts))
 			->get();
-		$query = $onlyProducts->merge($additionalProducts);       
-        
+		
+        // Combine product IDs (from wishlist/recent + additional)
+        $allProductIds = $onlyProducts->pluck('id')
+            ->merge($additionalProducts->pluck('id'))
+            ->unique()
+            ->values();
+
+        // Start query builder for applying filters
+        $query = Product::whereIn('id', $allProductIds);
+
+
          // Parse filters
          $priceFilters = $request->query('price', []);
          $colorFilters = $request->query('colors', []);
