@@ -45,7 +45,7 @@ class WishlistController extends Controller
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id', $validated['product_variant_id'])
             ->exists();
-        dd($validated['product_variant_id']);
+
         if (!$exists) {
             Wishlist::create([
                 'customer_id' => $customer->id,
@@ -188,7 +188,8 @@ class WishlistController extends Controller
 
     }
 
-    public function wishlistremovebyid(Request $request){
-        dd($request);
+    public function wishlistremovebyid(Wishlist $wishlist){
+        $wishlist->delete();
+        return response()->json(['status' => 'ok']);
     }
 }
