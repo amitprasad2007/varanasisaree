@@ -13,7 +13,8 @@ class Wishlist extends Model
 
     protected $fillable = [
         'customer_id',
-        'product_id'
+        'product_id',
+        'product_variant_id',
     ];
 
     public function customer(): BelongsTo
