@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Wishlist;
+use App\Models\ProductVariant;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
@@ -41,6 +43,13 @@ class WishlistController extends Controller
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
 
+        if (!$validated['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
+        }else{
+            $validated['product_variant_id'] = null;
+        }
+
         $exists = Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id', $validated['product_variant_id'])
@@ -60,6 +69,12 @@ class WishlistController extends Controller
     public function remove(Request $request, int $productId)
     {
         $customer = $request->user();
+        if (!$request['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $request['product_variant_id'] = Product::find($productId)->variants->first()?->id;
+        }else{
+            $request['product_variant_id'] = null;
+        }
         Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $productId)
             ->where('product_variant_id', $request['product_variant_id'])
@@ -113,7 +128,12 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-
+        if (!$validated['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
+        }else{
+            $validated['product_variant_id'] = null;
+        }
         DB::table('wishlists')->updateOrInsert(
             [
                 'session_token' => $validated['session_token'],
@@ -136,6 +156,12 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
+        if (!$validated['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $validated['product_variant_id'] = Product::find($productId)->variants->first()?->id;
+        }else{
+            $validated['product_variant_id'] = null;
+        }
         DB::table('wishlists')
             ->where('session_token', $validated['session_token'])
             ->where('product_id', $productId)
@@ -148,7 +174,6 @@ class WishlistController extends Controller
     {
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
-            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
         $items = DB::table('wishlists as w')
             ->join('products as p', 'p.id', '=', 'w.product_id')
@@ -166,6 +191,12 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
+        if (!$validated['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
+        }else{
+            $validated['product_variant_id'] = null;
+        }
         $whistcount = Wishlist::where('session_token',$validated['session_token'] )
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id',$validated['product_variant_id'])
@@ -179,7 +210,12 @@ class WishlistController extends Controller
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-
+        if (!$validated['product_variant_id'] ) {
+            // If no variant is specified, use the first variant of the product
+            $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
+        }else{
+            $validated['product_variant_id'] = null;
+        }
         $whistcount = Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id', $validated['product_variant_id'])

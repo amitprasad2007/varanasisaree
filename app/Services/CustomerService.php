@@ -69,6 +69,7 @@ class CustomerService
 
     private function formatOrders($orders)
     {
+        //dd($orders);
         return $orders->map(function ($order) {
             $statusColor = match($order->status) {
                 'delivered' => 'bg-green-500',
@@ -85,14 +86,16 @@ class CustomerService
                 'total' => $order->total_amount,
                 'status' => ucfirst($order->status),
                 'statusColor' => $statusColor,
-                'items' => $order->orderItems->map(function ($item) {
-                    $images = $item->product->resolveImagePaths()->map(function ($path) {
+                'items' => $order->cartItems->map(function ($item) {
+                    $images = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? null) : null)
+                    ?? $item->product->resolveImagePaths()->map(function ($path) {
                         $path = (string) $path;
                         if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                             return $path;
                         }
                         return asset('storage/' . ltrim($path, '/'));
-                    })->values();
+                    })->values()
+                    ?? 'https://via.placeholder.com/150';
                     return [
                         'id' => $item->product_id,
                         'name' => $item->product->name,

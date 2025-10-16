@@ -57,7 +57,10 @@ class Order extends Model
         return $this->hasMany(Cart::class);
     }
 
-    public function orderItems(): HasMany
+    /**
+     * Get the product items for the order.
+     */
+    public function productItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
@@ -67,10 +70,10 @@ class Order extends Model
         return $this->belongsTo(Vendor::class);
     }
 
-    public function warehouse(): BelongsTo
-    {
-        return $this->belongsTo(Warehouse::class);
-    }
+    // public function warehouse(): BelongsTo
+    // {
+    //     return $this->belongsTo(Warehouse::class);
+    // }
 
     public function payment(): HasOne
     {

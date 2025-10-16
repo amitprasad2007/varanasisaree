@@ -79,7 +79,7 @@ class CustomerAuthController extends Controller
 
     public function profile(Request $request)
     {
-        $customer = $request->user()->load(['orders.orderItems.product', 'wishlists.product', 'addresses', 'cartItems.product']);
+        $customer = $request->user()->load(['orders.cartItems', 'wishlists.product', 'addresses', 'cartItems.product','cartItems.productVariant']);
         return response()->json($this->customerService->formatCustomerData($customer));
     }
 
@@ -168,7 +168,7 @@ class CustomerAuthController extends Controller
     }
 
     public function changetokencheck (Request $request){
-        
+
         $customer = Customer::where('remember_token', $request->token)->first();
         if (!$customer) {
             return response()->json(['status' => FALSE]);
@@ -176,11 +176,11 @@ class CustomerAuthController extends Controller
         return response()->json(['status' => TRUE]);
     }
 
-    public function changepassword (Request $request){        
+    public function changepassword (Request $request){
         $customer = Customer::where('remember_token', $request->token)->first();
         if (!$customer) {
             return response()->json(['status' => FALSE]);
-        }        
+        }
         $customer->password = Hash::make($request->password);
         $customer->remember_token =null;
         $customer->save();
