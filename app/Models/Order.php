@@ -31,6 +31,14 @@ class Order extends Model
         'payment_status',
         'payment_details',
         'status',
+        'awb_number',
+        'tracking_number',
+        'shipped_at',
+        'delivered_at',
+        'shipping_notes',
+        'tracking_events',
+        'order_priority',
+        'assigned_to',
     ];
 
     /**
@@ -78,5 +86,70 @@ class Order extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class,'order_id','order_number');
+    }
+
+    public function statusLogs(): HasMany
+    {
+        return $this->hasMany(OrderStatusLog::class);
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+
+    protected $casts = [
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'tracking_events' => 'array',
+    ];
+
+    /**
+     * Update order status and log the change
+     */
+    public function updateStatus(string $newStatus, ?string $notes = null, ?int $changedBy = null): void
+    {
+        $oldStatus = $this->status;
+
+        $this->update(['status' => $newStatus]);
+
+        // Log the status change
+        $this->statusLogs()->create([
+            'status_from' => $oldStatus,
+            'status_to' => $newStatus,
+            'notes' => $notes,
+            'changed_by' => $changedBy,
+            'changed_at' => now(),
+        ]);
+
+        // Update timestamps based on status
+        if ($newStatus === 'shipped' && !$this->shipped_at) {
+            $this->update(['shipped_at' => now()]);
+        } elseif ($newStatus === 'delivered' && !$this->delivered_at) {
+            $this->update(['delivered_at' => now()]);
+        }
+    }
+
+    /**
+     * Generate AWB number
+     */
+    public function generateAwbNumber(): string
+    {
+        $prefix = 'AWB';
+        $timestamp = now()->format('Ymd');
+        $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+
+        return $prefix . $timestamp . $random;
+    }
+
+    /**
+     * Assign AWB number to order
+     */
+    public function assignAwbNumber(): string
+    {
+        $awbNumber = $this->generateAwbNumber();
+        $this->update(['awb_number' => $awbNumber]);
+        return $awbNumber;
     }
 }

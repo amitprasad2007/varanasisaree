@@ -15,7 +15,9 @@ import {
   FileText,
   Key,
   Layers,
-  Tags
+  Tags,
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -77,6 +79,12 @@ const Sidebar = () => {
             { icon: Captions, label: 'Subcategories', path: '/subcategories' },
           ],
         },
+      ],
+    },
+    {
+      label: 'Sales & Orders',
+      items: [
+        { icon: ShoppingCart, label: 'Order Management', path: '/admin/orders' },
       ],
     },
     {

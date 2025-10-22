@@ -185,6 +185,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.removeProduct');
     Route::put('collections/{collection}/products/order', [AdminCollectionController::class, 'updateProductOrder'])->name('collections.products.order');
 
+    // Admin Order Management
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('orders', [\App\Http\Controllers\Admin\OrderManagementController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [\App\Http\Controllers\Admin\OrderManagementController::class, 'show'])->name('orders.show');
+        Route::put('orders/{order}/status', [\App\Http\Controllers\Admin\OrderManagementController::class, 'updateStatus'])->name('orders.update-status');
+        Route::put('orders/{order}/awb', [\App\Http\Controllers\Admin\OrderManagementController::class, 'assignAwb'])->name('orders.assign-awb');
+        Route::put('orders/{order}/assign', [\App\Http\Controllers\Admin\OrderManagementController::class, 'assignOrder'])->name('orders.assign');
+        Route::put('orders/{order}/priority', [\App\Http\Controllers\Admin\OrderManagementController::class, 'updatePriority'])->name('orders.update-priority');
+        Route::put('orders/bulk-status', [\App\Http\Controllers\Admin\OrderManagementController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
+        Route::get('orders-statistics', [\App\Http\Controllers\Admin\OrderManagementController::class, 'getStatistics'])->name('orders.statistics');
+        Route::get('orders-export', [\App\Http\Controllers\Admin\OrderManagementController::class, 'export'])->name('orders.export');
+    });
+
 });
 
 
