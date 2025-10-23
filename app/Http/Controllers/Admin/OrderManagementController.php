@@ -64,7 +64,8 @@ class OrderManagementController extends Controller
             $query->whereHas('customer', function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->customer_search . '%')
                   ->orWhere('email', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->customer_search . '%');
+                  ->orWhere('phone', 'like', '%' . $request->customer_search . '%')
+                  ->orWhere('order_id', 'like', '%' . $request->customer_search . '%');
             });
         }
 
@@ -115,14 +116,18 @@ class OrderManagementController extends Controller
         $order->load([
             'customer',
             'address',
-            'productItems.product.imageproducts',
-            'productItems.variant',
+            'cartItems.product.imageproducts',
+            'cartItems.productVariant',
+            'cartItems.productVariant.color',
+            'cartItems.productVariant.size',
             'assignedTo',
             'statusLogs.changedBy',
             'payment',
-            'notifications'
+            'notifications' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }
         ]);
-
+        // dd($order->cartItems);
         return Inertia::render('Admin/Orders/Show', [
             'order' => $order,
         ]);
@@ -131,7 +136,7 @@ class OrderManagementController extends Controller
     /**
      * Update order status
      */
-    public function updateStatus(Request $request, Order $order): JsonResponse
+    public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
             'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
@@ -156,17 +161,13 @@ class OrderManagementController extends Controller
         // Send notification to customer
         $this->notificationService->sendOrderStatusNotification($order, $newStatus);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order status updated successfully',
-            'order' => $order->fresh(['statusLogs.changedBy'])
-        ]);
+        return redirect()->back()->with('success', 'Order status updated successfully');
     }
 
     /**
      * Assign AWB number to order
      */
-    public function assignAwb(Request $request, Order $order): JsonResponse
+    public function assignAwb(Request $request, Order $order)
     {
         $request->validate([
             'awb_number' => 'nullable|string|unique:orders,awb_number',
@@ -198,17 +199,13 @@ class OrderManagementController extends Controller
         // Send notification to customer
         $this->notificationService->sendAwbNotification($order);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'AWB number assigned successfully',
-            'awb_number' => $awbNumber
-        ]);
+        return redirect()->back()->with('success', 'AWB number assigned successfully');
     }
 
     /**
      * Assign order to staff member
      */
-    public function assignOrder(Request $request, Order $order): JsonResponse
+    public function assignOrder(Request $request, Order $order)
     {
         $request->validate([
             'assigned_to' => 'required|exists:users,id',
@@ -229,16 +226,13 @@ class OrderManagementController extends Controller
             ]
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order assigned successfully'
-        ]);
+        return redirect()->back()->with('success', 'Order assigned successfully');
     }
 
     /**
      * Update order priority
      */
-    public function updatePriority(Request $request, Order $order): JsonResponse
+    public function updatePriority(Request $request, Order $order)
     {
         $request->validate([
             'priority' => 'required|in:low,normal,high,urgent',
@@ -246,16 +240,13 @@ class OrderManagementController extends Controller
 
         $order->update(['order_priority' => $request->priority]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order priority updated successfully'
-        ]);
+        return redirect()->back()->with('success', 'Order priority updated successfully');
     }
 
     /**
      * Bulk update order statuses
      */
-    public function bulkUpdateStatus(Request $request): JsonResponse
+    public function bulkUpdateStatus(Request $request)
     {
         $request->validate([
             'order_ids' => 'required|array',
@@ -283,10 +274,7 @@ class OrderManagementController extends Controller
             $updatedCount++;
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Updated {$updatedCount} orders successfully"
-        ]);
+        return redirect()->back()->with('success', "Updated {$updatedCount} orders successfully");
     }
 
     /**

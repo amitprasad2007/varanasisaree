@@ -30,10 +30,15 @@ interface OrderItem {
         slug: string;
         imageproducts?: Array<{ image_path: string }>;
     };
-    variant?: {
+    product_variant?: {
         id: number;
-        color: string;
-        size: string;
+        color: {
+            name: string;
+        };
+        size: {
+            name: string;
+        };
+        sku: string;
     };
     quantity: number;
     price: number;
@@ -68,7 +73,7 @@ interface Order {
         pincode: string;
         country: string;
     };
-    productItems: OrderItem[];
+    cart_items?: OrderItem[];
     total_amount: number;
     sub_total: number;
     status: string;
@@ -85,7 +90,7 @@ interface Order {
         id: number;
         name: string;
     };
-    statusLogs: StatusLog[];
+    status_logs?: StatusLog[];
 }
 
 interface Props {
@@ -114,6 +119,7 @@ const getPriorityBadgeVariant = (priority: string) => {
 };
 
 export default function OrderShow({ order }: Props) {
+    console.log(order.status_logs);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [isAssigningAwb, setIsAssigningAwb] = useState(false);
     const [newStatus, setNewStatus] = useState(order.status);
@@ -128,7 +134,6 @@ export default function OrderShow({ order }: Props) {
             status: newStatus,
             notes: statusNotes
         }, {
-            preserveState: true,
             onSuccess: () => {
                 setIsUpdatingStatus(false);
                 setStatusNotes('');
@@ -139,6 +144,9 @@ export default function OrderShow({ order }: Props) {
                     timer: 4000,
                     showConfirmButton: false
                 });
+            },
+            onError: () => {
+                setIsUpdatingStatus(false);
             }
         });
     };
@@ -150,7 +158,6 @@ export default function OrderShow({ order }: Props) {
             tracking_number: trackingNumber,
             shipping_notes: shippingNotes
         }, {
-            preserveState: true,
             onSuccess: () => {
                 setIsAssigningAwb(false);
                 Swal.fire({
@@ -160,6 +167,9 @@ export default function OrderShow({ order }: Props) {
                     timer: 4000,
                     showConfirmButton: false
                 });
+            },
+            onError: () => {
+                setIsAssigningAwb(false);
             }
         });
     };
@@ -224,29 +234,38 @@ export default function OrderShow({ order }: Props) {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {order.productItems.map((item) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell>
-                                                    <div>
-                                                        <div className="font-medium">{item.product.name}</div>
-                                                        <div className="text-sm text-gray-500">SKU: {item.product.slug}</div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {item.variant ? (
+                                        {order.cart_items && order.cart_items.length > 0 ? (
+                                            order.cart_items.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell>
                                                         <div>
-                                                            <div>Color: {item.variant.color}</div>
-                                                            <div>Size: {item.variant.size}</div>
+                                                            <div className="font-medium">{item.product.name}</div>
+                                                            <div className="text-sm text-gray-500">SKU: {item.product.slug}</div>
                                                         </div>
-                                                    ) : (
-                                                        <span className="text-gray-400">No variant</span>
-                                                    )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.product_variant ? (
+                                                            <div>
+                                                                <div>Color: {item.product_variant.color.name}</div>
+                                                                <div>Size: {item.product_variant.size.name}</div>
+                                                                <div>SKU: {item.product_variant.sku}</div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-400">No variant</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>{item.quantity}</TableCell>
+                                                    <TableCell>₹{item.price.toLocaleString()}</TableCell>
+                                                    <TableCell>₹{(item.price * item.quantity).toLocaleString()}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                                    No items in this order
                                                 </TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>₹{item.price.toLocaleString()}</TableCell>
-                                                <TableCell>₹{(item.price * item.quantity).toLocaleString()}</TableCell>
                                             </TableRow>
-                                        ))}
+                                        )}
                                     </TableBody>
                             </Table>
                         </div>
@@ -261,30 +280,36 @@ export default function OrderShow({ order }: Props) {
                             </h3>
                         </div>
                         <div className="p-6">
-                                <div className="space-y-4">
-                                    {order.statusLogs.map((log) => (
-                                        <div key={log.id} className="flex items-start gap-4 p-4 border rounded-lg">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Badge variant="outline">
-                                                        {log.status_from || 'New'} → {log.status_to}
-                                                    </Badge>
-                                                    <span className="text-sm text-gray-500">
-                                                        {format(new Date(log.changed_at), 'MMM dd, yyyy HH:mm')}
-                                                    </span>
+                                {order.status_logs && order.status_logs.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {order.status_logs.map((log) => (
+                                            <div key={log.id} className="flex items-start gap-4 p-4 border rounded-lg">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Badge variant="outline">
+                                                            {log.status_from || 'New'} → {log.status_to}
+                                                        </Badge>
+                                                        <span className="text-sm text-gray-500">
+                                                            {format(new Date(log.changed_at), 'MMM dd, yyyy HH:mm')}
+                                                        </span>
+                                                    </div>
+                                                    {log.notes && (
+                                                        <p className="text-sm text-gray-600">{log.notes}</p>
+                                                    )}
+                                                    {log.changed_by && (
+                                                        <p className="text-xs text-gray-400 mt-1">
+                                                            Changed by: {log.changed_by.name}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                                {log.notes && (
-                                                    <p className="text-sm text-gray-600">{log.notes}</p>
-                                                )}
-                                                {log.changed_by && (
-                                                    <p className="text-xs text-gray-400 mt-1">
-                                                        Changed by: {log.changed_by.name}
-                                                    </p>
-                                                )}
                                             </div>
-                                        </div>
-                                    ))}
-                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        No status history available
+                                    </div>
+                                )}
                         </div>
                     </div>
                 </div>
@@ -419,7 +444,7 @@ export default function OrderShow({ order }: Props) {
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="bg-white">
                                             <SelectItem value="pending">Pending</SelectItem>
                                             <SelectItem value="processing">Processing</SelectItem>
                                             <SelectItem value="shipped">Shipped</SelectItem>

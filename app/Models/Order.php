@@ -98,6 +98,16 @@ class Order extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
+    }
+
 
     protected $casts = [
         'shipped_at' => 'datetime',

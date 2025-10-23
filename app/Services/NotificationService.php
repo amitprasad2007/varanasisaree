@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Customer;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Notifications\Notification;
 
 class NotificationService
 {
@@ -31,12 +31,25 @@ class NotificationService
         $title = "Order Status Update - {$order->order_id}";
         $message = $statusMessages[$newStatus] ?? "Your order status has been updated to {$newStatus}.";
 
-        // Log the notification for now (we'll implement proper notifications later)
-        Log::info('Order status notification sent', [
+        // Create notification record in database
+        $notification = Notification::create([
+            'order_id' => $order->id,
+            'customer_id' => $customer->id,
+            'type' => 'order_status_update',
+            'title' => $title,
+            'message' => $message,
+            'data' => [
+                'status' => $newStatus,
+                'order_id' => $order->order_id,
+            ],
+        ]);
+
+        // Log the notification creation
+        Log::info('Order status notification created', [
+            'notification_id' => $notification->id,
             'order_id' => $order->id,
             'customer_id' => $customer->id,
             'status' => $newStatus,
-            'message' => $message
         ]);
 
         // Send email notification
@@ -50,6 +63,9 @@ class NotificationService
                 $mail->to($customer->email, $customer->name)
                      ->subject($title);
             });
+
+            // Mark email as sent
+            $notification->markEmailSent();
 
             // Log email notification
             Log::info('Order status email sent', [
@@ -80,12 +96,26 @@ class NotificationService
         $title = "Shipment Tracking - {$order->order_id}";
         $message = "Your order has been shipped! AWB Number: {$order->awb_number}";
 
+        // Create notification record in database
+        $notification = Notification::create([
+            'order_id' => $order->id,
+            'customer_id' => $customer->id,
+            'type' => 'awb_assigned',
+            'title' => $title,
+            'message' => $message,
+            'data' => [
+                'awb_number' => $order->awb_number,
+                'tracking_number' => $order->tracking_number,
+                'order_id' => $order->order_id,
+            ],
+        ]);
+
         // Log AWB notification
-        Log::info('AWB notification sent', [
+        Log::info('AWB notification created', [
+            'notification_id' => $notification->id,
             'order_id' => $order->id,
             'customer_id' => $customer->id,
             'awb_number' => $order->awb_number,
-            'message' => $message
         ]);
 
         // Send email notification
@@ -97,6 +127,9 @@ class NotificationService
                 $mail->to($customer->email, $customer->name)
                      ->subject($title);
             });
+
+            // Mark email as sent
+            $notification->markEmailSent();
 
             // Log AWB email notification
             Log::info('AWB email sent', [
@@ -127,13 +160,55 @@ class NotificationService
         $title = "Payment Confirmed - {$order->order_id}";
         $message = "Your payment has been confirmed. Your order is now being processed.";
 
+        // Create notification record in database
+        $notification = Notification::create([
+            'order_id' => $order->id,
+            'customer_id' => $customer->id,
+            'type' => 'payment_confirmed',
+            'title' => $title,
+            'message' => $message,
+            'data' => [
+                'amount' => $order->total_amount,
+                'payment_method' => $order->payment_method,
+                'order_id' => $order->order_id,
+            ],
+        ]);
+
         // Log payment confirmation
-        Log::info('Payment confirmation notification sent', [
+        Log::info('Payment confirmation notification created', [
+            'notification_id' => $notification->id,
             'order_id' => $order->id,
             'customer_id' => $customer->id,
             'amount' => $order->total_amount,
             'payment_method' => $order->payment_method
         ]);
+
+        // Send email notification
+        try {
+            Mail::send('emails.payment-confirmation', [
+                'order' => $order,
+                'customer' => $customer,
+                'message' => $message,
+            ], function ($mail) use ($customer, $title) {
+                $mail->to($customer->email, $customer->name)
+                     ->subject($title);
+            });
+
+            // Mark email as sent
+            $notification->markEmailSent();
+
+            Log::info('Payment confirmation email sent', [
+                'order_id' => $order->id,
+                'customer_email' => $customer->email,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to send payment confirmation email', [
+                'order_id' => $order->id,
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -151,20 +226,63 @@ class NotificationService
     }
 
     /**
-     * Mark notification as read (placeholder for future implementation)
+     * Mark notification as read
      */
     public function markAsRead(int $notificationId): bool
     {
-        // Implementation for marking notifications as read
-        return true;
+        try {
+            $notification = Notification::find($notificationId);
+            if ($notification) {
+                $notification->markAsRead();
+                return true;
+            }
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Failed to mark notification as read', [
+                'notification_id' => $notificationId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
     /**
-     * Get unread notifications count for customer (placeholder for future implementation)
+     * Get unread notifications count for customer
      */
     public function getUnreadCount($customerId): int
     {
-        // Implementation for getting unread count
-        return 0;
+        try {
+            return Notification::where('customer_id', $customerId)
+                ->unread()
+                ->count();
+        } catch (\Exception $e) {
+            Log::error('Failed to get unread count', [
+                'customer_id' => $customerId,
+                'error' => $e->getMessage()
+            ]);
+            return 0;
+        }
+    }
+
+    /**
+     * Get notifications for a customer
+     */
+    public function getCustomerNotifications(int $customerId, int $limit = 10)
+    {
+        return Notification::where('customer_id', $customerId)
+            ->with('order')
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get notifications for an order
+     */
+    public function getOrderNotifications(int $orderId)
+    {
+        return Notification::where('order_id', $orderId)
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 }

@@ -196,6 +196,19 @@ Route::middleware('auth')->group(function () {
         Route::put('orders/bulk-status', [\App\Http\Controllers\Admin\OrderManagementController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
         Route::get('orders-statistics', [\App\Http\Controllers\Admin\OrderManagementController::class, 'getStatistics'])->name('orders.statistics');
         Route::get('orders-export', [\App\Http\Controllers\Admin\OrderManagementController::class, 'export'])->name('orders.export');
+
+        // Admin Sales Management
+        Route::get('sales', [\App\Http\Controllers\Admin\SalesManagementController::class, 'index'])->name('sales.index');
+        Route::get('sales/{sale}', [\App\Http\Controllers\Admin\SalesManagementController::class, 'show'])->name('sales.show');
+        Route::put('sales/{sale}/status', [\App\Http\Controllers\Admin\SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
+        Route::post('sales/{sale}/return', [\App\Http\Controllers\Admin\SalesManagementController::class, 'processReturn'])->name('sales.process-return');
+        Route::get('sales/{sale}/invoice', [\App\Http\Controllers\Admin\SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
+        Route::get('sales-statistics', [\App\Http\Controllers\Admin\SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
+        Route::get('sales-export', [\App\Http\Controllers\Admin\SalesManagementController::class, 'export'])->name('sales.export');
+
+        // Unified Dashboard
+        Route::get('unified-dashboard', [\App\Http\Controllers\Admin\UnifiedDashboardController::class, 'index'])->name('unified-dashboard');
+        Route::get('unified-statistics', [\App\Http\Controllers\Admin\UnifiedDashboardController::class, 'getStatistics'])->name('unified-statistics');
     });
 
 });

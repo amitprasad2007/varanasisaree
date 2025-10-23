@@ -71,7 +71,9 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
     const [localFilters, setLocalFilters] = useState(filters);
 
     const handleFilterChange = (key: string, value: string) => {
-        const newFilters = { ...localFilters, [key]: value };
+        // Convert "all" to empty string for backend filtering
+        const filterValue = value === 'all' ? '' : value;
+        const newFilters = { ...localFilters, [key]: filterValue };
         setLocalFilters(newFilters);
         router.get(route('admin.orders.index'), newFilters, { preserveState: true });
     };
@@ -152,12 +154,12 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
 
                     <div>
                         <label className="text-sm font-medium mb-2 block">Status</label>
-                        <Select value={localFilters.status || ''} onValueChange={(value) => handleFilterChange('status', value)}>
+                        <Select value={localFilters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="All Statuses" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">All Statuses</SelectItem>
+                            <SelectContent className="bg-white">
+                                <SelectItem value="all">All Statuses</SelectItem>
                                 {statusOptions.map((status) => (
                                     <SelectItem key={status} value={status}>
                                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -169,12 +171,12 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
 
                     <div>
                         <label className="text-sm font-medium mb-2 block">Payment Status</label>
-                        <Select value={localFilters.payment_status || ''} onValueChange={(value) => handleFilterChange('payment_status', value)}>
+                        <Select value={localFilters.payment_status || 'all'} onValueChange={(value) => handleFilterChange('payment_status', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="All Payment Statuses" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">All Payment Statuses</SelectItem>
+                            <SelectContent className="bg-white">
+                                <SelectItem value="all">All Payment Statuses</SelectItem>
                                 {paymentStatusOptions.map((status) => (
                                     <SelectItem key={status} value={status}>
                                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -186,12 +188,12 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
 
                     <div>
                         <label className="text-sm font-medium mb-2 block">Priority</label>
-                        <Select value={localFilters.priority || ''} onValueChange={(value) => handleFilterChange('priority', value)}>
+                        <Select value={localFilters.priority || 'all'} onValueChange={(value) => handleFilterChange('priority', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="All Priorities" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">All Priorities</SelectItem>
+                            <SelectContent className="bg-white">
+                                <SelectItem value="all">All Priorities</SelectItem>
                                 {priorityOptions.map((priority) => (
                                     <SelectItem key={priority} value={priority}>
                                         {priority.charAt(0).toUpperCase() + priority.slice(1)}

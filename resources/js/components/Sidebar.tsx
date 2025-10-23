@@ -17,7 +17,8 @@ import {
   Layers,
   Tags,
   ShoppingCart,
-  Package
+  Package,
+  FileChartColumn
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -85,6 +86,9 @@ const Sidebar = () => {
       label: 'Sales & Orders',
       items: [
         { icon: ShoppingCart, label: 'Order Management', path: '/admin/orders' },
+        { icon: ShoppingCart, label: 'Direct Sales', path: '/pos' },
+        { icon: FileChartColumn, label: 'Sales Report', path: '/admin/sales' },
+        { icon: FileChartColumn, label: 'unified Report', path: '/admin/unified-dashboard' },
       ],
     },
     {
