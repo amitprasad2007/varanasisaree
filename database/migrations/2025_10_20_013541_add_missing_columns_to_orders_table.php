@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Add only the missing columns
+            if (!Schema::hasColumn('orders', 'tracking_events')) {
+                $table->json('tracking_events')->nullable(); // Store tracking history
+            }
             if (!Schema::hasColumn('orders', 'order_priority')) {
                 $table->enum('order_priority', ['low', 'normal', 'high', 'urgent'])->default('normal')->after('tracking_events');
             }
@@ -28,13 +30,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            if (Schema::hasColumn('orders', 'assigned_to')) {
-                $table->dropForeign(['assigned_to']);
-                $table->dropColumn('assigned_to');
-            }
-            if (Schema::hasColumn('orders', 'order_priority')) {
-                $table->dropColumn('order_priority');
-            }
+            $table->dropColumn('tracking_events');
+            $table->dropForeign(['assigned_to']);
+            $table->dropColumn('assigned_to');
+            $table->dropColumn('order_priority');
         });
     }
 };
