@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
@@ -24,7 +24,8 @@ class SalesManagementController extends Controller
         $query = Sale::with([
             'customer:id,name,email,phone',
             'items.product:id,name,slug',
-            'items.variant:id,color,size',
+            'items.variant.color:id,name',
+            'items.variant.size:id,name',
             'payments',
             'returns'
         ]);
@@ -112,13 +113,13 @@ class SalesManagementController extends Controller
         $sale->update(['status' => $newStatus]);
 
         // Log the status change (you might want to create a SaleStatusLog model)
-        // $sale->statusLogs()->create([
-        //     'status_from' => $oldStatus,
-        //     'status_to' => $newStatus,
-        //     'notes' => $request->notes,
-        //     'changed_by' => auth()->id(),
-        //     'changed_at' => now(),
-        // ]);
+        $sale->statusLogs()->create([
+            'status_from' => $oldStatus,
+            'status_to' => $newStatus,
+            'notes' => $request->notes,
+            'changed_by' => auth()->id(),
+            'changed_at' => now(),
+        ]);
 
         return redirect()->back()->with('success', 'Sale status updated successfully');
     }
@@ -190,7 +191,7 @@ class SalesManagementController extends Controller
     public function generateInvoice(Sale $sale)
     {
         $sale->load(['customer', 'items.product', 'items.variant', 'payments']);
-        
+
         $pdf = Pdf::loadView('sales.invoice', compact('sale'));
         return $pdf->download('invoice-'.$sale->invoice_number.'.pdf');
     }

@@ -15,6 +15,7 @@
     </head>
 <body>
 <div class="container">
+   <a href="{{ route('pos.index') }}"> <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo"></a>
     <div class="header">
         <div>
             <h2>Invoice</h2>

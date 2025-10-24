@@ -29,7 +29,9 @@ use App\Http\Controllers\ProductVariantImageController;
 use App\Http\Controllers\CollectionTypeController as AdminCollectionTypeController;
 use App\Http\Controllers\CollectionController as AdminCollectionController;
 use App\Http\Controllers\Api\CustomerAuthController;
-
+use App\Http\Controllers\OrderManagementController;
+use App\Http\Controllers\UnifiedDashboardController;
+use App\Http\Controllers\SalesManagementController;
 
 
 
@@ -163,7 +165,7 @@ Route::middleware('auth')->group(function () {
     // Permissions
     Route::resource('permissions', PermissionManagementController::class);
 
-
+    // Admin controlle Vendors routes
     Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');
     Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');
     Route::post('admin/vendors/{id}/approve', [VendorController::class, 'approve'])->name('admin.vendors.approve');
@@ -185,32 +187,29 @@ Route::middleware('auth')->group(function () {
     Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.removeProduct');
     Route::put('collections/{collection}/products/order', [AdminCollectionController::class, 'updateProductOrder'])->name('collections.products.order');
 
-    // Admin Order Management
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('orders', [\App\Http\Controllers\Admin\OrderManagementController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [\App\Http\Controllers\Admin\OrderManagementController::class, 'show'])->name('orders.show');
-        Route::put('orders/{order}/status', [\App\Http\Controllers\Admin\OrderManagementController::class, 'updateStatus'])->name('orders.update-status');
-        Route::put('orders/{order}/awb', [\App\Http\Controllers\Admin\OrderManagementController::class, 'assignAwb'])->name('orders.assign-awb');
-        Route::put('orders/{order}/assign', [\App\Http\Controllers\Admin\OrderManagementController::class, 'assignOrder'])->name('orders.assign');
-        Route::put('orders/{order}/priority', [\App\Http\Controllers\Admin\OrderManagementController::class, 'updatePriority'])->name('orders.update-priority');
-        Route::put('orders/bulk-status', [\App\Http\Controllers\Admin\OrderManagementController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
-        Route::get('orders-statistics', [\App\Http\Controllers\Admin\OrderManagementController::class, 'getStatistics'])->name('orders.statistics');
-        Route::get('orders-export', [\App\Http\Controllers\Admin\OrderManagementController::class, 'export'])->name('orders.export');
+    // Order Management
+    Route::get('orders', [OrderManagementController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderManagementController::class, 'show'])->name('orders.show');
+    Route::put('orders/{order}/status', [OrderManagementController::class, 'updateStatus'])->name('orders.update-status');
+    Route::put('orders/{order}/awb', [OrderManagementController::class, 'assignAwb'])->name('orders.assign-awb');
+    Route::put('orders/{order}/assign', [OrderManagementController::class, 'assignOrder'])->name('orders.assign');
+    Route::put('orders/{order}/priority', [OrderManagementController::class, 'updatePriority'])->name('orders.update-priority');
+    Route::put('orders/bulk-status', [OrderManagementController::class, 'bulkUpdateStatus'])->name('orders.bulk-update-status');
+    Route::get('orders-statistics', [OrderManagementController::class, 'getStatistics'])->name('orders.statistics');
+    Route::get('orders-export', [OrderManagementController::class, 'export'])->name('orders.export');
 
-        // Admin Sales Management
-        Route::get('sales', [\App\Http\Controllers\Admin\SalesManagementController::class, 'index'])->name('sales.index');
-        Route::get('sales/{sale}', [\App\Http\Controllers\Admin\SalesManagementController::class, 'show'])->name('sales.show');
-        Route::put('sales/{sale}/status', [\App\Http\Controllers\Admin\SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
-        Route::post('sales/{sale}/return', [\App\Http\Controllers\Admin\SalesManagementController::class, 'processReturn'])->name('sales.process-return');
-        Route::get('sales/{sale}/invoice', [\App\Http\Controllers\Admin\SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
-        Route::get('sales-statistics', [\App\Http\Controllers\Admin\SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
-        Route::get('sales-export', [\App\Http\Controllers\Admin\SalesManagementController::class, 'export'])->name('sales.export');
+    // Unified Dashboard
+    Route::get('unified-dashboard', [UnifiedDashboardController::class, 'index'])->name('unified-dashboard');
+    Route::get('unified-statistics', [UnifiedDashboardController::class, 'getStatistics'])->name('unified-statistics');
 
-        // Unified Dashboard
-        Route::get('unified-dashboard', [\App\Http\Controllers\Admin\UnifiedDashboardController::class, 'index'])->name('unified-dashboard');
-        Route::get('unified-statistics', [\App\Http\Controllers\Admin\UnifiedDashboardController::class, 'getStatistics'])->name('unified-statistics');
-    });
-
+     //  Sales Management
+     Route::get('sales', [SalesManagementController::class, 'index'])->name('sales.index');
+     Route::get('sales/{sale}', [SalesManagementController::class, 'show'])->name('sales.show');
+     Route::put('sales/{sale}/status', [SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
+     Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.process-return');
+     Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
+     Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
+     Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');
 });
 
 

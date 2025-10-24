@@ -119,7 +119,7 @@ const getPriorityBadgeVariant = (priority: string) => {
 };
 
 export default function OrderShow({ order }: Props) {
-    console.log(order.status_logs);
+    //console.log(order.status_logs);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [isAssigningAwb, setIsAssigningAwb] = useState(false);
     const [newStatus, setNewStatus] = useState(order.status);
@@ -130,7 +130,7 @@ export default function OrderShow({ order }: Props) {
 
     const handleStatusUpdate = () => {
         setIsUpdatingStatus(true);
-        router.put(route('admin.orders.update-status', order.id), {
+        router.put(route('orders.update-status', order.id), {
             status: newStatus,
             notes: statusNotes
         }, {
@@ -153,7 +153,7 @@ export default function OrderShow({ order }: Props) {
 
     const handleAssignAwb = () => {
         setIsAssigningAwb(true);
-        router.put(route('admin.orders.assign-awb', order.id), {
+        router.put(route('orders.assign-awb', order.id), {
             awb_number: awbNumber || undefined,
             tracking_number: trackingNumber,
             shipping_notes: shippingNotes
@@ -176,8 +176,8 @@ export default function OrderShow({ order }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('dashboard') },
-        { title: 'Orders', href: route('admin.orders.index') },
-        { title: `Order ${order.order_id}`, href: route('admin.orders.show', order.id) },
+        { title: 'Orders', href: route('orders.index') },
+        { title: `Order ${order.order_id}`, href: route('orders.show', order.id) },
     ];
 
     return (
@@ -189,7 +189,7 @@ export default function OrderShow({ order }: Props) {
                         <Button
                             variant="outline"
                             className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                            onClick={() => router.visit(route('admin.orders.index'))}
+                            onClick={() => router.visit(route('orders.index'))}
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Orders
@@ -460,8 +460,9 @@ export default function OrderShow({ order }: Props) {
                                     />
                                     <Button
                                         onClick={handleStatusUpdate}
+                                        variant="outline"
                                         disabled={isUpdatingStatus || newStatus === order.status}
-                                        className="w-full"
+                                        className="w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                                     >
                                         {isUpdatingStatus ? 'Updating...' : 'Update Status'}
                                     </Button>
@@ -490,9 +491,10 @@ export default function OrderShow({ order }: Props) {
                                             rows={2}
                                         />
                                         <Button
+                                            variant="outline"
                                             onClick={handleAssignAwb}
                                             disabled={isAssigningAwb}
-                                            className="w-full"
+                                            className="w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                                         >
                                             {isAssigningAwb ? 'Assigning...' : 'Assign AWB'}
                                         </Button>

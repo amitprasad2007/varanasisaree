@@ -56,11 +56,11 @@ export default function SalesIndex({ sales, filters, statusOptions, customers }:
         const filterValue = value === 'all' ? '' : value;
         const newFilters = { ...localFilters, [key]: filterValue };
         setLocalFilters(newFilters);
-        router.get(route('admin.sales.index'), newFilters, { preserveState: true });
+        router.get(route('sales.index'), newFilters, { preserveState: true });
     };
 
     const handleStatusUpdate = (saleId: number, newStatus: string) => {
-        router.put(route('admin.sales.update-status', saleId), {
+        router.put(route('sales.update-status', saleId), {
             status: newStatus,
             notes: `Status updated to ${newStatus}`
         }, {
@@ -79,7 +79,7 @@ export default function SalesIndex({ sales, filters, statusOptions, customers }:
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('dashboard') },
-        { title: 'Sales', href: route('admin.sales.index') },
+        { title: 'Sales', href: route('sales.index') },
     ];
 
     return (
@@ -182,7 +182,7 @@ export default function SalesIndex({ sales, filters, statusOptions, customers }:
                             sales.data.map((sale) => (
                                 <TableRow key={sale.id}>
                                     <TableCell className="font-medium">
-                                        <Link href={route('admin.sales.show', sale.id)} className="text-blue-600 hover:underline">
+                                        <Link href={route('sales.show', sale.id)} className="text-blue-600 hover:underline">
                                             {sale.invoice_number}
                                         </Link>
                                     </TableCell>
@@ -212,7 +212,7 @@ export default function SalesIndex({ sales, filters, statusOptions, customers }:
                                                 variant="outline"
                                                 size="sm"
                                                 className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                                                onClick={() => router.visit(route('admin.sales.show', sale.id))}
+                                                onClick={() => router.visit(route('sales.show', sale.id))}
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>

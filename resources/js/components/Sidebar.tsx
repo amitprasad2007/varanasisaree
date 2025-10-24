@@ -85,10 +85,10 @@ const Sidebar = () => {
     {
       label: 'Sales & Orders',
       items: [
-        { icon: ShoppingCart, label: 'Order Management', path: '/admin/orders' },
+        { icon: ShoppingCart, label: 'Order Management', path: '/orders' },
         { icon: ShoppingCart, label: 'Direct Sales', path: '/pos' },
-        { icon: FileChartColumn, label: 'Sales Report', path: '/admin/sales' },
-        { icon: FileChartColumn, label: 'unified Report', path: '/admin/unified-dashboard' },
+        { icon: FileChartColumn, label: 'Sales Report', path: '/sales' },
+        { icon: FileChartColumn, label: 'unified Report', path: '/unified-dashboard' },
       ],
     },
     {

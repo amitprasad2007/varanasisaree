@@ -184,7 +184,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => router.visit(route('admin.sales.show', sale.id))}
+                                                        onClick={() => router.visit(route('sales.show', sale.id))}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
@@ -196,7 +196,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                         <Button
                                             variant="outline"
                                             className="w-full"
-                                            onClick={() => router.visit(route('admin.sales.index'))}
+                                            onClick={() => router.visit(route('sales.index'))}
                                         >
                                             View All Sales
                                         </Button>
@@ -235,7 +235,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => router.visit(route('admin.orders.show', order.id))}
+                                                        onClick={() => router.visit(route('orders.show', order.id))}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
@@ -247,7 +247,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                         <Button
                                             variant="outline"
                                             className="w-full"
-                                            onClick={() => router.visit(route('admin.orders.index'))}
+                                            onClick={() => router.visit(route('orders.index'))}
                                         >
                                             View All Orders
                                         </Button>
@@ -291,7 +291,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => router.visit(route('admin.sales.show', sale.id))}
+                                                            onClick={() => router.visit(route('sales.show', sale.id))}
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
@@ -345,7 +345,7 @@ export default function UnifiedTransactions({ recentSales, recentOrders, statist
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => router.visit(route('admin.orders.show', order.id))}
+                                                        onClick={() => router.visit(route('orders.show', order.id))}
                                                     >
                                                         <Eye className="h-4 w-4" />
                                                     </Button>

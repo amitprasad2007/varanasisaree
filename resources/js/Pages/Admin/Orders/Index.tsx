@@ -75,7 +75,7 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
         const filterValue = value === 'all' ? '' : value;
         const newFilters = { ...localFilters, [key]: filterValue };
         setLocalFilters(newFilters);
-        router.get(route('admin.orders.index'), newFilters, { preserveState: true });
+        router.get(route('orders.index'), newFilters, { preserveState: true });
     };
 
     const handleStatusUpdate = (orderId: number, newStatus: string) => {
@@ -119,7 +119,7 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('dashboard') },
-        { title: 'Orders', href: route('admin.orders.index') },
+        { title: 'Orders', href: route('orders.index') },
     ];
 
     return (
@@ -238,7 +238,7 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
                             orders.data.map((order) => (
                                 <TableRow key={order.id}>
                                     <TableCell className="font-medium">
-                                        <Link href={route('admin.orders.show', order.id)} className="text-blue-600 hover:underline">
+                                        <Link href={route('orders.show', order.id)} className="text-blue-600 hover:underline">
                                             {order.order_id}
                                         </Link>
                                     </TableCell>
@@ -281,7 +281,7 @@ export default function OrdersIndex({ orders, filters, statusOptions, paymentSta
                                                 variant="outline"
                                                 size="sm"
                                                 className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                                                onClick={() => router.visit(route('admin.orders.show', order.id))}
+                                                onClick={() => router.visit(route('orders.show', order.id))}
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
