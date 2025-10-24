@@ -9,6 +9,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Package, User, FileText, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 
 interface SaleItem {
     id: number;
@@ -67,6 +69,8 @@ interface Sale {
     payments: Payment[];
     returns: SaleReturn[];
     status_logs?: StatusLog[];
+    creditNotes?: any[]; // Added for credit notes
+    refunds?: any[]; // Added for refunds
 }
 
 interface Props {
@@ -83,6 +87,25 @@ const getStatusBadgeVariant = (status: string) => {
 };
 
 export default function SaleShow({ sale }: Props) {
+    const [showReturnModal, setShowReturnModal] = useState(false);
+    const [returnSelections, setReturnSelections] = useState<{[saleItemId:number]: number}>({});
+    const [reason, setReason] = useState('');
+    const handleOpenReturnModal = () => setShowReturnModal(true);
+    const handleCloseReturnModal = () => { setShowReturnModal(false); setReturnSelections({}); setReason(''); };
+    const handleReturnQtyChange = (saleItemId: number, qty: number, max: number) => {
+        if (qty < 0) qty = 0;
+        if (qty > max) qty = max;
+        setReturnSelections(prev => ({ ...prev, [saleItemId]: qty }));
+    };
+    const handleReturnSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // TODO: Integrate with real API endpoint
+        router.post(route('sales.processReturn', sale.id), {
+            items: Object.entries(returnSelections).filter(([_, q]) => q > 0).map(([sale_item_id, quantity]) => ({ sale_item_id, quantity })),
+            reason,
+        }, { onSuccess: () => handleCloseReturnModal() });
+    };
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('dashboard') },
         { title: 'Sales', href: route('sales.index') },
@@ -258,6 +281,73 @@ export default function SaleShow({ sale }: Props) {
                             </div>
                         </div>
                     )}
+
+                    {/* Credit Notes */}
+                    {sale.creditNotes && sale.creditNotes.length > 0 && (
+                        <div className="bg-white rounded-md border mt-6">
+                            <div className="p-6 border-b">
+                                <h3 className="text-lg font-medium flex items-center gap-2">Credit Notes</h3>
+                            </div>
+                            <div className="p-6">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Reference</TableHead>
+                                            <TableHead>Amount</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Related Return</TableHead>
+                                            <TableHead>Date</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sale.creditNotes.map((cn:any) => (
+                                            <TableRow key={cn.id}>
+                                                <TableCell>{cn.reference || '-'}</TableCell>
+                                                <TableCell>₹{Number(cn.amount).toLocaleString()}</TableCell>
+                                                <TableCell>{cn.status}</TableCell>
+                                                <TableCell>{cn.sale_return_id ? `#${cn.sale_return_id}` : '-'}</TableCell>
+                                                <TableCell>{cn.created_at ? format(new Date(cn.created_at), 'MMM dd, yyyy HH:mm') : '-'}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    )}
+                    {/* Refunds */}
+                    {sale.refunds && sale.refunds.length > 0 && (
+                        <div className="bg-white rounded-md border mt-6">
+                            <div className="p-6 border-b">
+                                <h3 className="text-lg font-medium flex items-center gap-2">Refunds</h3>
+                            </div>
+                            <div className="p-6">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Reference</TableHead>
+                                            <TableHead>Amount</TableHead>
+                                            <TableHead>Method</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Related Credit Note</TableHead>
+                                            <TableHead>Paid At</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sale.refunds.map((rf:any) => (
+                                            <TableRow key={rf.id}>
+                                                <TableCell>{rf.reference || '-'}</TableCell>
+                                                <TableCell>₹{Number(rf.amount).toLocaleString()}</TableCell>
+                                                <TableCell>{rf.method || '-'}</TableCell>
+                                                <TableCell>{rf.status}</TableCell>
+                                                <TableCell>{rf.credit_note_id ? `#${rf.credit_note_id}` : '-'}</TableCell>
+                                                <TableCell>{rf.paid_at ? format(new Date(rf.paid_at), 'MMM dd, yyyy HH:mm') : '-'}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar */}
@@ -312,6 +402,57 @@ export default function SaleShow({ sale }: Props) {
                     </div>
                 </div>
             </div>
+
+            <Dialog open={showReturnModal} onOpenChange={setShowReturnModal}>
+                <DialogTrigger asChild>
+                    <Button onClick={handleOpenReturnModal} variant="outline" className="mb-2" disabled={sale.status === 'returned'}>
+                        Process Return
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl bg-white">
+                    <DialogTitle>Return Items</DialogTitle>
+                    <DialogDescription>Select products and quantities to return.</DialogDescription>
+                    <form onSubmit={handleReturnSubmit} className="space-y-4">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead>Quantity (max)</TableHead>
+                                    <TableHead>Return Qty</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {sale.items && sale.items.length > 0 ? (
+                                    sale.items.map(item => {
+                                        // Calculate max returnable qty
+                                        const alreadyReturned = sale.returns?.reduce((sum, ret) =>
+                                            (ret.items || []).reduce((s, ri) =>
+                                                ri.sale_item_id === item.id ? s + ri.quantity : s, sum), 0) || 0;
+                                        const maxQty = item.quantity - alreadyReturned;
+                                        return (
+                                            <TableRow key={item.id}>
+                                                <TableCell>{item.product.name}</TableCell>
+                                                <TableCell>{maxQty}</TableCell>
+                                                <TableCell>
+                                                    <input type="number" className="w-20 border rounded p-1" value={returnSelections[item.id] || ''} min="0" max={maxQty} onChange={e => handleReturnQtyChange(item.id, Number(e.target.value), maxQty)} disabled={maxQty === 0} />
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
+                                ) : null}
+                            </TableBody>
+                        </Table>
+                        <div>
+                            <label className="block font-medium mb-1">Reason (optional)</label>
+                            <textarea className="w-full border rounded p-2" value={reason} onChange={e => setReason(e.target.value)} />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={handleCloseReturnModal}>Cancel</Button>
+                            <Button type="submit" variant="default" disabled={Object.values(returnSelections).every(q => !q)}>Submit Return</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </DashboardLayout>
     );
 }

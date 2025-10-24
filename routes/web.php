@@ -206,7 +206,7 @@ Route::middleware('auth')->group(function () {
      Route::get('sales', [SalesManagementController::class, 'index'])->name('sales.index');
      Route::get('sales/{sale}', [SalesManagementController::class, 'show'])->name('sales.show');
      Route::put('sales/{sale}/status', [SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
-     Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.process-return');
+     Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.processReturn');
      Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
      Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
      Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');

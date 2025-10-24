@@ -89,7 +89,11 @@ class SalesManagementController extends Controller
             'items.variant.color',
             'items.variant.size',
             'payments',
-            'returns.items'
+            'returns.items',
+            'creditNotes',
+            'refunds',
+            'returns.creditNotes',
+            'returns.refunds',
         ]);
 
         return Inertia::render('Admin/Sales/Show', [
