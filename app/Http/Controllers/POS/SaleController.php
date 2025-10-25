@@ -225,6 +225,34 @@ class SaleController extends Controller
                 }
             }
 
+            // Credit Note Usages (if customer is using store credit)
+            $paymentCreditNote = collect($data['payments'])->firstWhere('method', 'credit_note');
+            if ($paymentCreditNote && $customerId) {
+                $toUseAmount = (float)$paymentCreditNote['amount'];
+                // Find active, remaining credit notes, oldest first
+                $creditNotes = \App\Models\CreditNote::where('customer_id', $customerId)
+                    ->where('status', 'active')->where('remaining_amount', '>', 0)
+                    ->orderBy('created_at')->get();
+                foreach ($creditNotes as $note) {
+                    if ($toUseAmount <= 0) break;
+                    $apply = min($note->remaining_amount, $toUseAmount);
+                    $note->remaining_amount -= $apply;
+                    if ($note->remaining_amount <= 0.001) {
+                        $note->status = 'redeemed';
+                        $note->remaining_amount = 0;
+                    }
+                    $note->save();
+                    // Save usage in SalePayment (log how much from each note was applied)
+                    \App\Models\SalePayment::create([
+                        'sale_id' => $sale->id,
+                        'method' => 'credit_note',
+                        'amount' => $apply,
+                        'reference' => 'CreditNote#'.$note->id,
+                    ]);
+                    $toUseAmount -= $apply;
+                }
+            }
+
             // Payments
             foreach ($data['payments'] as $payment) {
                 SalePayment::create([
@@ -299,6 +327,21 @@ class SaleController extends Controller
 
             $return->refund_total = $refundTotal;
             $return->save();
+
+            // ------- Credit Note Logic ---------
+            // Refund is done using credit note ONLY, per requirements
+            $customerId = $sale->customer_id;
+            if ($refundTotal > 0 && $customerId) {
+                \App\Models\CreditNote::create([
+                    'customer_id' => $customerId,
+                    'sale_id' => $sale->id,
+                    'sale_return_id' => $return->id,
+                    'amount' => $refundTotal,
+                    'remaining_amount' => $refundTotal,
+                    'reference' => $sale->invoice_number . '-RET',
+                    'status' => 'active',
+                ]);
+            }
 
             // Mark sale as returned if full return
             $soldAmount = $sale->items->sum(fn($i) => (float) $i->price * (int) $i->quantity);
@@ -524,6 +567,41 @@ class SaleController extends Controller
         $prefix = 'INV-';
         $next = str_pad((string) (Sale::max('id') + 1), 6, '0', STR_PAD_LEFT);
         return $prefix . $next;
+    }
+
+    /**
+     * List completed sales, newest first, for POS Return UI.
+     */
+    public function listSales(Request $request)
+    {
+        $query = Sale::query()->with(['customer', 'items'])
+            ->where('status', 'completed')
+            ->orderByDesc('created_at');
+
+        if ($request->has('invoice_number')) {
+            $query->where('invoice_number', 'like', '%'.$request->input('invoice_number').'%');
+        }
+        if ($request->has('customer_name')) {
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->input('customer_name').'%');
+            });
+        }
+        return response()->json($query->limit(25)->get());
+    }
+
+    /**
+     * List available credit notes for a given customer (for POS checkout credit note payment UI)
+     */
+    public function listCreditNotes(Request $request)
+    {
+        $customerId = $request->input('customer_id');
+        if (!$customerId) return response()->json([], 400);
+        $notes = \App\Models\CreditNote::where('customer_id', $customerId)
+            ->where('status', 'active')
+            ->where('remaining_amount', '>', 0)
+            ->orderBy('created_at')
+            ->get(['id', 'amount', 'remaining_amount', 'reference', 'created_at']);
+        return response()->json($notes);
     }
 }
 

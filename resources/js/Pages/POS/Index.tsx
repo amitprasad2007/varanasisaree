@@ -11,6 +11,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/use-toast';
 
 type ProductHit = {
   id: number;
@@ -29,6 +31,11 @@ type CartItem = {
   price: number;
 };
 
+type SaleItemType = { id: number, name: string, quantity: number, price: number };
+type SaleType = { id: number, invoice_number: string, customer?: { id: number, name: string }, items: SaleItemType[] };
+type ReturnItemType = { sale_item_id: number, name: string, quantity: number, max: number, price: number };
+type CreditNoteType = { id: number, amount: number, remaining_amount: number, reference: string, created_at: string };
+
 export default function POSPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductHit[]>([]);
@@ -40,6 +47,16 @@ export default function POSPage() {
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [taxPercent, setTaxPercent] = useState<number>(0);
   const [customerName, setCustomerName] = useState('');
+  const [showReturn, setShowReturn] = useState(false);
+  const [saleSearch, setSaleSearch] = useState('');
+  const [sales, setSales] = useState<SaleType[]>([]);
+  const [selectedSale, setSelectedSale] = useState<SaleType | null>(null);
+  const [returnItems, setReturnItems] = useState<ReturnItemType[]>([]);
+  const [processingReturn, setProcessingReturn] = useState(false);
+  const { toast } = useToast();
+  const [customerObj, setCustomerObj] = useState<{ id: number, name: string } | null>(null); // store fetched customer
+  const [creditNotes, setCreditNotes] = useState<CreditNoteType[]>([]);
+  const [creditNoteToUse, setCreditNoteToUse] = useState(0);
 
   const subtotal = useMemo(() => cart.reduce((s, c) => s + c.price * c.qty, 0), [cart]);
   const discountAmt = useMemo(() => {
@@ -174,9 +191,37 @@ export default function POSPage() {
     };
   }, [cameraEnabled]);
 
+  useEffect(() => {
+    // Whenever customerName changes, fetch their details/credit notes if possible
+    const load = async () => {
+      if (!customerName || customerName.trim() === '') {
+        setCustomerObj(null); setCreditNotes([]); setCreditNoteToUse(0); return;
+      }
+      // Fetch customer by name (if exists)
+      try {
+        const { data: customers } = await axios.get('/customers/search', { params: { name: customerName }});
+        if (customers[0]) {
+          setCustomerObj(customers[0]);
+          const notes = await axios.get('/pos/credit-notes', { params: { customer_id: customers[0].id } });
+          setCreditNotes(notes.data || []);
+        } else {
+          setCustomerObj(null); setCreditNotes([]); setCreditNoteToUse(0);
+        }
+      } catch {
+        setCustomerObj(null); setCreditNotes([]); setCreditNoteToUse(0);
+      }
+    };
+    load();
+  }, [customerName]);
+
   async function checkout() {
+    let payCreditNote = Math.min(creditNoteToUse, creditNotes.reduce((a, n) => a + n.remaining_amount, 0), total);
+    const needs = total - payCreditNote;
+    const payments = [];
+    if (payCreditNote > 0) payments.push({ method: 'credit_note', amount: payCreditNote });
+    if (needs > 0) payments.push({ method: 'cash', amount: needs });
     const payload = {
-      customer: customerName ? { name: customerName } : null,
+      customer: customerObj ? { id: customerObj.id, name: customerName } : (customerName ? { name: customerName } : null),
       items: cart.map(c => ({
         product_id: c.productId,
         product_variant_id: c.variantId,
@@ -187,12 +232,42 @@ export default function POSPage() {
       })),
       discount: discountType ? { type: discountType, value: discountValue } : null,
       tax: taxPercent ? { percent: taxPercent } : null,
-      payments: [{ method: 'cash', amount: total }],
+      payments,
     };
     const { data } = await axios.post('/pos/sales', payload);
     window.open(`/pos/sales/${data.saleId}/invoice`, '_blank');
-    // reset
-    setCart([]); setDiscountType(''); setDiscountValue(0); setTaxPercent(0); setCustomerName('');
+    setCart([]); setDiscountType(''); setDiscountValue(0); setTaxPercent(0); setCustomerName(''); setCreditNotes([]); setCreditNoteToUse(0); setCustomerObj(null);
+  }
+
+  async function fetchSales() {
+    const { data } = await axios.get('/pos/sales/list', { params: { invoice_number: saleSearch }});
+    setSales(data);
+  }
+
+  async function loadSaleItems(sale) {
+    setSelectedSale(sale);
+    setReturnItems(sale.items.map(i => ({
+      sale_item_id: i.id,
+      name: i.name,
+      quantity: 1,
+      max: i.quantity,
+      price: i.price
+    })));
+  }
+
+  async function processReturn() {
+    setProcessingReturn(true);
+    try {
+      const { data } = await axios.post(`/pos/sales/${selectedSale.id}/return`, {
+        items: returnItems.filter(r => r.quantity > 0).map(r => ({ sale_item_id: r.sale_item_id, quantity: r.quantity }))
+      });
+      toast({ title: 'Return processed', description: `Credit note issued for ₹${data.refundTotal}` });
+      setShowReturn(false); setSelectedSale(null); setReturnItems([]); setSales([]); setSaleSearch('');
+    } catch (e) {
+      toast({ title: 'Error', description: e?.response?.data?.message || 'Failed to process return', variant: 'destructive' });
+    } finally {
+      setProcessingReturn(false);
+    }
   }
 
   const breadcrumbs: BreadcrumbItem[] = [
@@ -200,7 +275,55 @@ export default function POSPage() {
     { title: 'Direct Sales', href: route('pos.index') },
 ];
   return (
-    <DashboardLayout title="Direct Sales">    
+    <DashboardLayout title="Direct Sales">
+      {/* Return Modal Trigger */}
+      <div className="mb-3"><Button className="bg-yellow-600" onClick={() => setShowReturn(true)}>Process Return / Refund</Button></div>
+      <Dialog open={showReturn} onOpenChange={setShowReturn}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Process Return/Refund</DialogTitle>
+          </DialogHeader>
+          {/* Sale Search and List */}
+          {!selectedSale ? (
+            <div>
+              <div className="flex mb-2 gap-2">
+                <Input value={saleSearch} onChange={e => setSaleSearch(e.target.value)} placeholder="Search Invoice Number..." />
+                <Button onClick={fetchSales}>Search</Button>
+              </div>
+              <div className="max-h-60 overflow-y-auto border rounded">
+                {sales.map(sale => (
+                  <div key={sale.id} className="p-2 border-b flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{sale.invoice_number}</div>
+                      <div className="text-xs text-gray-500">Customer: {sale.customer?.name}</div>
+                    </div>
+                    <Button size="sm" onClick={() => loadSaleItems(sale)}>Select</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-2 font-medium">Invoice: {selectedSale.invoice_number} (Customer: {selectedSale.customer?.name})</div>
+              <div className="max-h-40 overflow-y-auto">
+                {returnItems.map((r, idx) => (
+                  <div key={r.sale_item_id} className="flex gap-2 items-center mb-2">
+                    <span className="block w-40">{r.name}</span>
+                    <Input type="number" min={0} max={r.max} value={r.quantity}
+                      onChange={e => setReturnItems(ri => ri.map((x, i) => i === idx ? { ...x, quantity: Number(e.target.value) } : x))}
+                      className="w-20"/>
+                    <span className="text-sm">/ {r.max} × ₹{r.price}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button onClick={() => setSelectedSale(null)} variant="outline">Back</Button>
+                <Button onClick={processReturn} loading={processingReturn} disabled={processingReturn || !returnItems.some(i => i.quantity > 0)}>Confirm Return & Issue Credit Note</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     <div className="p-4 max-w-6xl mx-auto">
       <Head title="Direct Sales" />
       <div className="space-y-4 pb-6">
@@ -280,6 +403,15 @@ export default function POSPage() {
               <div>
                 <Input value={customerName} onChange={e => setCustomerName(e.target.value)} className="border px-2 py-1 w-full" placeholder="Customer name (optional)" />
               </div>
+              {customerObj && !!creditNotes.length && (
+                <div className="mb-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span>Credit notes available: ₹{creditNotes.reduce((a,n)=>a+n.remaining_amount,0).toFixed(2)}</span>
+                    <Input type="number" min={0} max={Math.min(total, creditNotes.reduce((a,n)=>a+n.remaining_amount,0))} value={creditNoteToUse} onChange={e=>setCreditNoteToUse(Number(e.target.value) || 0)} className="w-28"/>
+                    <span className="text-gray-500">To pay by credit note</span>
+                  </div>
+                </div>
+              )}
               <div className="border-t pt-2">
                 <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
                 <div className="flex justify-between"><span>Discount</span><span>₹{discountAmt.toFixed(2)}</span></div>
