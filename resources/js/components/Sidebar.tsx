@@ -88,6 +88,8 @@ const Sidebar = () => {
         { icon: ShoppingCart, label: 'Order Management', path: '/orders' },
         { icon: ShoppingCart, label: 'Direct Sales', path: '/pos' },
         { icon: FileChartColumn, label: 'Sales Report', path: '/sales' },
+        { icon: FileText, label: 'Refund Management', path: '/refunds' },
+        { icon: FileChartColumn, label: 'Refund Reports', path: '/refunds/report' },
         { icon: FileChartColumn, label: 'unified Report', path: '/unified-dashboard' },
       ],
     },

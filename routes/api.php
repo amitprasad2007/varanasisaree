@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\RecentlyViewedController;
 use App\Http\Controllers\Api\UserLogController;
 use App\Http\Controllers\Api\GuestDataController;
+use App\Http\Controllers\Api\RefundController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -148,6 +149,15 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     Route::get('/getrecommededfillters/recommeded/', [ApiSearchController::class, 'getrecommededfillters']);
     Route::get('/recommeded-products', [ProductController::class, 'getRecommededProducts']);
+
+    // Refund operations (authenticated)
+    Route::get('/refunds', [RefundController::class, 'index']);
+    Route::post('/refunds', [RefundController::class, 'store']);
+    Route::get('/refunds/{refund}', [RefundController::class, 'show']);
+    Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
+    Route::get('/refunds/check-eligibility', [RefundController::class, 'checkEligibility']);
+    Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
+    Route::get('/refund-statistics', [RefundController::class, 'statistics']);
 
 });
 
