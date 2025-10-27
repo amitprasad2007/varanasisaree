@@ -169,11 +169,53 @@ class RefundService
             'processed_at' => now(),
         ]);
 
-        // Here you would integrate with payment gateways
-        // For now, we'll simulate a successful transaction
-        $this->simulateGatewayRefund($transaction);
+        // Process refund based on gateway
+        if ($refund->method === 'razorpay') {
+            $this->processRazorpayRefund($transaction);
+        } else {
+            // For other gateways or manual refunds
+            $this->simulateGatewayRefund($transaction);
+        }
 
         return $transaction;
+    }
+
+    /**
+     * Process Razorpay refund
+     */
+    protected function processRazorpayRefund(RefundTransaction $transaction): void
+    {
+        try {
+            $razorpayService = app(\App\Services\RazorpayRefundService::class);
+            
+            $result = $razorpayService->processRefund(
+                $transaction, 
+                $transaction->amount, 
+                $transaction->refund->reason
+            );
+
+            if ($result['success']) {
+                $transaction->update([
+                    'status' => $result['status'],
+                    'gateway_transaction_id' => $result['refund_id'],
+                    'gateway_refund_id' => $result['refund_id'],
+                    'gateway_response' => json_encode($result['gateway_response']),
+                    'completed_at' => $result['processed_at'],
+                ]);
+            } else {
+                $transaction->update([
+                    'status' => 'failed',
+                    'gateway_response' => json_encode(['error' => $result['error']]),
+                    'completed_at' => now(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            $transaction->update([
+                'status' => 'failed',
+                'gateway_response' => json_encode(['error' => $e->getMessage()]),
+                'completed_at' => now(),
+            ]);
+        }
     }
 
     /**

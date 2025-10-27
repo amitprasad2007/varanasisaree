@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\RecentlyViewedController;
 use App\Http\Controllers\Api\UserLogController;
 use App\Http\Controllers\Api\GuestDataController;
 use App\Http\Controllers\Api\RefundController;
+use App\Http\Controllers\Api\AdminRefundController;
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
@@ -156,6 +157,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/refunds/{refund}', [RefundController::class, 'show']);
     Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
     Route::get('/refunds/check-eligibility', [RefundController::class, 'checkEligibility']);
+    Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
+    Route::post('/refunds/check-razorpay-status', [RefundController::class, 'checkRazorpayRefundStatus']);
     Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
     Route::get('/refund-statistics', [RefundController::class, 'statistics']);
 
@@ -176,6 +179,20 @@ Route::prefix('guest')->group(function () {
     // Logs: attach guest session to user
     Route::post('/logs/attach-session', [UserLogController::class, 'attachSession']);
 
+});
+
+// Admin routes for refund management
+Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+    // Refund management
+    Route::get('/refunds', [AdminRefundController::class, 'index']);
+    Route::get('/refunds/{refund}', [AdminRefundController::class, 'show']);
+    Route::post('/refunds/{refund}/approve', [AdminRefundController::class, 'approve']);
+    Route::post('/refunds/{refund}/reject', [AdminRefundController::class, 'reject']);
+    Route::post('/refunds/{refund}/process', [AdminRefundController::class, 'process']);
+    Route::post('/refunds/{refund}/retry-razorpay', [AdminRefundController::class, 'retryRazorpayRefund']);
+    Route::get('/refunds/status/{status}', [AdminRefundController::class, 'getByStatus']);
+    Route::get('/refunds/statistics', [AdminRefundController::class, 'statistics']);
+    Route::get('/refunds/test-razorpay', [AdminRefundController::class, 'testRazorpayConnection']);
 });
 
 // // Protected customer routes

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Refund;
 use App\Models\Sale;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Services\RefundService;
+use App\Services\RazorpayRefundService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -64,7 +66,7 @@ class RefundController extends Controller
             'sale_id' => 'nullable|exists:sales,id',
             'order_id' => 'nullable|exists:orders,id',
             'amount' => 'required|numeric|min:0.01',
-            'method' => 'required|in:credit_note,money,bank_transfer,manual',
+            'method' => 'required|in:credit_note,money,razorpay,bank_transfer,manual',
             'reason' => 'required|string|max:1000',
             'items' => 'nullable|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -86,6 +88,11 @@ class RefundController extends Controller
             $order = Order::where('id', $request->order_id)
                 ->where('customer_id', Auth::id())
                 ->firstOrFail();
+            
+            // For online orders, validate Razorpay refund eligibility
+            if ($order->payment_method === 'razorpay' && $request->method === 'razorpay') {
+                $this->validateRazorpayRefundEligibility($order, $request->amount);
+            }
         }
 
         try {
@@ -260,5 +267,98 @@ class RefundController extends Controller
             'success' => true,
             'data' => $statistics,
         ]);
+    }
+
+    /**
+     * Validate Razorpay refund eligibility
+     */
+    protected function validateRazorpayRefundEligibility(Order $order, float $refundAmount): void
+    {
+        $payment = Payment::where('rzorder_id', $order->transaction_id)
+            ->where('status', 'captured')
+            ->first();
+
+        if (!$payment) {
+            throw new \Exception('Payment not found or not captured');
+        }
+
+        $razorpayService = app(RazorpayRefundService::class);
+        $validation = $razorpayService->validateRefundEligibility($payment, $refundAmount);
+
+        if (!$validation['eligible']) {
+            throw new \Exception($validation['reason']);
+        }
+    }
+
+    /**
+     * Check Razorpay refund status
+     */
+    public function checkRazorpayRefundStatus(Request $request): JsonResponse
+    {
+        $request->validate([
+            'refund_id' => 'required|string'
+        ]);
+
+        try {
+            $razorpayService = app(RazorpayRefundService::class);
+            $result = $razorpayService->checkRefundStatus($request->refund_id);
+
+            return response()->json([
+                'success' => $result['success'],
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Get refund eligibility for Razorpay payments
+     */
+    public function checkRazorpayEligibility(Request $request): JsonResponse
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id'
+        ]);
+
+        try {
+            $order = Order::where('id', $request->order_id)
+                ->where('customer_id', Auth::id())
+                ->firstOrFail();
+
+            if ($order->payment_method !== 'razorpay') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order was not paid via Razorpay'
+                ], 400);
+            }
+
+            $payment = Payment::where('rzorder_id', $order->transaction_id)
+                ->where('status', 'captured')
+                ->first();
+
+            if (!$payment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not found or not captured'
+                ], 400);
+            }
+
+            $razorpayService = app(RazorpayRefundService::class);
+            $validation = $razorpayService->validateRefundEligibility($payment, 0);
+
+            return response()->json([
+                'success' => true,
+                'data' => $validation
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 }
