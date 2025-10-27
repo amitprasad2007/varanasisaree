@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\OrderManagementController;
 use App\Http\Controllers\UnifiedDashboardController;
 use App\Http\Controllers\SalesManagementController;
+use App\Http\Controllers\RefundManagementController;
 
 
 
@@ -210,6 +211,20 @@ Route::middleware('auth')->group(function () {
      Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
      Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
      Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');
+
+    // Refund Management
+    Route::get('refunds/report', [RefundManagementController::class, 'report'])->name('refunds.report');
+    Route::get('refunds', [RefundManagementController::class, 'index'])->name('refunds.index');
+    Route::get('refunds/create', [RefundManagementController::class, 'create'])->name('refunds.create');
+    Route::post('refunds', [RefundManagementController::class, 'store'])->name('refunds.store');
+    Route::get('refunds/{refund}', [RefundManagementController::class, 'show'])->name('refunds.show');
+    Route::post('refunds/{refund}/approve', [RefundManagementController::class, 'approve'])->name('refunds.approve');
+    Route::post('refunds/{refund}/reject', [RefundManagementController::class, 'reject'])->name('refunds.reject');
+    Route::post('refunds/{refund}/process', [RefundManagementController::class, 'process'])->name('refunds.process');
+    Route::put('refund-items/{refundItem}/qc-status', [RefundManagementController::class, 'updateItemQcStatus'])->name('refund-items.update-qc-status');
+    Route::get('refund-statistics', [RefundManagementController::class, 'getStatistics'])->name('refunds.statistics');
+    Route::get('refunds-export', [RefundManagementController::class, 'export'])->name('refunds.export');
+
 });
 
 

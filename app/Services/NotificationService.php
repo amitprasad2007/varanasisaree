@@ -226,6 +226,68 @@ class NotificationService
     }
 
     /**
+     * Send refund status change notification
+     */
+    public function sendRefundStatusNotification($refund, string $eventType): void
+    {
+        $customer = $refund->customer ?? ($refund->sale ? $refund->sale->customer : null);
+        if (!$customer) return;
+
+        $eventMessages = [
+            'requested' => 'Your refund request has been received and is pending review.',
+            'approved' => 'Your refund request has been approved. We will process your refund soon.',
+            'rejected' => 'Your refund request has been rejected.',
+            'completed_credit_note' => 'Your refund was completed as a store credit. Please check your credit notes for details.',
+            'completed_money' => 'Your refund has been processed to your payment account.',
+        ];
+        $title = "Refund Status Update - {$refund->reference}";
+        $message = $eventMessages[$eventType] ?? ("Refund status updated to: {$eventType}");
+
+        $notification = \App\Models\Notification::create([
+            'order_id' => $refund->order_id,
+            'customer_id' => $customer->id,
+            'type' => 'refund_status',
+            'title' => $title,
+            'message' => $message,
+            'data' => [
+                'status' => $eventType,
+                'refund_reference' => $refund->reference,
+                'refund_id' => $refund->id,
+            ],
+        ]);
+
+        \Log::info('Refund status notification created', [
+            'notification_id' => $notification->id,
+            'refund_id' => $refund->id,
+            'customer_id' => $customer->id,
+            'status' => $eventType,
+        ]);
+
+        // Send email if email is set
+        if ($customer->email) {
+            try {
+                \Mail::send('emails.refund-status', [
+                    'refund' => $refund,
+                    'customer' => $customer,
+                    'eventType' => $eventType,
+                    'message' => $message,
+                ], function ($mail) use ($customer, $title) {
+                    $mail->to($customer->email, $customer->name)
+                        ->subject($title);
+                });
+                $notification->markEmailSent();
+            } catch (\Exception $e) {
+                \Log::error('Failed to send refund status email', [
+                    'refund_id' => $refund->id,
+                    'customer_id' => $customer->id,
+                    'eventType' => $eventType,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
      * Mark notification as read
      */
     public function markAsRead(int $notificationId): bool
