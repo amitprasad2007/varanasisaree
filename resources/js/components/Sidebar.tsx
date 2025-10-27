@@ -18,7 +18,8 @@ import {
   Tags,
   ShoppingCart,
   Package,
-  FileChartColumn
+  FileChartColumn,
+  Undo2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -86,11 +87,11 @@ const Sidebar = () => {
       label: 'Sales & Orders',
       items: [
         { icon: ShoppingCart, label: 'Order Management', path: '/orders' },
-        { icon: ShoppingCart, label: 'Direct Sales', path: '/pos' },
+        { icon: ShoppingCart, label: 'Direct Sales (POS)', path: '/pos' },
+        { icon: Undo2, label: 'Returns & Refunds', path: '/refunds' },
         { icon: FileChartColumn, label: 'Sales Report', path: '/sales' },
-        { icon: FileText, label: 'Refund Management', path: '/refunds' },
         { icon: FileChartColumn, label: 'Refund Reports', path: '/refunds/report' },
-        { icon: FileChartColumn, label: 'unified Report', path: '/unified-dashboard' },
+        { icon: FileChartColumn, label: 'Unified Report', path: '/unified-dashboard' },
       ],
     },
     {

@@ -8,23 +8,35 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('barcode')->nullable()->index()->after('slug');
-        });
+        if (Schema::hasTable('products')) {
+            Schema::table('products', function (Blueprint $table) {
+                if (!Schema::hasColumn('products', 'barcode')) {
+                    $table->string('barcode')->nullable()->index()->after('slug');
+                }
+            });
+        }
 
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->string('barcode')->nullable()->index()->after('sku');
-        });
+        if (Schema::hasTable('product_variants')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                if (!Schema::hasColumn('product_variants', 'barcode')) {
+                    $table->string('barcode')->nullable()->index()->after('sku');
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->dropColumn('barcode');
-        });
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('barcode');
-        });
+        if (Schema::hasTable('product_variants') && Schema::hasColumn('product_variants', 'barcode')) {
+            Schema::table('product_variants', function (Blueprint $table) {
+                $table->dropColumn('barcode');
+            });
+        }
+        if (Schema::hasTable('products') && Schema::hasColumn('products', 'barcode')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->dropColumn('barcode');
+            });
+        }
     }
 };
 

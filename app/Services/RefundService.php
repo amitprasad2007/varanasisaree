@@ -340,8 +340,8 @@ class RefundService
             'approved_refunds' => Refund::approved()->count(),
             'completed_refunds' => Refund::completed()->count(),
             'total_refunded_amount' => Refund::completed()->sum('amount'),
-            'credit_note_refunds' => Refund::byType('credit_note')->count(),
-            'money_refunds' => Refund::byType('money')->count(),
+            'credit_note_refunds' => Refund::whereNotNull('credit_note_id')->count(),
+            'money_refunds' => Refund::whereNull('credit_note_id')->where('method', 'money')->count(),
         ];
     }
 }

@@ -18,7 +18,7 @@ class Refund extends Model
         'credit_note_id',
         'amount',
         'method',
-        'status',
+        'refund_status',
         'paid_at',
         'reference',
         'order_id',
@@ -114,7 +114,7 @@ class Refund extends Model
      */
     public function isEligibleForProcessing(): bool
     {
-        return in_array($this->status, ['approved', 'processing']) &&
+        return in_array($this->refund_status, ['approved', 'processing']) &&
                !$this->isFullyProcessed();
     }
 
@@ -123,7 +123,7 @@ class Refund extends Model
      */
     public function isFullyProcessed(): bool
     {
-        return $this->status === 'completed' || $this->paid_at !== null;
+        return $this->refund_status === 'completed' || $this->paid_at !== null;
     }
 
     /**
@@ -147,7 +147,7 @@ class Refund extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('refund_status', 'pending');
     }
 
     /**
@@ -155,7 +155,7 @@ class Refund extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('refund_status', 'approved');
     }
 
     /**
@@ -163,7 +163,7 @@ class Refund extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('refund_status', 'completed');
     }
 
     /**

@@ -81,6 +81,16 @@ class Customer extends Authenticatable
     {
         return $this->hasMany(Cart::class)->whereNull('order_id');
     }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
 }
 
 

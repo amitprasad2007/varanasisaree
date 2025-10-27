@@ -43,8 +43,8 @@ class RefundManagementController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('refund_type')) {
-            $query->byType($request->refund_type);
+        if ($request->filled('method')) {
+            $query->byType($request->method);
         }
 
         if ($request->filled('date_from')) {
@@ -81,7 +81,7 @@ class RefundManagementController extends Controller
         return Inertia::render('Admin/Refunds/Index', [
             'refunds' => $refunds,
             'filters' => $request->only([
-                'status', 'refund_type', 'date_from', 'date_to',
+                'status', 'method', 'date_from', 'date_to',
                 'customer_search', 'reference', 'sort_by', 'sort_direction'
             ]),
             'statusOptions' => $statusOptions,
@@ -259,11 +259,11 @@ class RefundManagementController extends Controller
     {
         $stats = [
             'total_refunds' => \App\Models\Refund::count(),
-            'completed_amount' => \App\Models\Refund::where('status', 'completed')->sum('amount'),
+            'completed_amount' => \App\Models\Refund::where('refund_status', 'completed')->sum('amount'),
             'breakdown_by_method' => \App\Models\Refund::select('method', \DB::raw('COUNT(*) as count'), \DB::raw('SUM(amount) as total'))
                 ->groupBy('method')->get(),
-            'breakdown_by_status' => \App\Models\Refund::select('status', \DB::raw('COUNT(*) as count'))
-                ->groupBy('status')->get(),
+            'breakdown_by_status' => \App\Models\Refund::select('refund_status', \DB::raw('COUNT(*) as count'))
+                ->groupBy('refund_status')->get(),
             'breakdown_by_day' => \App\Models\Refund::selectRaw('DATE(created_at) as day, COUNT(*) as count, SUM(amount) as total')
                 ->groupBy('day')->orderBy('day','desc')->limit(30)->get(),
         ];

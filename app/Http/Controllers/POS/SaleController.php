@@ -238,7 +238,7 @@ class SaleController extends Controller
                     $apply = min($note->remaining_amount, $toUseAmount);
                     $note->remaining_amount -= $apply;
                     if ($note->remaining_amount <= 0.001) {
-                        $note->status = 'redeemed';
+                        $note->status = 'used';
                         $note->remaining_amount = 0;
                     }
                     $note->save();
@@ -340,6 +340,8 @@ class SaleController extends Controller
                     'remaining_amount' => $refundTotal,
                     'reference' => $sale->invoice_number . '-RET',
                     'status' => 'active',
+                    'issued_at' => now(),
+                    'expires_at' => now()->addYear(),
                 ]);
             }
 

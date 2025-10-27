@@ -11,11 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sales', function (Blueprint $table) {
-            $table->decimal('refunded_amount', 12, 2)->default(0)->after('paid_total');
-            $table->enum('refund_status', ['none', 'partial', 'full'])->default('none')->after('refunded_amount');
-            $table->timestamp('last_refund_at')->nullable()->after('refund_status');
-        });
+        if (Schema::hasTable('sales')) {
+            Schema::table('sales', function (Blueprint $table) {
+                if (!Schema::hasColumn('sales', 'refunded_amount')) {
+                    $table->decimal('refunded_amount', 12, 2)->default(0)->after('paid_total');
+                }
+                if (!Schema::hasColumn('sales', 'refund_status')) {
+                    $table->enum('refund_status', ['none', 'partial', 'full'])->default('none')->after('refunded_amount');
+                }
+                if (!Schema::hasColumn('sales', 'last_refund_at')) {
+                    $table->timestamp('last_refund_at')->nullable()->after('refund_status');
+                }
+            });
+        }
     }
 
     /**

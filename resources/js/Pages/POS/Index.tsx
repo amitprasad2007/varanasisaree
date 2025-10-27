@@ -244,7 +244,7 @@ export default function POSPage() {
     setSales(data);
   }
 
-  async function loadSaleItems(sale) {
+  async function loadSaleItems(sale: SaleType) {
     setSelectedSale(sale);
     setReturnItems(sale.items.map(i => ({
       sale_item_id: i.id,
@@ -256,6 +256,7 @@ export default function POSPage() {
   }
 
   async function processReturn() {
+    if (!selectedSale) return;
     setProcessingReturn(true);
     try {
       const { data } = await axios.post(`/pos/sales/${selectedSale.id}/return`, {
@@ -263,7 +264,7 @@ export default function POSPage() {
       });
       toast({ title: 'Return processed', description: `Credit note issued for ₹${data.refundTotal}` });
       setShowReturn(false); setSelectedSale(null); setReturnItems([]); setSales([]); setSaleSearch('');
-    } catch (e) {
+    } catch (e: any) {
       toast({ title: 'Error', description: e?.response?.data?.message || 'Failed to process return', variant: 'destructive' });
     } finally {
       setProcessingReturn(false);
@@ -279,7 +280,7 @@ export default function POSPage() {
       {/* Return Modal Trigger */}
       <div className="mb-3"><Button className="bg-yellow-600" onClick={() => setShowReturn(true)}>Process Return / Refund</Button></div>
       <Dialog open={showReturn} onOpenChange={setShowReturn}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-white">
           <DialogHeader>
             <DialogTitle>Process Return/Refund</DialogTitle>
           </DialogHeader>
@@ -318,7 +319,9 @@ export default function POSPage() {
               </div>
               <div className="flex gap-2 mt-4">
                 <Button onClick={() => setSelectedSale(null)} variant="outline">Back</Button>
-                <Button onClick={processReturn} loading={processingReturn} disabled={processingReturn || !returnItems.some(i => i.quantity > 0)}>Confirm Return & Issue Credit Note</Button>
+                <Button onClick={processReturn} disabled={processingReturn || !returnItems.some(i => i.quantity > 0)}>
+                  {processingReturn ? 'Processing...' : 'Confirm Return & Issue Credit Note'}
+                </Button>
               </div>
             </div>
           )}

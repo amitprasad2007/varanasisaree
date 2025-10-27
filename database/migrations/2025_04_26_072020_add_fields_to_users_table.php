@@ -11,13 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('avatar')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('address')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->timestamp('last_login_at')->nullable();
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (!Schema::hasColumn('users', 'avatar')) {
+                    $table->string('avatar')->nullable();
+                }
+                if (!Schema::hasColumn('users', 'phone')) {
+                    $table->string('phone')->nullable();
+                }
+                if (!Schema::hasColumn('users', 'address')) {
+                    $table->string('address')->nullable();
+                }
+                if (!Schema::hasColumn('users', 'is_active')) {
+                    $table->boolean('is_active')->default(true);
+                }
+                if (!Schema::hasColumn('users', 'last_login_at')) {
+                    $table->timestamp('last_login_at')->nullable();
+                }
+            });
+        }
     }
 
     /**
