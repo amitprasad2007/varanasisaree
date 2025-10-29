@@ -290,6 +290,11 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
         ]);
 
+        // Enforce that a customer is attached to the sale before processing returns
+        if (!$sale->customer_id) {
+            return response()->json(['message' => 'Attach a customer to this invoice before processing return.'], 422);
+        }
+
         return DB::transaction(function () use ($sale, $data) {
             $return = new \App\Models\SaleReturn();
             $return->sale_id = $sale->id;
@@ -328,21 +333,22 @@ class SaleController extends Controller
             $return->refund_total = $refundTotal;
             $return->save();
 
-            // ------- Credit Note Logic ---------
-            // Refund is done using credit note ONLY, per requirements
+            // ------- Unified Refund Flow via RefundService ---------
             $customerId = $sale->customer_id;
             if ($refundTotal > 0 && $customerId) {
-                \App\Models\CreditNote::create([
-                    'customer_id' => $customerId,
+                /** @var \App\Services\RefundService $refundService */
+                $refundService = app(\App\Services\RefundService::class);
+                // Create refund request for this POS return and immediately approve/process
+                $refund = $refundService->createRefundRequest([
                     'sale_id' => $sale->id,
                     'sale_return_id' => $return->id,
+                    'customer_id' => $customerId,
                     'amount' => $refundTotal,
-                    'remaining_amount' => $refundTotal,
-                    'reference' => $sale->invoice_number . '-RET',
-                    'status' => 'active',
-                    'issued_at' => now(),
-                    'expires_at' => now()->addYear(),
+                    'method' => 'credit_note',
+                    'reason' => 'POS return processed',
                 ]);
+                // Approve (will process and issue credit note)
+                $refundService->approveRefund($refund);
             }
 
             // Mark sale as returned if full return
@@ -354,6 +360,44 @@ class SaleController extends Controller
 
             return response()->json(['returnId' => $return->id, 'refundTotal' => $refundTotal]);
         });
+    }
+
+    /**
+     * Attach or create a customer for an existing sale (before returns).
+     */
+    public function attachCustomer(Request $request, $id)
+    {
+        $sale = Sale::findOrFail($id);
+
+        $data = $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
+            'name' => 'nullable|string',
+            'phone' => 'required_without:customer_id|nullable|string',
+            'email' => 'required_without:customer_id|nullable|email',
+            'address' => 'nullable|string',
+            'gstin' => 'nullable|string',
+        ]);
+
+        // If a customer_id is provided, use it; otherwise create a new customer from provided details
+        if (!empty($data['customer_id'])) {
+            $customer = Customer::findOrFail($data['customer_id']);
+        } else {
+            $customer = Customer::create([
+                'name' => $data['name'] ?? ($data['phone'] ?? 'Customer'),
+                'phone' => $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'address' => $data['address'] ?? null,
+                'gstin' => $data['gstin'] ?? null,
+            ]);
+        }
+
+        $sale->customer_id = $customer->id;
+        $sale->save();
+
+        return response()->json([
+            'saleId' => $sale->id,
+            'customer' => [ 'id' => $customer->id, 'name' => $customer->name, 'phone' => $customer->phone, 'email' => $customer->email ],
+        ]);
     }
 
     public function report(Request $request)

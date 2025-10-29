@@ -69,7 +69,7 @@ class POSRefundTest extends TestCase
         $this->assertEquals(3, $variant->fresh()->stock_quantity);
 
         // Process return
-        $response = $this->postJson("/api/pos/sales/{$sale->id}/return", [
+        $response = $this->postJson("/pos/sales/{$sale->id}/return", [
             'items' => [
                 [
                     'sale_item_id' => $saleItem->id,
@@ -101,6 +101,13 @@ class POSRefundTest extends TestCase
 
         // Verify stock was restored
         $this->assertEquals(5, $variant->fresh()->stock_quantity);
+
+        // Verify refund and credit note were created via unified RefundService
+        $this->assertDatabaseHas('refunds', [
+            'sale_id' => $sale->id,
+            'refund_status' => 'completed',
+            'amount' => 2400,
+        ]);
 
         // Verify credit note was created
         $this->assertDatabaseHas('credit_notes', [
@@ -152,7 +159,7 @@ class POSRefundTest extends TestCase
         $variant->decrement('stock_quantity', 8);
 
         // Process partial return (only 5 items)
-        $response = $this->postJson("/api/pos/sales/{$sale->id}/return", [
+        $response = $this->postJson("/pos/sales/{$sale->id}/return", [
             'items' => [
                 [
                     'sale_item_id' => $saleItem1->id,
@@ -163,6 +170,13 @@ class POSRefundTest extends TestCase
         ]);
 
         $response->assertStatus(200);
+
+        // Verify only partial credit was issued and refund recorded
+        $this->assertDatabaseHas('refunds', [
+            'sale_id' => $sale->id,
+            'refund_status' => 'completed',
+            'amount' => 5000,
+        ]);
 
         // Verify only partial credit was issued
         $this->assertDatabaseHas('credit_notes', [

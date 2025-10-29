@@ -14,6 +14,7 @@ Route::prefix('pos')->group(function () {
     Route::get('/sales/{id}/invoice', [SaleController::class, 'showInvoice']);
     Route::post('/sales', [SaleController::class, 'createSale']);
     Route::post('/sales/{id}/return', [SaleController::class, 'processReturn']);
+    Route::post('/sales/{id}/attach-customer', [SaleController::class, 'attachCustomer']);
     Route::get('/sales/report', [SaleController::class, 'report']);
     Route::post('/sales/hold', [SaleController::class, 'holdSale']);
     Route::get('/sales/{id}/resume', [SaleController::class, 'resumeSale']);

@@ -57,6 +57,10 @@ export default function POSPage() {
   const [customerObj, setCustomerObj] = useState<{ id: number, name: string } | null>(null); // store fetched customer
   const [creditNotes, setCreditNotes] = useState<CreditNoteType[]>([]);
   const [creditNoteToUse, setCreditNoteToUse] = useState(0);
+  const [attachPhone, setAttachPhone] = useState('');
+  const [attachEmail, setAttachEmail] = useState('');
+  const [attachName, setAttachName] = useState('');
+  const [attachingCustomer, setAttachingCustomer] = useState(false);
 
   const subtotal = useMemo(() => cart.reduce((s, c) => s + c.price * c.qty, 0), [cart]);
   const discountAmt = useMemo(() => {
@@ -271,6 +275,29 @@ export default function POSPage() {
     }
   }
 
+  async function attachCustomerToSale() {
+    if (!selectedSale) return;
+    if (!attachPhone && !attachEmail) {
+      toast({ title: 'Provide contact', description: 'Phone or Email is required to create customer', variant: 'destructive' });
+      return;
+    }
+    setAttachingCustomer(true);
+    try {
+      const { data } = await axios.post(`/pos/sales/${selectedSale.id}/attach-customer`, {
+        name: attachName || undefined,
+        phone: attachPhone || undefined,
+        email: attachEmail || undefined,
+      });
+      // Update selectedSale with attached customer
+      setSelectedSale(prev => prev ? { ...prev, customer: { id: data.customer.id, name: data.customer.name } } : prev);
+      toast({ title: 'Customer attached', description: 'Customer has been linked to this invoice.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.response?.data?.message || 'Failed to attach customer', variant: 'destructive' });
+    } finally {
+      setAttachingCustomer(false);
+    }
+  }
+
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Direct Sales', href: route('pos.index') },
@@ -306,6 +333,20 @@ export default function POSPage() {
           ) : (
             <div>
               <div className="mb-2 font-medium">Invoice: {selectedSale.invoice_number} (Customer: {selectedSale.customer?.name})</div>
+              {!selectedSale.customer && (
+                <div className="mb-3 p-3 border rounded">
+                  <div className="text-sm font-medium mb-2">Attach customer to proceed with return</div>
+                  <div className="flex gap-2 mb-2">
+                    <Input value={attachName} onChange={e=>setAttachName(e.target.value)} placeholder="Name (optional)" />
+                    <Input value={attachPhone} onChange={e=>setAttachPhone(e.target.value)} placeholder="Phone" />
+                    <Input value={attachEmail} onChange={e=>setAttachEmail(e.target.value)} placeholder="Email" />
+                    <Button onClick={attachCustomerToSale} disabled={attachingCustomer}>
+                      {attachingCustomer ? 'Attaching...' : 'Attach Customer'}
+                    </Button>
+                  </div>
+                  <div className="text-xs text-gray-500">Provide phone or email to create a new customer and link to this invoice.</div>
+                </div>
+              )}
               <div className="max-h-40 overflow-y-auto">
                 {returnItems.map((r, idx) => (
                   <div key={r.sale_item_id} className="flex gap-2 items-center mb-2">
@@ -319,7 +360,7 @@ export default function POSPage() {
               </div>
               <div className="flex gap-2 mt-4">
                 <Button onClick={() => setSelectedSale(null)} variant="outline">Back</Button>
-                <Button onClick={processReturn} disabled={processingReturn || !returnItems.some(i => i.quantity > 0)}>
+                <Button onClick={processReturn} disabled={processingReturn || !returnItems.some(i => i.quantity > 0) || !selectedSale.customer}>
                   {processingReturn ? 'Processing...' : 'Confirm Return & Issue Credit Note'}
                 </Button>
               </div>

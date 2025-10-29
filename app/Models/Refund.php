@@ -88,6 +88,14 @@ class Refund extends Model
     }
 
     /**
+     * Backward-compatible accessor: expose `status` as alias of `refund_status` for frontend.
+     */
+    public function getStatusAttribute(): ?string
+    {
+        return $this->attributes['status'] ?? $this->attributes['refund_status'] ?? null;
+    }
+
+    /**
      * Get the source transaction (sale or order)
      */
     public function getSourceTransactionAttribute()

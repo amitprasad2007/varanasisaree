@@ -39,7 +39,7 @@ class RefundService
                 'customer_id' => $customer->id,
                 'amount' => $data['amount'],
                 'method' => $data['method'] ?? 'credit_note',
-                'status' => 'pending',
+                'refund_status' => 'pending',
                 'reason' => $data['reason'],
                 'admin_notes' => $data['admin_notes'] ?? null,
                 'reference' => $this->generateRefundReference(),
@@ -64,7 +64,7 @@ class RefundService
     {
         return DB::transaction(function () use ($refund, $data) {
             $refund->update([
-                'status' => 'approved',
+                'refund_status' => 'approved',
                 'approved_at' => now(),
                 'processed_by' => auth()->id(),
                 'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
@@ -87,7 +87,7 @@ class RefundService
     {
         return DB::transaction(function () use ($refund, $reason, $data) {
             $refund->update([
-                'status' => 'rejected',
+                'refund_status' => 'rejected',
                 'rejection_reason' => $reason,
                 'processed_by' => auth()->id(),
                 'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
@@ -106,7 +106,7 @@ class RefundService
     public function processRefund(Refund $refund): Refund
     {
         return DB::transaction(function () use ($refund) {
-            $refund->update(['status' => 'processing', 'processed_at' => now()]);
+            $refund->update(['refund_status' => 'processing', 'processed_at' => now()]);
 
             if ($refund->method === 'credit_note') {
                 $this->processCreditNoteRefund($refund);
@@ -115,7 +115,7 @@ class RefundService
             }
 
             $refund->update([
-                'status' => 'completed',
+                'refund_status' => 'completed',
                 'completed_at' => now(),
                 'paid_at' => now(),
             ]);
@@ -187,10 +187,10 @@ class RefundService
     {
         try {
             $razorpayService = app(\App\Services\RazorpayRefundService::class);
-            
+
             $result = $razorpayService->processRefund(
-                $transaction, 
-                $transaction->amount, 
+                $transaction,
+                $transaction->amount,
                 $transaction->refund->reason
             );
 
