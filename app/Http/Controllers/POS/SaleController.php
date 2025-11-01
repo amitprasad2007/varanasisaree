@@ -237,17 +237,18 @@ class SaleController extends Controller
                     if ($toUseAmount <= 0) break;
                     $apply = min($note->remaining_amount, $toUseAmount);
                     $note->remaining_amount -= $apply;
+                    $note->used_amount = ($note->used_amount ?? 0) + $apply;
                     if ($note->remaining_amount <= 0.001) {
                         $note->status = 'used';
                         $note->remaining_amount = 0;
                     }
                     $note->save();
                     // Save usage in SalePayment (log how much from each note was applied)
-                    \App\Models\SalePayment::create([
+                    \\App\\Models\\SalePayment::create([
                         'sale_id' => $sale->id,
                         'method' => 'credit_note',
                         'amount' => $apply,
-                        'reference' => 'CreditNote#'.$note->id,
+                        'reference' => 'CreditNote#'.$note->credit_note_number,
                     ]);
                     $toUseAmount -= $apply;
                 }
@@ -301,7 +302,12 @@ class SaleController extends Controller
             foreach ($data['items'] as $ri) {
                 $saleItem = $sale->items->firstWhere('id', $ri['sale_item_id']);
                 if (!$saleItem) { continue; }
-                $qty = min((int) $ri['quantity'], (int) $saleItem->quantity);
+                $alreadyReturned = \App\Models\SaleReturnItem::whereHas('saleReturn', fn($q) => $q->where('sale_id', $sale->id))
+                    ->where('sale_item_id', $saleItem->id)
+                    ->sum('quantity');
+                $allowed = max(0, (int) $saleItem->quantity - (int) $alreadyReturned);
+                $qty = min((int) $ri['quantity'], $allowed);
+                if ($qty <= 0) { continue; }
                 $amount = $qty * (float) $saleItem->price;
 
                 \App\Models\SaleReturnItem::create([
@@ -336,12 +342,14 @@ class SaleController extends Controller
                     'customer_id' => $customerId,
                     'sale_id' => $sale->id,
                     'sale_return_id' => $return->id,
+                    'credit_note_number' => static::generateCreditNoteNumber(),
                     'amount' => $refundTotal,
+                    'used_amount' => 0,
                     'remaining_amount' => $refundTotal,
                     'reference' => $sale->invoice_number . '-RET',
                     'status' => 'active',
-                    'issued_at' => now(),
-                    'expires_at' => now()->addYear(),
+                    'issued_at' => now()->toDateString(),
+                    'expires_at' => now()->addYear()->toDateString(),
                 ]);
             }
 
@@ -571,6 +579,13 @@ class SaleController extends Controller
         return $prefix . $next;
     }
 
+    protected static function generateCreditNoteNumber(): string
+    {
+        $prefix = 'CN-';
+        $next = str_pad((string) ((\App\Models\CreditNote::max('id') ?? 0) + 1), 6, '0', STR_PAD_LEFT);
+        return $prefix . $next;
+    }
+
     /**
      * List completed sales, newest first, for POS Return UI.
      */
@@ -602,7 +617,7 @@ class SaleController extends Controller
             ->where('status', 'active')
             ->where('remaining_amount', '>', 0)
             ->orderBy('created_at')
-            ->get(['id', 'amount', 'remaining_amount', 'reference', 'created_at']);
+            ->get(['id', 'credit_note_number', 'amount', 'remaining_amount', 'created_at']);
         return response()->json($notes);
     }
 }
