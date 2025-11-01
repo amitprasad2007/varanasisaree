@@ -40,11 +40,11 @@ class RefundManagementController extends Controller
 
         // Apply filters
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('refund_status', $request->status);
         }
 
-        if ($request->filled('method')) {
-            $query->byType($request->method);
+        if ($request->filled('refund_type')) {
+            $query->byType($request->refund_type);
         }
 
         if ($request->filled('date_from')) {
@@ -81,7 +81,7 @@ class RefundManagementController extends Controller
         return Inertia::render('Admin/Refunds/Index', [
             'refunds' => $refunds,
             'filters' => $request->only([
-                'status', 'method', 'date_from', 'date_to',
+                'status', 'refund_type', 'date_from', 'date_to',
                 'customer_search', 'reference', 'sort_by', 'sort_direction'
             ]),
             'statusOptions' => $statusOptions,

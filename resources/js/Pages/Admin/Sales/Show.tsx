@@ -90,6 +90,10 @@ export default function SaleShow({ sale }: Props) {
     const [showReturnModal, setShowReturnModal] = useState(false);
     const [returnSelections, setReturnSelections] = useState<{[saleItemId:number]: number}>({});
     const [reason, setReason] = useState('');
+    const [attachName, setAttachName] = useState('');
+    const [attachPhone, setAttachPhone] = useState('');
+    const [attachEmail, setAttachEmail] = useState('');
+    const [attaching, setAttaching] = useState(false);
     const handleOpenReturnModal = () => setShowReturnModal(true);
     const handleCloseReturnModal = () => { setShowReturnModal(false); setReturnSelections({}); setReason(''); };
     const handleReturnQtyChange = (saleItemId: number, qty: number, max: number) => {
@@ -99,11 +103,30 @@ export default function SaleShow({ sale }: Props) {
     };
     const handleReturnSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!sale.customer) {
+            return;
+        }
         // TODO: Integrate with real API endpoint
         router.post(route('sales.processReturn', sale.id), {
             items: Object.entries(returnSelections).filter(([_, q]) => q > 0).map(([sale_item_id, quantity]) => ({ sale_item_id, quantity })),
             reason,
         }, { onSuccess: () => handleCloseReturnModal() });
+    };
+
+    const handleAttachCustomer = () => {
+        if (!attachPhone && !attachEmail) return;
+        setAttaching(true);
+        router.post(route('sales.attachCustomer', sale.id), {
+            name: attachName || undefined,
+            phone: attachPhone || undefined,
+            email: attachEmail || undefined,
+        }, {
+            onFinish: () => setAttaching(false),
+            onSuccess: () => {
+                // refresh sale data to reflect attached customer
+                router.reload({ only: ['sale'] });
+            }
+        });
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -412,6 +435,22 @@ export default function SaleShow({ sale }: Props) {
                 <DialogContent className="max-w-2xl bg-white">
                     <DialogTitle>Return Items</DialogTitle>
                     <DialogDescription>Select products and quantities to return.</DialogDescription>
+                    {!sale.customer && (
+                        <div className="mb-3 p-3 border rounded">
+                            <div className="text-sm font-medium mb-2">Attach customer to proceed with return</div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <input className="border rounded p-2 w-full" placeholder="Name (optional)" value={attachName} onChange={e=>setAttachName(e.target.value)} />
+                                    <input className="border rounded p-2 w-full" placeholder="Phone" value={attachPhone} onChange={e=>setAttachPhone(e.target.value)} />
+                                    <input className="border rounded p-2 w-full" placeholder="Email" value={attachEmail} onChange={e=>setAttachEmail(e.target.value)} />
+                                </div>
+                                <div>
+                                    <Button type="button" onClick={handleAttachCustomer} disabled={attaching}>{attaching ? 'Attaching...' : 'Attach Customer'}</Button>
+                                </div>
+                                <div className="text-xs text-gray-500">Provide phone or email to create a new customer and link to this invoice.</div>
+                            </div>
+                        </div>
+                    )}
                     <form onSubmit={handleReturnSubmit} className="space-y-4">
                         <Table>
                             <TableHeader>
@@ -448,7 +487,7 @@ export default function SaleShow({ sale }: Props) {
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button type="button" variant="outline" onClick={handleCloseReturnModal}>Cancel</Button>
-                            <Button type="submit" variant="default" disabled={Object.values(returnSelections).every(q => !q)}>Submit Return</Button>
+                            <Button type="submit" variant="default" disabled={!sale.customer || Object.values(returnSelections).every(q => !q)}>Submit Return</Button>
                         </div>
                     </form>
                 </DialogContent>

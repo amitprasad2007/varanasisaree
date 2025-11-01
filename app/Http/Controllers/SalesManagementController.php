@@ -133,6 +133,10 @@ class SalesManagementController extends Controller
      */
     public function processReturn(Request $request, Sale $sale)
     {
+        // Ensure sale has a customer attached before processing return
+        if (!$sale->customer_id) {
+            return redirect()->back()->with('error', 'Attach a customer to this invoice before processing return.');
+        }
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.sale_item_id' => 'required|exists:sale_items,id',
@@ -187,6 +191,38 @@ class SalesManagementController extends Controller
 
             return redirect()->back()->with('success', 'Return processed successfully');
         });
+    }
+
+    /**
+     * Attach or create a customer for an existing sale (Admin UI)
+     */
+    public function attachCustomer(Request $request, Sale $sale)
+    {
+        $data = $request->validate([
+            'customer_id' => 'nullable|exists:customers,id',
+            'name' => 'nullable|string',
+            'phone' => 'required_without:customer_id|nullable|string',
+            'email' => 'required_without:customer_id|nullable|email',
+            'address' => 'nullable|string',
+            'gstin' => 'nullable|string',
+        ]);
+
+        if (!empty($data['customer_id'])) {
+            $customer = Customer::findOrFail($data['customer_id']);
+        } else {
+            $customer = Customer::create([
+                'name' => $data['name'] ?? ($data['phone'] ?? 'Customer'),
+                'phone' => $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'address' => $data['address'] ?? null,
+                'gstin' => $data['gstin'] ?? null,
+            ]);
+        }
+
+        $sale->customer_id = $customer->id;
+        $sale->save();
+
+        return redirect()->back()->with('success', 'Customer attached to sale.');
     }
 
     /**

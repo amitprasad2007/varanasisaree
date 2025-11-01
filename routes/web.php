@@ -208,6 +208,7 @@ Route::middleware('auth')->group(function () {
      Route::get('sales/{sale}', [SalesManagementController::class, 'show'])->name('sales.show');
      Route::put('sales/{sale}/status', [SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
      Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.processReturn');
+     Route::post('sales/{sale}/attach-customer', [SalesManagementController::class, 'attachCustomer'])->name('sales.attachCustomer');
      Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
      Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
      Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');
@@ -224,6 +225,8 @@ Route::middleware('auth')->group(function () {
     Route::put('refund-items/{refundItem}/qc-status', [RefundManagementController::class, 'updateItemQcStatus'])->name('refund-items.update-qc-status');
     Route::get('refund-statistics', [RefundManagementController::class, 'getStatistics'])->name('refunds.statistics');
     Route::get('refunds-export', [RefundManagementController::class, 'export'])->name('refunds.export');
+
+    // Customer refunds UI removed: no customer login/portal flow
 
 });
 
