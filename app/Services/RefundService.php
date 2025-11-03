@@ -27,9 +27,13 @@ class RefundService
             // Determine source transaction
             $sourceTransaction = $this->getSourceTransaction($data);
             $customer = $this->getCustomer($data, $sourceTransaction);
+            $vendor = $this->getVendor($data, $sourceTransaction);
 
             // Validate refund eligibility
             $this->validateRefundEligibility($sourceTransaction, $data['amount']);
+            
+            // Validate vendor permissions
+            $this->validateVendorPermissions($vendor, $sourceTransaction);
 
             // Create refund record
             $refund = Refund::create([
@@ -37,10 +41,11 @@ class RefundService
                 'order_id' => $data['order_id'] ?? null,
                 'sale_return_id' => $data['sale_return_id'] ?? null,
                 'customer_id' => $customer->id,
+                'vendor_id' => $vendor?->id,
                 'amount' => $data['amount'],
                 'method' => $data['method'] ?? 'credit_note',
                 'refund_status' => 'pending',
-                'reason' => $data['reason'],
+                'reason' => $data['reason'] ?? 'Customer return',
                 'admin_notes' => $data['admin_notes'] ?? null,
                 'reference' => $this->generateRefundReference(),
                 'requested_at' => now(),
@@ -48,11 +53,14 @@ class RefundService
 
             // Create refund items
             if (isset($data['items']) && is_array($data['items'])) {
-                $this->createRefundItems($refund, $data['items']);
+                $this->createRefundItems($refund, $data['items'], $vendor?->id);
             }
 
             // Notify customer: requested
-            app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'requested');
+            if (class_exists(\App\Services\NotificationService::class)) {
+                app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'requested');
+            }
+            
             return $refund;
         });
     }
@@ -142,12 +150,16 @@ class RefundService
             'sale_return_id' => $refund->sale_return_id,
             'refund_id' => $refund->id,
             'customer_id' => $refund->customer_id,
+            'vendor_id' => $refund->vendor_id,
+            'credit_note_number' => $this->generateCreditNoteNumber(),
             'amount' => $refund->amount,
+            'used_amount' => 0,
             'remaining_amount' => $refund->amount,
             'reference' => $this->generateCreditNoteReference(),
             'status' => 'active',
             'issued_at' => now()->toDateString(),
             'expires_at' => now()->addYear()->toDateString(), // 1 year expiry
+            'notes' => 'Auto-generated from refund: ' . $refund->reference,
         ]);
 
         $refund->update(['credit_note_id' => $creditNote->id]);
@@ -277,11 +289,12 @@ class RefundService
     /**
      * Create refund items
      */
-    protected function createRefundItems(Refund $refund, array $items): void
+    protected function createRefundItems(Refund $refund, array $items, ?int $vendorId = null): void
     {
         foreach ($items as $item) {
             RefundItem::create([
                 'refund_id' => $refund->id,
+                'vendor_id' => $vendorId,
                 'sale_return_item_id' => $item['sale_return_item_id'] ?? null,
                 'order_item_id' => $item['order_item_id'] ?? null,
                 'product_id' => $item['product_id'],
@@ -369,6 +382,64 @@ class RefundService
     protected function generateTransactionId(): string
     {
         return 'TXN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+    }
+
+    /**
+     * Generate credit note number
+     */
+    protected function generateCreditNoteNumber(): string
+    {
+        $prefix = 'CN';
+        $dateCode = now()->format('Ymd');
+        $sequence = str_pad((CreditNote::max('id') ?? 0) + 1, 4, '0', STR_PAD_LEFT);
+        
+        return "{$prefix}-{$dateCode}-{$sequence}";
+    }
+
+    /**
+     * Get vendor from data or source transaction
+     */
+    protected function getVendor(array $data, $sourceTransaction): ?Vendor
+    {
+        if (isset($data['vendor_id'])) {
+            return Vendor::find($data['vendor_id']);
+        }
+
+        if ($sourceTransaction instanceof Sale && $sourceTransaction->vendor_id) {
+            return $sourceTransaction->vendor;
+        }
+
+        if ($sourceTransaction instanceof Order && $sourceTransaction->vendor_id) {
+            return $sourceTransaction->vendor;
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate vendor permissions
+     */
+    protected function validateVendorPermissions(?Vendor $vendor, $sourceTransaction): void
+    {
+        // If we have a vendor, ensure the source transaction belongs to them
+        if ($vendor) {
+            if ($sourceTransaction instanceof Sale && $sourceTransaction->vendor_id !== $vendor->id) {
+                throw new \InvalidArgumentException('Sale does not belong to the specified vendor');
+            }
+
+            if ($sourceTransaction instanceof Order && $sourceTransaction->vendor_id !== $vendor->id) {
+                throw new \InvalidArgumentException('Order does not belong to the specified vendor');
+            }
+        }
+
+        // For multi-vendor systems, ensure we have vendor context
+        if ($sourceTransaction instanceof Sale && $sourceTransaction->vendor_id && !$vendor) {
+            throw new \InvalidArgumentException('Vendor context required for this sale');
+        }
+
+        if ($sourceTransaction instanceof Order && $sourceTransaction->vendor_id && !$vendor) {
+            throw new \InvalidArgumentException('Vendor context required for this order');
+        }
     }
 
     /**

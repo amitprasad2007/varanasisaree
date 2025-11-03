@@ -27,16 +27,24 @@ class RefundManagementController extends Controller
      */
     public function index(Request $request): Response
     {
+        $user = auth()->user();
+        
         $query = Refund::with([
             'sale.customer',
             'order.customer',
             'customer',
+            'vendor',
             'processedBy',
             'creditNote',
             'refundTransaction',
             'refundItems.product',
             'refundItems.productVariant'
         ]);
+
+        // Apply vendor isolation for non-admin users
+        if ($user->vendor_id && !$user->hasRole('admin')) {
+            $query->where('vendor_id', $user->vendor_id);
+        }
 
         // Apply filters
         if ($request->filled('status')) {
@@ -45,6 +53,10 @@ class RefundManagementController extends Controller
 
         if ($request->filled('refund_type')) {
             $query->byType($request->refund_type);
+        }
+
+        if ($request->filled('vendor_id') && $user->hasRole('admin')) {
+            $query->where('vendor_id', $request->vendor_id);
         }
 
         if ($request->filled('date_from')) {
@@ -77,16 +89,26 @@ class RefundManagementController extends Controller
         // Get filter options
         $statusOptions = ['pending', 'approved', 'rejected', 'processing', 'completed', 'failed'];
         $refundTypeOptions = ['credit_note', 'money'];
+        
+        $vendors = [];
+        if ($user->hasRole('admin')) {
+            $vendors = \App\Models\Vendor::active()->pluck('business_name', 'id');
+        }
 
         return Inertia::render('Admin/Refunds/Index', [
             'refunds' => $refunds,
+            'vendors' => $vendors,
             'filters' => $request->only([
-                'status', 'refund_type', 'date_from', 'date_to',
+                'status', 'refund_type', 'vendor_id', 'date_from', 'date_to',
                 'customer_search', 'reference', 'sort_by', 'sort_direction'
             ]),
             'statusOptions' => $statusOptions,
             'refundTypeOptions' => $refundTypeOptions,
             'statistics' => $this->refundService->getRefundStatistics(),
+            'can' => [
+                'create' => $user->can('create', Refund::class),
+                'view_all_vendors' => $user->hasRole('admin'),
+            ],
         ]);
     }
 
@@ -140,9 +162,12 @@ class RefundManagementController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+        
         $request->validate([
             'sale_id' => 'nullable|exists:sales,id',
             'order_id' => 'nullable|exists:orders,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'amount' => 'required|numeric|min:0.01',
             'method' => 'required|in:credit_note,money,bank_transfer,manual',
             'reason' => 'required|string|max:1000',
@@ -156,8 +181,19 @@ class RefundManagementController extends Controller
             'items.*.reason' => 'nullable|string|max:500',
         ]);
 
+        // Validate vendor permissions
+        $vendorId = $request->vendor_id ?? $user->vendor_id;
+        if (!$user->can('createForVendor', [Refund::class, $vendorId])) {
+            abort(403, 'Unauthorized to create refunds for this vendor');
+        }
+
         try {
-            $refund = $this->refundService->createRefundRequest($request->all());
+            $refundData = $request->all();
+            if (!isset($refundData['vendor_id']) && $user->vendor_id) {
+                $refundData['vendor_id'] = $user->vendor_id;
+            }
+
+            $refund = $this->refundService->createRefundRequest($refundData);
 
             return redirect()->route('refunds.show', $refund)
                 ->with('success', 'Refund request created successfully.');

@@ -20,4 +20,20 @@ Route::prefix('vendor')->group(function () {
     Route::get('check-subdomain/{domain}', [VendorAuthController::class, 'checkSubdomain'])->name('vendor.check-subdomain');
 });
 
+// Vendor refund management routes
+Route::prefix('vendor')->name('vendor.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/home', [VendorController::class, 'home'])->name('home');
+    
+    // Vendor Refund Management Routes
+    Route::prefix('refunds')->name('refunds.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\VendorRefundController::class, 'index'])->name('index');
+        Route::get('/{refund}', [\App\Http\Controllers\VendorRefundController::class, 'show'])->name('show');
+        Route::post('/{refund}/approve', [\App\Http\Controllers\VendorRefundController::class, 'approve'])->name('approve');
+        Route::post('/{refund}/reject', [\App\Http\Controllers\VendorRefundController::class, 'reject'])->name('reject');
+        Route::get('/analytics/data', [\App\Http\Controllers\VendorRefundController::class, 'analytics'])->name('analytics');
+        Route::get('/export/csv', [\App\Http\Controllers\VendorRefundController::class, 'export'])->name('export');
+    });
+});
+
 require __DIR__.'/pos.php';

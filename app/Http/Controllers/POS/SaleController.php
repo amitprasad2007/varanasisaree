@@ -187,6 +187,7 @@ class SaleController extends Controller
             // Create sale
             $sale = Sale::create([
                 'customer_id' => $customerId,
+                'vendor_id' => auth()->user()->vendor_id ?? null, // Get vendor from current user
                 'invoice_number' => static::generateInvoiceNumber(),
                 'status' => 'completed',
                 'subtotal' => $subtotal,
@@ -196,6 +197,8 @@ class SaleController extends Controller
                 'tax_amount' => $taxAmount,
                 'total' => $total,
                 'paid_total' => array_sum(array_map(fn($p) => (float) $p['amount'], $data['payments'])),
+                'refunded_amount' => 0,
+                'refund_status' => 'none',
             ]);
 
             // Items + stock deduction
@@ -229,28 +232,30 @@ class SaleController extends Controller
             $paymentCreditNote = collect($data['payments'])->firstWhere('method', 'credit_note');
             if ($paymentCreditNote && $customerId) {
                 $toUseAmount = (float)$paymentCreditNote['amount'];
-                // Find active, remaining credit notes, oldest first
+                $vendorId = auth()->user()->vendor_id ?? null;
+                
+                // Find active, remaining credit notes for this vendor and customer, oldest first
                 $creditNotes = \App\Models\CreditNote::where('customer_id', $customerId)
-                    ->where('status', 'active')->where('remaining_amount', '>', 0)
+                    ->where('status', 'active')
+                    ->where('remaining_amount', '>', 0)
+                    ->when($vendorId, function ($query) use ($vendorId) {
+                        return $query->where('vendor_id', $vendorId);
+                    })
                     ->orderBy('created_at')->get();
+                    
                 foreach ($creditNotes as $note) {
                     if ($toUseAmount <= 0) break;
-                    $apply = min($note->remaining_amount, $toUseAmount);
-                    $note->remaining_amount -= $apply;
-                    $note->used_amount = ($note->used_amount ?? 0) + $apply;
-                    if ($note->remaining_amount <= 0.001) {
-                        $note->status = 'used';
-                        $note->remaining_amount = 0;
-                    }
-                    $note->save();
+                    $appliedAmount = $note->applyCredit($toUseAmount);
+                    
                     // Save usage in SalePayment (log how much from each note was applied)
-                    \\App\\Models\\SalePayment::create([
+                    \App\Models\SalePayment::create([
                         'sale_id' => $sale->id,
                         'method' => 'credit_note',
-                        'amount' => $apply,
-                        'reference' => 'CreditNote#'.$note->credit_note_number,
+                        'amount' => $appliedAmount,
+                        'reference' => 'CreditNote#' . ($note->credit_note_number ?? $note->reference),
                     ]);
-                    $toUseAmount -= $apply;
+                    
+                    $toUseAmount -= $appliedAmount;
                 }
             }
 
@@ -344,19 +349,33 @@ class SaleController extends Controller
             if ($refundTotal > 0 && $customerId) {
                 /** @var \App\Services\RefundService $refundService */
                 $refundService = app(\App\Services\RefundService::class);
+                
+                // Create refund items data from return items
+                $refundItems = [];
+                foreach ($return->items as $returnItem) {
+                    $refundItems[] = [
+                        'sale_return_item_id' => $returnItem->id,
+                        'product_id' => $returnItem->product_id,
+                        'product_variant_id' => $returnItem->product_variant_id,
+                        'quantity' => $returnItem->quantity,
+                        'unit_price' => $returnItem->amount / $returnItem->quantity,
+                        'total_amount' => $returnItem->amount,
+                        'reason' => $return->reason ?? 'POS Return',
+                    ];
+                }
+                
                 // Create refund request for this POS return and immediately approve/process
                 $refund = $refundService->createRefundRequest([
                     'sale_id' => $sale->id,
                     'sale_return_id' => $return->id,
-                    'credit_note_number' => static::generateCreditNoteNumber(),
+                    'vendor_id' => $sale->vendor_id,
+                    'customer_id' => $customerId,
                     'amount' => $refundTotal,
-                    'used_amount' => 0,
-                    'remaining_amount' => $refundTotal,
-                    'reference' => $sale->invoice_number . '-RET',
-                    'status' => 'active',
-                    'issued_at' => now()->toDateString(),
-                    'expires_at' => now()->addYear()->toDateString(),
+                    'method' => 'credit_note',
+                    'reason' => $return->reason ?? 'POS Return',
+                    'items' => $refundItems,
                 ]);
+                
                 // Approve (will process and issue credit note)
                 $refundService->approveRefund($refund);
             }

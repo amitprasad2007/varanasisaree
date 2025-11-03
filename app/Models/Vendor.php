@@ -103,4 +103,47 @@ class Vendor extends Authenticatable
     {
         return $this->status === 'active' && $this->is_verified;
     }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
+    /**
+     * Get pending refunds for this vendor
+     */
+    public function pendingRefunds(): HasMany
+    {
+        return $this->refunds()->where('refund_status', 'pending');
+    }
+
+    /**
+     * Get refund statistics for this vendor
+     */
+    public function getRefundStatistics(): array
+    {
+        $refunds = $this->refunds();
+        
+        return [
+            'total_refunds' => $refunds->count(),
+            'pending_refunds' => $refunds->where('refund_status', 'pending')->count(),
+            'completed_refunds' => $refunds->where('refund_status', 'completed')->count(),
+            'total_refunded_amount' => $refunds->where('refund_status', 'completed')->sum('amount'),
+            'credit_note_refunds' => $refunds->whereNotNull('credit_note_id')->count(),
+            'money_refunds' => $refunds->whereNull('credit_note_id')->count(),
+        ];
+    }
+
+    /**
+     * Check if vendor can process refunds
+     */
+    public function canProcessRefunds(): bool
+    {
+        return $this->isActive() && $this->is_verified;
+    }
 }

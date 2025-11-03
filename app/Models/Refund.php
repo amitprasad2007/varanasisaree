@@ -23,6 +23,7 @@ class Refund extends Model
         'reference',
         'order_id',
         'customer_id',
+        'vendor_id',
         'processed_by',
         'refund_type',
         'reason',
@@ -75,6 +76,11 @@ class Refund extends Model
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     public function refundItems(): HasMany
@@ -188,5 +194,70 @@ class Refund extends Model
         }
 
         return $query;
+    }
+
+    /**
+     * Scope by vendor
+     */
+    public function scopeByVendor($query, $vendorId)
+    {
+        return $query->where('vendor_id', $vendorId);
+    }
+
+    /**
+     * Get vendor-specific context
+     */
+    public function getVendorContextAttribute()
+    {
+        if ($this->vendor_id) {
+            return $this->vendor;
+        }
+
+        // Fallback to vendor from source transaction
+        if ($this->sale && $this->sale->vendor_id) {
+            return $this->sale->vendor;
+        }
+
+        if ($this->order && $this->order->vendor_id) {
+            return $this->order->vendor;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if user can manage this refund
+     */
+    public function canBeManaged($user): bool
+    {
+        // Admin can manage all refunds
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        // Vendor can only manage their own refunds
+        if ($user instanceof Vendor) {
+            return $this->vendor_id === $user->id;
+        }
+
+        // For regular users, check if they belong to the vendor
+        if ($user->vendor_id && $this->vendor_id) {
+            return $user->vendor_id === $this->vendor_id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if refund requires vendor approval
+     */
+    public function requiresVendorApproval(): bool
+    {
+        // Large refunds or full refunds might require additional approval
+        $threshold = config('refunds.vendor_approval_threshold', 1000);
+        
+        return $this->amount >= $threshold || 
+               ($this->sale && $this->amount >= $this->sale->total * 0.8) ||
+               ($this->order && $this->amount >= $this->order->total_amount * 0.8);
     }
 }
