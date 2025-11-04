@@ -12,7 +12,27 @@ class Post extends Model
 {
     /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
-    protected $fillable = ['title', 'slug', 'content', 'customer_id', 'category_id', 'status', 'is_featured', 'is_published', 'is_approved', 'is_featured', 'is_published', 'is_approved'];
+    protected $fillable = [
+        'title',
+        'slug',
+        'content',
+        'excerpt',
+        'featured_image',
+        'fallback_image',
+        'customer_id',
+        'author_name',
+        'category_id',
+        'status',
+        'published_at',
+        'is_featured',
+        'views_count'
+    ];
+
+    protected $casts = [
+        'published_at' => 'datetime',
+        'is_featured' => 'boolean',
+        'views_count' => 'integer',
+    ];
 
     public function category(): BelongsTo
     {

@@ -19,7 +19,11 @@ import {
   ShoppingCart,
   Package,
   FileChartColumn,
-  Undo2
+  Undo2,
+  BookOpen,
+  Folder,
+  HelpCircle,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -100,6 +104,36 @@ const Sidebar = () => {
         { icon: BadgePercent, label: 'Coupons', path: '/coupons' },
         { icon: MessageSquare, label: 'Testimonials', path: '/testimonials' },
         { icon: Video, label: 'Video Providers', path: '/video-providers' },
+      ],
+    },
+    {
+      label: 'Content Management',
+      items: [
+        {
+          icon: BookOpen,
+          label: 'Blog Posts',
+          path: '/posts',
+        },
+        {
+          icon: Captions,
+          label: 'Blog Categories',
+          path: '/post-categories',
+        },
+        {
+          icon: Folder,
+          label: 'Pages & Policies',
+          path: '/pages',
+        },
+        {
+          icon: HelpCircle,
+          label: 'FAQs',
+          path: '/faqs',
+        },
+        {
+          icon: Info,
+          label: 'Company Info',
+          path: '/company-info',
+        },
       ],
     },
     {

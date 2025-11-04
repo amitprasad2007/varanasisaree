@@ -137,6 +137,22 @@ Route::middleware('auth')->group(function () {
     Route::resource('colors', ColorController::class);
     // Sizes
     Route::resource('sizes', SizeController::class);
+
+    // Content Management - Blog
+    Route::resource('posts', \App\Http\Controllers\PostController::class);
+    Route::resource('post-categories', \App\Http\Controllers\PostCategoryController::class);
+
+    // Content Management - Pages & Policies
+    Route::resource('pages', \App\Http\Controllers\PageController::class);
+
+    // Content Management - FAQs
+    Route::resource('faqs', \App\Http\Controllers\FaqManagementController::class);
+    Route::post('faqs/{faq}/update-status', [\App\Http\Controllers\FaqManagementController::class, 'updateStatus'])->name('faqs.update-status');
+    Route::post('faqs/update-order', [\App\Http\Controllers\FaqManagementController::class, 'updateOrder'])->name('faqs.update-order');
+
+    // Content Management - Company Information
+    Route::resource('company-info', \App\Http\Controllers\CompanyInfoManagementController::class);
+
     // Product Variants
     Route::get('products/{product}/variants', [ProductVariantController::class, 'index'])->name('product-variants.index');
     Route::get('products/{product}/variants/create', [ProductVariantController::class, 'create'])->name('product-variants.create');

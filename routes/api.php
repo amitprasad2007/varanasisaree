@@ -24,6 +24,33 @@ use App\Http\Controllers\Api\UserLogController;
 use App\Http\Controllers\Api\GuestDataController;
 use App\Http\Controllers\Api\RefundController;
 use App\Http\Controllers\Api\AdminRefundController;
+use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\CompanyInfoController;
+
+// Blog APIs
+Route::get('/blogs', [BlogPostController::class, 'index']);
+Route::get('/blogs/featured', [BlogPostController::class, 'featured']);
+Route::get('/blogs/categories', [BlogPostController::class, 'categories']);
+Route::get('/blogs/{slug}', [BlogPostController::class, 'show']);
+
+// Policy & Pages APIs
+Route::get('/pages/{slug}', [PageController::class, 'show']);
+Route::get('/policies', [PageController::class, 'policies']);
+Route::get('/policies/privacy', [PageController::class, 'privacy']);
+Route::get('/policies/terms', [PageController::class, 'terms']);
+Route::get('/policies/shipping', [PageController::class, 'shipping']);
+Route::get('/policies/refund', [PageController::class, 'refund']);
+Route::get('/delivery-info', [PageController::class, 'deliveryInfo']);
+
+// FAQ APIs
+Route::get('/faqs', [FaqController::class, 'index']);
+
+// Company Information APIs
+Route::get('/company-info', [CompanyInfoController::class, 'index']);
+Route::get('/company-info/contact', [CompanyInfoController::class, 'contact']);
+Route::get('/company-info/social', [CompanyInfoController::class, 'social']);
 
 // Testimonial APIs
 Route::get('/testimonials', [TestimonialController::class, 'apiGetTestimonials']);
