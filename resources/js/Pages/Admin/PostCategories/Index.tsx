@@ -24,7 +24,7 @@ interface Props {
 export default function Index({ categories }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Categories', href: route('post-categories.index') },
+    { title: 'Blog Categories', href: route('blogpost-categories.index') },
   ];
 
   const { delete: destroy } = useForm();
@@ -71,7 +71,7 @@ export default function Index({ categories }: Props) {
       <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Blog Categories</h1>
-          <Link href={route('post-categories.create')}>
+          <Link href={route('blogpost-categories.create')}>
             <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
               <Plus className="h-4 w-4" />
               Add Category
@@ -106,7 +106,7 @@ export default function Index({ categories }: Props) {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end space-x-2">
-                      <Link href={route('post-categories.edit', category.id)}>
+                      <Link href={route('blogpost-categories.edit', category.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>

@@ -41,7 +41,7 @@ interface Props {
 export default function Index({ posts }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Posts', href: route('posts.index') },
+    { title: 'Blog Posts', href: route('blogposts.index') },
   ];
 
   const { delete: destroy } = useForm();
@@ -90,7 +90,7 @@ export default function Index({ posts }: Props) {
       <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Blog Posts</h1>
-          <Link href={route('posts.create')}>
+          <Link href={route('blogposts.create')}>
             <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
               <Plus className="h-4 w-4" />
               Add Post
@@ -172,12 +172,12 @@ export default function Index({ posts }: Props) {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end space-x-2">
-                      <Link href={route('posts.show', post.id)}>
+                      <Link href={route('blogposts.show', post.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Link href={route('posts.edit', post.id)}>
+                      <Link href={route('blogposts.edit', post.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
                           <Edit className="h-4 w-4" />
                         </Button>

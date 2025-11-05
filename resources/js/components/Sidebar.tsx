@@ -112,12 +112,12 @@ const Sidebar = () => {
         {
           icon: BookOpen,
           label: 'Blog Posts',
-          path: '/posts',
+          path: '/blogposts',
         },
         {
           icon: Captions,
           label: 'Blog Categories',
-          path: '/post-categories',
+          path: '/blogpost-categories',
         },
         {
           icon: Folder,

@@ -40,8 +40,8 @@ export default function Create({ categories }: Props) {
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Posts', href: route('posts.index') },
-    { title: 'Create Post', href: route('posts.create') },
+    { title: 'Blog Posts', href: route('blogposts.index') },
+    { title: 'Create Post', href: route('blogposts.create') },
   ];
 
   const [featuredPreview, setFeaturedPreview] = React.useState<string | null>(null);

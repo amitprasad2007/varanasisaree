@@ -77,7 +77,7 @@ class PostController extends Controller
 
         Post::create($validated);
 
-        return redirect()->route('posts.index')->with('success', 'Blog post created successfully.');
+        return redirect()->route('blogposts.index')->with('success', 'Blog post created successfully.');
     }
 
     /**
@@ -154,7 +154,7 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        return redirect()->route('posts.index')->with('success', 'Blog post updated successfully.');
+        return redirect()->route('blogposts.index')->with('success', 'Blog post updated successfully.');
     }
 
     /**
@@ -172,6 +172,6 @@ class PostController extends Controller
 
         $post->delete();
 
-        return redirect()->route('posts.index')->with('success', 'Blog post deleted successfully.');
+        return redirect()->route('blogposts.index')->with('success', 'Blog post deleted successfully.');
     }
 }

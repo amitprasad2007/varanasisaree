@@ -56,7 +56,7 @@ class PostCategoryController extends Controller
 
         PostCategory::create($validated);
 
-        return redirect()->route('post-categories.index')->with('success', 'Blog category created successfully.');
+        return redirect()->route('blogpost-categories.index')->with('success', 'Blog category created successfully.');
     }
 
     /**
@@ -103,7 +103,7 @@ class PostCategoryController extends Controller
 
         $postCategory->update($validated);
 
-        return redirect()->route('post-categories.index')->with('success', 'Blog category updated successfully.');
+        return redirect()->route('blogpost-categories.index')->with('success', 'Blog category updated successfully.');
     }
 
     /**
@@ -113,11 +113,11 @@ class PostCategoryController extends Controller
     {
         // Check if category has posts
         if ($postCategory->posts()->count() > 0) {
-            return redirect()->route('post-categories.index')->with('error', 'Cannot delete category with existing posts.');
+            return redirect()->route('blogpost-categories.index')->with('error', 'Cannot delete category with existing posts.');
         }
 
         $postCategory->delete();
 
-        return redirect()->route('post-categories.index')->with('success', 'Blog category deleted successfully.');
+        return redirect()->route('blogpost-categories.index')->with('success', 'Blog category deleted successfully.');
     }
 }

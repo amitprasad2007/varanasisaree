@@ -18,8 +18,8 @@ export default function Create() {
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Categories', href: route('post-categories.index') },
-    { title: 'Create Category', href: route('post-categories.create') },
+    { title: 'Blog Categories', href: route('blogpost-categories.index') },
+    { title: 'Create Category', href: route('blogpost-categories.create') },
   ];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

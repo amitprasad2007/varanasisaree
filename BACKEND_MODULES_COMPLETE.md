@@ -387,7 +387,7 @@ export default function Index({ posts }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="flex justify-between mb-4">
                         <h1 className="text-2xl font-bold">Blog Posts</h1>
-                        <Link href={route('posts.create')} className="btn-primary">
+                        <Link href={route('blogposts.create')} className="btn-primary">
                             Create Post
                         </Link>
                     </div>
@@ -411,7 +411,7 @@ export default function Index({ posts }) {
                                         <td>{post.status}</td>
                                         <td>{post.published_at}</td>
                                         <td>
-                                            <Link href={route('posts.edit', post.id)}>Edit</Link>
+                                            <Link href={route('blogposts.edit', post.id)}>Edit</Link>
                                             <button onClick={() => handleDelete(post.id)}>Delete</button>
                                         </td>
                                     </tr>

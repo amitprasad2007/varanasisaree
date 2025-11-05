@@ -14,6 +14,7 @@ class PostCategory extends Model
 
     public function posts(): HasMany
     {
-        return $this->hasMany(Post::class);
+        // Explicitly specify the foreign key since the posts table uses `category_id`
+        return $this->hasMany(Post::class, 'category_id');
     }
 }

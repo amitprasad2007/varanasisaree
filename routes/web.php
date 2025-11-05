@@ -139,8 +139,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('sizes', SizeController::class);
 
     // Content Management - Blog
-    Route::resource('posts', \App\Http\Controllers\PostController::class);
-    Route::resource('post-categories', \App\Http\Controllers\PostCategoryController::class);
+    Route::resource('blogposts', \App\Http\Controllers\PostController::class);
+    Route::resource('blogpost-categories', \App\Http\Controllers\PostCategoryController::class);
 
     // Content Management - Pages & Policies
     Route::resource('pages', \App\Http\Controllers\PageController::class);

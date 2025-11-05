@@ -29,8 +29,8 @@ export default function Edit({ category }: Props) {
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Categories', href: route('post-categories.index') },
-    { title: 'Edit Category', href: route('post-categories.edit', category.id) },
+    { title: 'Blog Categories', href: route('blogpost-categories.index') },
+    { title: 'Edit Category', href: route('blogpost-categories.edit', category.id) },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {

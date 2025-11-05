@@ -54,8 +54,8 @@ export default function Edit({ post, categories }: Props) {
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
-    { title: 'Blog Posts', href: route('posts.index') },
-    { title: 'Edit Post', href: route('posts.edit', post.id) },
+    { title: 'Blog Posts', href: route('blogposts.index') },
+    { title: 'Edit Post', href: route('blogposts.edit', post.id) },
   ];
 
   const [featuredPreview, setFeaturedPreview] = React.useState<string | null>(
