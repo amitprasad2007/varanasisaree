@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,14 +10,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Trash2, Edit, Plus } from 'lucide-react';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 interface CollectionType {
   id: number;
   name: string;
   slug: string;
   description?: string;
-  icon?: string;
+  banner_image?: string;
+  thumbnail_image?: string;
   sort_order?: number;
   is_active?: boolean;
   collections_count?: number;
@@ -37,85 +41,130 @@ export default function Index({ collectionTypes = [] as unknown as Props['collec
   const items: CollectionType[] = Array.isArray(collectionTypes)
     ? collectionTypes
     : (collectionTypes?.data ?? []);
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Collection Types', href: route('collection-types.index') },
+  ];
+
+  const { delete: destroy } = useForm();
+  
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this collection type?')) {
-      router.delete(route('collection-types.destroy', id));
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        destroy(route('collection-types.destroy', id), {
+          onSuccess: () => {
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Your collection type has been deleted.',
+              icon: 'success',
+              timer: 3000,
+              showConfirmButton: false
+            });
+          }
+        });
+      }
+    });
   };
 
   return (
-    <DashboardLayout title="Collections Types">
+    <DashboardLayout title="Collection Types">
       <Head title="Collection Types" />
       
-      <div className="p-6">
+      <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Collection Types</h1>
-          <Link href={route('collection-types.create')} >
-            <Button>Create Collection Type</Button>
+          <h1 className="text-2xl font-bold">Collection Types</h1>
+          <Link href={route('collection-types.create')}>
+            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+              <Plus className="h-4 w-4" />
+              Add Collection Type
+            </Button>
           </Link>
         </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <Table>
-            <TableHeader>
+      <div className="bg-white rounded-md shadow-lg border border-gray-100">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Collections</TableHead>
+              <TableHead>Order</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 ? (
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Icon</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Collections</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                  No collection types found. Create your first collection type to get started.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No collection types found. Create your first collection type to get started.
+            ) : (
+              items.map((type) => (
+                <TableRow key={type.id}>
+                  <TableCell>
+                    {type.banner_image || type.thumbnail_image ? (
+                      <div className="relative group">
+                        <img
+                          src={`/storage/${type.thumbnail_image || type.banner_image}`}
+                          alt={type.name}
+                          className="w-12 h-12 object-cover rounded-md transition-all duration-300 group-hover:w-20 group-hover:h-20 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">No image</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{type.name}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {type.description || '-'}
+                  </TableCell>
+                  <TableCell>{type.collections_count ?? 0}</TableCell>
+                  <TableCell>{type.sort_order ?? 0}</TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      type.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {type.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Link href={route('collection-types.edit', type.id)}>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        className="cursor-pointer text-red-600 hover:bg-red-50"
+                        size="sm"
+                        onClick={() => handleDelete(type.id)}
+                      >
+                        <Trash2 className="h-4 w-4 cursor-pointer" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : (
-                items.map((type) => (
-                  <TableRow key={type.id}>
-                    <TableCell className="font-medium">{type.name}</TableCell>
-                    <TableCell>
-                      {type.icon ? (
-                        <span className="text-2xl">{type.icon}</span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">No icon</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {type.description || '-'}
-                    </TableCell>
-                    <TableCell>{type.collections_count ?? 0}</TableCell>
-                    <TableCell>{type.sort_order ?? 0}</TableCell>
-                    <TableCell>
-                      <Badge variant={type.is_active ? 'default' : 'secondary'}>
-                        {type.is_active ? 'active' : 'inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Link href={route('collection-types.edit', type.id)} >
-                          <Button variant="outline" size="sm">Edit</Button>
-                        </Link>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(type.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </DashboardLayout>
   );

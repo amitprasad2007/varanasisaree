@@ -32,11 +32,11 @@ class DatabaseSeeder extends Seeder
             // CollectionTypeSeeder::class,
             // CollectionSeeder::class,
             // CompanyInfoSeeder::class,
-            FAQSeeder::class,
+            //FAQSeeder::class,
             //AboutusSeeder::class,
-            PageSeeder::class,
-            PostCategorySeeder::class,
-            PostSeeder::class,
+           // PageSeeder::class,
+             // PostCategorySeeder::class,
+           // PostSeeder::class,
 
         ]);
     }

@@ -5,14 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 interface CollectionType {
   id: number;
@@ -35,49 +31,112 @@ interface Props {
 export default function Edit({ collectionType }: Props) {
   const { data, setData, post, transform, processing, errors } = useForm({
     name: collectionType.name,
-    slug:collectionType.slug,
+    slug: collectionType.slug,
     description: collectionType.description || '',
     banner_image: null as File | null,
     thumbnail_image: null as File | null,
     seo_title: collectionType.seo_title || '',
     seo_description: collectionType.seo_description || '',
-    meta: collectionType.meta ? JSON.stringify(collectionType.meta) : '',
     sort_order: collectionType.sort_order,
     is_active: collectionType.is_active,
   });
 
+  const [bannerPreview, setBannerPreview] = React.useState<string | null>(
+    collectionType.banner_image ? `/storage/${collectionType.banner_image}` : null
+  );
+  const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(
+    collectionType.thumbnail_image ? `/storage/${collectionType.thumbnail_image}` : null
+  );
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Collection Types', href: route('collection-types.index') },
+    { title: 'Edit Collection Type', href: route('collection-types.edit', collectionType.id) },
+  ];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Laravel does not parse multipart bodies for PUT/PATCH. Use POST + _method spoofing.
     transform((current) => ({ ...current, _method: 'put' }));
-    post(route('collection-types.update', collectionType.id), { forceFormData: true });
+    post(route('collection-types.update', collectionType.id), {
+      forceFormData: true,
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Collection type updated successfully',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
+    });
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setData('banner_image', file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setData('thumbnail_image', file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
-    <DashboardLayout title="Edit Collections Types">
+    <DashboardLayout title="Edit Collection Type">
       <Head title="Edit Collection Type" />
       
-      <div className="p-6">
-        <div className="mb-6">
-          <Link href={route('collection-types.index')}>
-            <Button variant="outline">← Back to Collection Types</Button>
-          </Link>
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Edit Collection Type</h1>
+          <Button
+            variant="outline"
+            onClick={() => window.history.back()}
+            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </Button>
         </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
 
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold mb-6">Edit Collection Type</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+      <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
                 name="name"
                 value={data.name}
-                onChange={(e) => {setData('name', e.target.value); setData('slug', e.target.value); }}
+                onChange={(e) => setData('name', e.target.value)}
                 className={errors.name ? 'border-red-500' : ''}
               />
-              {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={data.slug}
+                onChange={(e) => setData('slug', e.target.value)}
+              />
+              {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
             </div>
             
             <div>
@@ -88,32 +147,51 @@ export default function Edit({ collectionType }: Props) {
                 onChange={(e) => setData('description', e.target.value)}
                 rows={4}
               />
+              {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
             </div>
 
             <div>
               <Label htmlFor="banner_image">Banner Image</Label>
-              <Input
-                id="banner_image"
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-                  setData('banner_image', file);
-                }}
-              />
-              {errors.banner_image && <p className="text-red-500 text-sm mt-1">{errors.banner_image}</p>}
+              <div className="space-y-4">
+                <Input
+                  id="banner_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                />
+                {bannerPreview && (
+                  <div className="relative group">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner Preview"
+                      className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                    />
+                  </div>
+                )}
+              </div>
+              {errors.banner_image && <p className="text-sm text-red-600">{errors.banner_image}</p>}
             </div>
 
             <div>
               <Label htmlFor="thumbnail_image">Thumbnail Image</Label>
-              <Input
-                id="thumbnail_image"
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-                  setData('thumbnail_image', file);
-                }}
-              />
-              {errors.thumbnail_image && <p className="text-red-500 text-sm mt-1">{errors.thumbnail_image}</p>}
+              <div className="space-y-4">
+                <Input
+                  id="thumbnail_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailChange}
+                />
+                {thumbnailPreview && (
+                  <div className="relative group">
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail Preview"
+                      className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                    />
+                  </div>
+                )}
+              </div>
+              {errors.thumbnail_image && <p className="text-sm text-red-600">{errors.thumbnail_image}</p>}
             </div>
 
             <div>
@@ -124,7 +202,7 @@ export default function Edit({ collectionType }: Props) {
                 onChange={(e) => setData('seo_title', e.target.value)}
                 placeholder="SEO title"
               />
-              {errors.seo_title && <p className="text-red-500 text-sm mt-1">{errors.seo_title}</p>}
+              {errors.seo_title && <p className="text-sm text-red-600">{errors.seo_title}</p>}
             </div>
 
             <div>
@@ -136,19 +214,7 @@ export default function Edit({ collectionType }: Props) {
                 rows={3}
                 placeholder="Short SEO description"
               />
-              {errors.seo_description && <p className="text-red-500 text-sm mt-1">{errors.seo_description}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="meta">Meta (JSON)</Label>
-              <Textarea
-                id="meta"
-                value={data.meta}
-                onChange={(e) => setData('meta', e.target.value)}
-                rows={4}
-                placeholder='{"key":"value"}'
-              />
-              {errors.meta && <p className="text-red-500 text-sm mt-1">{errors.meta}</p>}
+              {errors.seo_description && <p className="text-sm text-red-600">{errors.seo_description}</p>}
             </div>
 
             <div>
@@ -159,28 +225,27 @@ export default function Edit({ collectionType }: Props) {
                 value={data.sort_order}
                 onChange={(e) => setData('sort_order', Number(e.target.value))}
               />
-              {errors.sort_order && <p className="text-red-500 text-sm mt-1">{errors.sort_order}</p>}
+              {errors.sort_order && <p className="text-sm text-red-600">{errors.sort_order}</p>}
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
+              <Checkbox
                 id="is_active"
-                checked={!!data.is_active}
-                onCheckedChange={(checked) => setData('is_active', checked)}
+                checked={data.is_active}
+                onCheckedChange={(checked: boolean) => setData('is_active', checked)}
               />
-              <Label htmlFor="is_active">Active</Label>
+              <label
+                htmlFor="is_active"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Active
+              </label>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={processing}>
-                Update Collection Type
-              </Button>
-              <Link href={route('collection-types.index')}>
-                <Button type="button" variant="outline">Cancel</Button>
-              </Link>
-            </div>
+            <Button variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}>
+              Update Collection Type
+            </Button>
           </form>
-        </div>
       </div>
     </DashboardLayout>
   );

@@ -199,6 +199,7 @@ Route::middleware('auth')->group(function () {
 
     // Collections
     Route::resource('collections', AdminCollectionController::class);
+    Route::post('collections/bulk-update', [AdminCollectionController::class, 'bulkUpdate'])->name('collections.bulk-update');
     Route::get('collections/{collection}/products', [AdminCollectionController::class, 'products'])->name('collections.products');
     Route::post('collections/{collection}/products', [AdminCollectionController::class, 'addProduct'])->name('collections.addProduct');
     Route::delete('collections/{collection}/products/{product}', [AdminCollectionController::class, 'removeProduct'])->name('collections.removeProduct');

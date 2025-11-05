@@ -5,44 +5,98 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Breadcrumbs } from '@/components/breadcrumbs';
+import { type BreadcrumbItem } from '@/types';
+import Swal from 'sweetalert2';
 
 export default function Create() {
-  const { data, setData, post, processing, errors } = useForm<{[
-    key: string]: any
-  }>({
+  const { data, setData, post, processing, errors } = useForm({
     name: '',
     description: '',
     banner_image: null as File | null,
     thumbnail_image: null as File | null,
     seo_title: '',
     seo_description: '',
-    meta: '', // JSON string or left empty
     sort_order: 0,
-    is_active: true as boolean,
+    is_active: true,
   });
+
+  const [bannerPreview, setBannerPreview] = React.useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = React.useState<string | null>(null);
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Collection Types', href: route('collection-types.index') },
+    { title: 'Create Collection Type', href: route('collection-types.create') },
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Inertia will convert to FormData automatically when File is present
-    post(route('collection-types.store'), { forceFormData: true });
+    post(route('collection-types.store'), {
+      forceFormData: true,
+      onSuccess: () => {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Collection type created successfully',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
+    });
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setData('banner_image', file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setBannerPreview(null);
+    }
+  };
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setData('thumbnail_image', file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setThumbnailPreview(null);
+    }
   };
 
   return (
-    <DashboardLayout title="Create Collections Types">
+    <DashboardLayout title="Create Collection Type">
       <Head title="Create Collection Type" />
       
-      <div className="p-6">
-        <div className="mb-6">
-          <Link href={route('collection-types.index')} >
-            <Button variant="outline">← Back to Collection Types</Button>
-          </Link>
+      <div className="space-y-4 pb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Create Collection Type</h1>
+          <Button
+            variant="outline"
+            onClick={() => window.history.back()}
+            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            Cancel
+          </Button>
         </div>
+        <Breadcrumbs breadcrumbs={breadcrumbs} />
+      </div>
 
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold mb-6">Create Collection Type</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+      <div className="bg-white rounded-md shadow-lg border border-gray-100 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="name">Name *</Label>
               <Input
@@ -69,30 +123,46 @@ export default function Create() {
 
             <div>
               <Label htmlFor="banner_image">Banner Image</Label>
-              <Input
-                id="banner_image"
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-                  setData('banner_image', file);
-                }}
-                
-              />
-              {errors.banner_image && <p className="text-red-500 text-sm mt-1">{errors.banner_image}</p>}
+              <div className="space-y-4">
+                <Input
+                  id="banner_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                />
+                {bannerPreview && (
+                  <div className="relative group">
+                    <img
+                      src={bannerPreview}
+                      alt="Banner Preview"
+                      className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                    />
+                  </div>
+                )}
+              </div>
+              {errors.banner_image && <p className="text-sm text-red-600">{errors.banner_image}</p>}
             </div>
 
             <div>
               <Label htmlFor="thumbnail_image">Thumbnail Image</Label>
-              <Input
-                id="thumbnail_image"
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-                  setData('thumbnail_image', file);
-                }}
-                
-              />
-              {errors.thumbnail_image && <p className="text-red-500 text-sm mt-1">{errors.thumbnail_image}</p>}
+              <div className="space-y-4">
+                <Input
+                  id="thumbnail_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailChange}
+                />
+                {thumbnailPreview && (
+                  <div className="relative group">
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail Preview"
+                      className="w-32 h-32 object-cover rounded-md transition-all duration-300 group-hover:w-40 group-hover:h-40 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
+                    />
+                  </div>
+                )}
+              </div>
+              {errors.thumbnail_image && <p className="text-sm text-red-600">{errors.thumbnail_image}</p>}
             </div>
 
             <div>
@@ -115,19 +185,7 @@ export default function Create() {
                 rows={3}
                 placeholder="Short SEO description"
               />
-              {errors.seo_description && <p className="text-red-500 text-sm mt-1">{errors.seo_description}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="meta">Meta (JSON)</Label>
-              <Textarea
-                id="meta"
-                value={data.meta}
-                onChange={(e) => setData('meta', e.target.value)}
-                rows={4}
-                placeholder='{"key":"value"}'
-              />
-              {errors.meta && <p className="text-red-500 text-sm mt-1">{errors.meta}</p>}
+              {errors.seo_description && <p className="text-sm text-red-600">{errors.seo_description}</p>}
             </div>
 
             <div>
@@ -138,28 +196,27 @@ export default function Create() {
                 value={data.sort_order}
                 onChange={(e) => setData('sort_order', Number(e.target.value))}
               />
-              {errors.sort_order && <p className="text-red-500 text-sm mt-1">{errors.sort_order}</p>}
+              {errors.sort_order && <p className="text-sm text-red-600">{errors.sort_order}</p>}
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
+              <Checkbox
                 id="is_active"
-                checked={!!data.is_active}
-                onCheckedChange={(checked) => setData('is_active', checked)}
+                checked={data.is_active}
+                onCheckedChange={(checked: boolean) => setData('is_active', checked)}
               />
-              <Label htmlFor="is_active">Active</Label>
+              <label
+                htmlFor="is_active"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Active
+              </label>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={processing}>
-                Create Collection Type
-              </Button>
-              <Link href="/admin/collection-types">
-                <Button type="button" variant="outline">Cancel</Button>
-              </Link>
-            </div>
+            <Button variant="outline" type="submit" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" disabled={processing}>
+              Create Collection Type
+            </Button>
           </form>
-        </div>
       </div>
     </DashboardLayout>
   );

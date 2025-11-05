@@ -100,6 +100,8 @@ Route::get('/navitems', [ApiSearchController::class, 'navitems']);
 // Collections
 Route::get('/collection-types', [CollectionController::class, 'types']);
 Route::get('/collections', [CollectionController::class, 'index']);
+Route::get('/collections/featured', [CollectionController::class, 'featured']);
+Route::get('/collections/search', [CollectionController::class, 'search']);
 Route::get('/collections/{slug}', [CollectionController::class, 'show']);
 
 

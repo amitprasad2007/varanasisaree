@@ -41,16 +41,24 @@ class CollectionController extends Controller
             'collection_type_id' => ['required', 'exists:collection_types,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-            'thumbnail_image' => ['nullable', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'thumbnail_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
-            'meta' => ['nullable'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
+
+        // Handle image uploads
+        if ($request->hasFile('banner_image')) {
+            $validated['banner_image'] = $request->file('banner_image')->store('collections', 'public');
+        }
+
+        if ($request->hasFile('thumbnail_image')) {
+            $validated['thumbnail_image'] = $request->file('thumbnail_image')->store('collections', 'public');
+        }
 
         Collection::create($validated);
 
@@ -59,8 +67,7 @@ class CollectionController extends Controller
 
     public function edit(Collection $collection)
     {
-        $collectionTypes = CollectionType::where('status', 'active')
-            ->get();
+        $collectionTypes = CollectionType::where('is_active', true)->get();
 
         return Inertia::render('Admin/Collections/Edit', [
             'collection' => $collection,
@@ -75,25 +82,81 @@ class CollectionController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('collections', 'slug')->ignore($collection->id)],
             'description' => ['nullable', 'string'],
-            'banner_image' => ['nullable', 'string', 'max:2048'],
-            'thumbnail_image' => ['nullable', 'string', 'max:2048'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'thumbnail_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'product_ids.*' => ['integer', 'exists:products,id'],
         ]);
+        
         $validated['slug'] = Str::slug($validated['name']);
-        $collection->update($validated);
 
+        // Handle image uploads
+        if ($request->hasFile('banner_image')) {
+            // Delete old image if exists
+            if ($collection->banner_image) {
+                \Storage::disk('public')->delete($collection->banner_image);
+            }
+            $validated['banner_image'] = $request->file('banner_image')->store('collections', 'public');
+        }
+
+        if ($request->hasFile('thumbnail_image')) {
+            // Delete old image if exists
+            if ($collection->thumbnail_image) {
+                \Storage::disk('public')->delete($collection->thumbnail_image);
+            }
+            $validated['thumbnail_image'] = $request->file('thumbnail_image')->store('collections', 'public');
+        }
+
+        $collection->update($validated);
 
         return redirect()->route('collections.index')->with('success', 'Collection updated');
     }
 
     public function destroy(Collection $collection)
     {
+        // Delete associated images
+        if ($collection->banner_image) {
+            \Storage::disk('public')->delete($collection->banner_image);
+        }
+        if ($collection->thumbnail_image) {
+            \Storage::disk('public')->delete($collection->thumbnail_image);
+        }
+        
         $collection->delete();
         return redirect()->route('collections.index')->with('success', 'Collection deleted');
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:activate,deactivate,delete'],
+            'collection_ids' => ['required', 'array'],
+            'collection_ids.*' => ['integer', 'exists:collections,id'],
+        ]);
+
+        $collections = Collection::whereIn('id', $validated['collection_ids']);
+
+        switch ($validated['action']) {
+            case 'activate':
+                $collections->update(['is_active' => true]);
+                return back()->with('success', 'Collections activated successfully');
+            case 'deactivate':
+                $collections->update(['is_active' => false]);
+                return back()->with('success', 'Collections deactivated successfully');
+            case 'delete':
+                foreach ($collections->get() as $collection) {
+                    if ($collection->banner_image) {
+                        \Storage::disk('public')->delete($collection->banner_image);
+                    }
+                    if ($collection->thumbnail_image) {
+                        \Storage::disk('public')->delete($collection->thumbnail_image);
+                    }
+                }
+                $collections->delete();
+                return back()->with('success', 'Collections deleted successfully');
+        }
     }
 
     public function products(Collection $collection)
