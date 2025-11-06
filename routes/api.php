@@ -179,17 +179,19 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
 
     Route::get('/getrecommededfillters/recommeded/', [ApiSearchController::class, 'getrecommededfillters']);
     Route::get('/recommeded-products', [ProductController::class, 'getRecommededProducts']);
-
+    Route::get('/refund-eligibility', [RefundController::class, 'checkEligibility']);
     // Refund operations (authenticated)
-    Route::get('/refunds', [RefundController::class, 'index']);
-    Route::post('/refunds', [RefundController::class, 'store']);
-    Route::get('/refunds/{refund}', [RefundController::class, 'show']);
-    Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
-    Route::get('/refunds/check-eligibility', [RefundController::class, 'checkEligibility']);
-    Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
-    Route::post('/refunds/check-razorpay-status', [RefundController::class, 'checkRazorpayRefundStatus']);
-    Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
-    Route::get('/refund-statistics', [RefundController::class, 'statistics']);
+  
+        Route::get('/refunds', [RefundController::class, 'index']);
+        Route::post('/refunds', [RefundController::class, 'store']);
+        Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
+        Route::post('/refunds/check-razorpay-status', [RefundController::class, 'checkRazorpayRefundStatus']);
+        Route::get('/refunds/{refund}', [RefundController::class, 'show']);
+        Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
+        Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
+        Route::get('/refund-statistics', [RefundController::class, 'statistics']);
+
+        
 
 });
 

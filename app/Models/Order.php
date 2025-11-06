@@ -108,6 +108,10 @@ class Order extends Model
         return $this->hasMany(Shipment::class);
     }
 
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
 
     protected $casts = [
         'shipped_at' => 'datetime',

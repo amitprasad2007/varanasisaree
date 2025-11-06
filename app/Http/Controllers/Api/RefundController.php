@@ -159,14 +159,14 @@ class RefundController extends Controller
             ], 403);
         }
 
-        if ($refund->status !== 'pending') {
+        if ($refund->refund_status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'Only pending refunds can be cancelled.',
             ], 400);
         }
 
-        $refund->update(['status' => 'cancelled']);
+        $refund->update(['refund_status' => 'cancelled']);
 
         return response()->json([
             'success' => true,
@@ -179,20 +179,22 @@ class RefundController extends Controller
      */
     public function checkEligibility(Request $request): JsonResponse
     {
+       // dd($request);
         $request->validate([
-            'sale_id' => 'nullable|exists:sales,id',
-            'order_id' => 'nullable|exists:orders,id',
+            'sale_id' => 'nullable|exists:sales,invoice_number',
+            'order_id' => 'nullable|exists:orders,order_id',
         ]);
 
         try {
             $sourceTransaction = null;
             if ($request->sale_id) {
-                $sourceTransaction = Sale::where('id', $request->sale_id)
+                $sourceTransaction = Sale::where('invoice_number', $request->sale_id)
                     ->where('customer_id', Auth::id())
                     ->firstOrFail();
             } elseif ($request->order_id) {
-                $sourceTransaction = Order::where('id', $request->order_id)
+                $sourceTransaction = Order::where('order_id', $request->order_id)
                     ->where('customer_id', Auth::id())
+                    ->where('status','delivered')
                     ->firstOrFail();
             } else {
                 return response()->json([
@@ -200,7 +202,7 @@ class RefundController extends Controller
                     'message' => 'Either sale_id or order_id must be provided.',
                 ], 400);
             }
-
+           // print_r($sourceTransaction);
             $totalRefunded = $sourceTransaction->refunds()->sum('amount');
             $maxRefundable = $sourceTransaction->total ?? $sourceTransaction->total_amount;
             $remainingRefundable = $maxRefundable - $totalRefunded;
@@ -327,6 +329,7 @@ class RefundController extends Controller
         try {
             $order = Order::where('id', $request->order_id)
                 ->where('customer_id', Auth::id())
+                ->where ('status','delivered')
                 ->firstOrFail();
 
             if ($order->payment_method !== 'razorpay') {

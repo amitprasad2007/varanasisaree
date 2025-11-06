@@ -122,6 +122,8 @@ return [
     | Configure time limits for refund processing
     |
     */
+    'customer_portal_enabled' => env('REFUNDS_CUSTOMER_PORTAL_ENABLED', false),
+
     'time_limits' => [
         'refund_request_window_days' => env('REFUND_REQUEST_WINDOW', 30),
         'vendor_approval_timeout_hours' => env('REFUND_VENDOR_TIMEOUT', 48),

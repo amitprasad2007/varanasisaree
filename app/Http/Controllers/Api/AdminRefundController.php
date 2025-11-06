@@ -38,7 +38,7 @@ class AdminRefundController extends Controller
 
         // Apply filters
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('refund_status', $request->status);
         }
 
         if ($request->filled('method')) {
@@ -163,7 +163,7 @@ class AdminRefundController extends Controller
             'admin_notes' => 'nullable|string|max:1000'
         ]);
 
-        if ($refund->status !== 'approved') {
+        if ($refund->refund_status !== 'approved') {
             return response()->json([
                 'success' => false,
                 'message' => 'Only approved refunds can be processed.',
@@ -225,7 +225,7 @@ class AdminRefundController extends Controller
                 ]);
 
                 $refund->update([
-                    'status' => 'completed',
+                    'refund_status' => 'completed',
                     'completed_at' => now(),
                     'paid_at' => now(),
                 ]);
@@ -258,7 +258,7 @@ class AdminRefundController extends Controller
 
         // Add additional admin statistics
         $statistics['pending_approval'] = Refund::pending()->count();
-        $statistics['processing_refunds'] = Refund::where('status', 'processing')->count();
+        $statistics['processing_refunds'] = Refund::where('refund_status', 'processing')->count();
         $statistics['failed_refunds'] = Refund::whereHas('refundTransaction', function($query) {
             $query->where('status', 'failed');
         })->count();
@@ -283,7 +283,7 @@ class AdminRefundController extends Controller
             ], 400);
         }
 
-        $refunds = Refund::where('status', $status)
+        $refunds = Refund::where('refund_status', $status)
             ->with([
                 'customer',
                 'sale',
