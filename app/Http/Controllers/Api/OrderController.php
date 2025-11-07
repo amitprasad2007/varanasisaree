@@ -187,7 +187,7 @@ class OrderController extends Controller
         $customer = $request->user();
 
         $orders = Order::where('customer_id', $customer->id)
-            ->with(['orderItems.product'])
+            ->with(['productItems.product'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($order) {
@@ -206,7 +206,7 @@ class OrderController extends Controller
                     'total' => $order->total_amount,
                     'status' => ucfirst($order->status),
                     'statusColor' => $statusColor,
-                    'items' => $order->orderItems->map(function ($item) {
+                    'items' => $order->productItems->map(function ($item) {
                         return [
                             'id' => $item->product_id,
                             'name' => $item->product->name,
@@ -222,7 +222,7 @@ class OrderController extends Controller
     }
 
     public function orderdetails(Request $request,$orid){
-        $orderdetails = Order::where('order_id',$orid)->with(['address','orderItems.product.imageproducts','payment'])->get();
+        $orderdetails = Order::where('order_id',$orid)->with(['address','productItems.product.imageproducts','payment'])->get();
 
         if (!$orderdetails) {
             return response()->json(['message' => 'Order not found'], 404);
@@ -249,7 +249,7 @@ class OrderController extends Controller
                 'payment_method' => $item->payment_method,
                 'payment_online_details' => $item->payment ? $item->payment->payment_details->toArray() : [],
                 'invoice_download_url' => route('api.order.pdf', $item->order_id),
-                'order_items' => $item->orderItems->map(function($item) {
+                'order_items' => $item->productItems->map(function($item) {
                     return [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->name,
