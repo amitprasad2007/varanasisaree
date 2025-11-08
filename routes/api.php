@@ -190,6 +190,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
         Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
         Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
         Route::get('/refund-statistics', [RefundController::class, 'statistics']);
+        Route::get('/return_orders/{order_id}', [RefundController::class, 'getOrderDetails']);
 
         
 

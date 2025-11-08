@@ -228,7 +228,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        $formattedOrder = $orderdetails->map(function($item) {
+        $formattedOrder = $orderdetails->map(function($item) use ($request) {
             return [
                 'order_id' => $item->order_id,
                 'order_date' => $item->created_at,
@@ -238,11 +238,11 @@ class OrderController extends Controller
                 'order_city' => $item->address->city,
                 'shippingcost' => $item->shippingcost,
                 'sub_total' => $item->sub_total,
-                'name'=> auth()->user()->name,
+                'name'=> $request->user()->name,
                 'order_state' => $item->address->state,
                 'order_zip' => $item->address->postal_code,
                 'order_country' => $item->address->country,
-                'order_phone' => auth()->user()->phone,
+                'order_phone' => $request->user()->phone,
                 'order_email' => $item->customer->email,
                 'payment_status'=> $item->payment_status,
                 'tax'=> $item->tax,

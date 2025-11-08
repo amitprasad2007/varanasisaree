@@ -341,6 +341,7 @@ class RefundController extends Controller
 
             $payment = Payment::where('rzorder_id', $order->transaction_id)
                 ->where('status', 'captured')
+                ->where('customer_id', Auth::id())
                 ->first();
 
             if (!$payment) {
@@ -363,5 +364,44 @@ class RefundController extends Controller
                 'message' => $e->getMessage()
             ], 400);
         }
+    }
+    public function getOrderDetails(Request $request): JsonResponse
+    {
+        $order = Order::where('order_id', $request->order_id)
+            ->where('customer_id', Auth::id())
+            ->with(['productItems.product.primaryImage'])
+            ->get()->map(function ($order) {
+                $statusColor = match($order->status) {
+                    'delivered' => 'bg-green-500',
+                    'processing' => 'bg-amber-500',
+                    'pending' => 'bg-blue-500',
+                    'shipped' => 'bg-purple-500',
+                    'cancelled' => 'bg-red-500',
+                    default => 'bg-gray-500'
+                };
+
+                return [
+                    'id' => $order->order_id,
+                    'date' => $order->created_at->format('d M Y'),
+                    'total' => $order->total_amount,
+                    'status' => ucfirst($order->status),
+                    'statusColor' => $statusColor,
+                    'items' => $order->productItems->map(function ($item) {
+                        return [
+                            'id' => $item->product_id,
+                            'name' => $item->product->name,
+                            'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                        ];
+                    })->toArray()
+                ];
+            });
+
+
+            return response()->json([
+            'success' => true,
+            'data' => $order
+        ]);
     }
 }
