@@ -122,7 +122,7 @@ class OrderController extends Controller
 
             // Create order
             $order = Order::create([
-                'order_id' => 'ORD-' . strtoupper(uniqid()), // Generate a unique order ID
+                'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)), // Generate a unique order ID
                 'customer_id' => $customer->id,
                 'address_id' => $address->id,
                 'sub_total' => $subTotal,

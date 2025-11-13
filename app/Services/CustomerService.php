@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Customer;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class CustomerService
 {
@@ -39,18 +40,18 @@ class CustomerService
         }
 
         // Log the original avatar URL for debugging
-        \Log::info('Processing avatar URL: ' . $avatar);
+        Log::info('Processing avatar URL: ' . $avatar);
 
         // If it's already a full URL, return as is
         if (filter_var($avatar, FILTER_VALIDATE_URL)) {
-            \Log::info('Avatar URL is valid: ' . $avatar);
+            Log::info('Avatar URL is valid: ' . $avatar);
             return $avatar;
         }
 
         // If it's a relative path, make it absolute
         if (str_starts_with($avatar, 'storage/') || str_starts_with($avatar, 'public/')) {
             $processedUrl = asset($avatar);
-            \Log::info('Processed relative path to: ' . $processedUrl);
+            Log::info('Processed relative path to: ' . $processedUrl);
             return $processedUrl;
         }
 
@@ -59,11 +60,11 @@ class CustomerService
             // Remove existing size parameters and add our preferred size
             $avatar = preg_replace('/[?&]sz=\d+/', '', $avatar);
             $processedUrl = $avatar . (str_contains($avatar, '?') ? '&' : '?') . 'sz=150';
-            \Log::info('Processed Google avatar to: ' . $processedUrl);
+            Log::info('Processed Google avatar to: ' . $processedUrl);
             return $processedUrl;
         }
 
-        \Log::info('Returning original avatar URL: ' . $avatar);
+        Log::info('Returning original avatar URL: ' . $avatar);
         return $avatar;
     }
 

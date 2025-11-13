@@ -19,7 +19,7 @@ class PaymentFactory extends Factory
             'amount' => $this->faker->numberBetween(10000, 500000), // Amount in paise
             'status' => $this->faker->randomElement(['captured', 'authorized', 'failed']),
             'method' => $this->faker->randomElement(['card', 'netbanking', 'wallet', 'upi']),
-            'order_id' => 'ORD' . $this->faker->lexify('????????'),
+            'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)),
             'rzorder_id' => 'rzp_order_' . $this->faker->lexify('????????'),
             'card_id' => $this->faker->optional(0.7)->lexify('card_????????'),
             'email' => $this->faker->email(),

@@ -46,12 +46,12 @@ class RazorpayRefundTest extends TestCase
         // Create test order
         $this->order = Order::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => 'ORD' . time(),
+            'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)),
             'total_amount' => 1000,
             'payment_method' => 'razorpay',
             'payment_status' => 'paid',
             'status' => 'delivered',
-            'transaction_id' => 'rzp_test_order_' . time()
+            'transaction_id' => 'rzp_test_order_'.date('YmdHis').'-'.bin2hex(random_bytes(5))
         ]);
 
         // Create order item
@@ -448,7 +448,7 @@ class RazorpayRefundTest extends TestCase
         $result = $this->razorpayService->processRefund($refundTransaction, 500, 'Test refund');
 
         $this->assertFalse($result['success']);
-        $this->assertStringContains('Payment not found', $result['error']);
+        $this->assertStringContainsString('Payment not found', $result['error']);
     }
 
     /** @test */

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\CustomerService;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\ForgetPasswordSendEmail;
 
 class CustomerAuthController extends Controller
@@ -132,7 +133,7 @@ class CustomerAuthController extends Controller
             return redirect($frontendUrl . 'oauth/callback?token=' . $token . '&provider=' . $provider);
 
         } catch (\Exception $e) {
-            \Log::error($provider . ' OAuth Error: ' . $e->getMessage());
+            Log::error($provider . ' OAuth Error: ' . $e->getMessage());
             $frontendUrl = env('FRONTEND_URL');
             return redirect($frontendUrl . 'oauth/callback?error=oauth_failed');
         }

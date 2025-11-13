@@ -42,7 +42,7 @@ class Customer extends Authenticatable
 
     public function orders(): HasMany
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Order::class)->orderByDesc('created_at');
     }
 
     public function wishlists(): HasMany
