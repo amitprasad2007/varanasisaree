@@ -12,6 +12,8 @@ use App\Services\RazorpayRefundService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Customer;
+use Illuminate\Support\Str;
 
 class RefundController extends Controller
 {
@@ -62,41 +64,28 @@ class RefundController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'sale_id' => 'nullable|exists:sales,id',
-            'order_id' => 'nullable|exists:orders,id',
-            'amount' => 'required|numeric|min:0.01',
-            'method' => 'required|in:credit_note,money,razorpay,bank_transfer,manual',
-            'reason' => 'required|string|max:1000',
-            'items' => 'nullable|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.product_variant_id' => 'nullable|exists:product_variants,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.total_amount' => 'required|numeric|min:0',
-            'items.*.reason' => 'nullable|string|max:500',
-        ]);
+        
+        $allrequest = $request->all();        
 
         // Verify customer owns the transaction
         if ($request->sale_id) {
-            $sale = Sale::where('id', $request->sale_id)
+            $sale = Sale::where('invoice_number', $request->sale_id)
                 ->where('customer_id', Auth::id())
                 ->firstOrFail();
         }
-
-        if ($request->order_id) {
-            $order = Order::where('id', $request->order_id)
+        
+        if ($allrequest['order_id'] !='') {
+            $order = Order::where('order_id', $allrequest['order_id'])
                 ->where('customer_id', Auth::id())
                 ->firstOrFail();
-            
-            // For online orders, validate Razorpay refund eligibility
             if ($order->payment_method === 'razorpay' && $request->method === 'razorpay') {
                 $this->validateRazorpayRefundEligibility($order, $request->amount);
             }
         }
-
+       
         try {
             $refund = $this->refundService->createRefundRequest($request->all());
+           
 
             return response()->json([
                 'success' => true,
@@ -231,7 +220,18 @@ class RefundController extends Controller
      */
     public function creditNotes(Request $request): JsonResponse
     {
-        $customer = Auth::user();
+        $customer = $request->user();
+
+        if (!$customer instanceof Customer) {
+            $customer = Auth::guard('sanctum')->user();
+        }
+
+        if (!$customer instanceof Customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authenticated customer not found.',
+            ], 401);
+        }
 
         $query = $customer->creditNotes()
             ->with(['sale', 'order', 'refund'])
@@ -254,7 +254,18 @@ class RefundController extends Controller
      */
     public function statistics(): JsonResponse
     {
-        $customer = Auth::user();
+        $customer = request()->user();
+
+        if (!$customer instanceof Customer) {
+            $customer = Auth::guard('sanctum')->user();
+        }
+
+        if (!$customer instanceof Customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authenticated customer not found.',
+            ], 401);
+        }
 
         $statistics = [
             'total_refunds' => $customer->refunds()->count(),
@@ -279,13 +290,14 @@ class RefundController extends Controller
         $payment = Payment::where('rzorder_id', $order->transaction_id)
             ->where('status', 'captured')
             ->first();
-
+       // dd($payment);
         if (!$payment) {
             throw new \Exception('Payment not found or not captured');
         }
 
         $razorpayService = app(RazorpayRefundService::class);
         $validation = $razorpayService->validateRefundEligibility($payment, $refundAmount);
+        //dd($validation);
 
         if (!$validation['eligible']) {
             throw new \Exception($validation['reason']);
@@ -387,10 +399,24 @@ class RefundController extends Controller
                     'status' => ucfirst($order->status),
                     'statusColor' => $statusColor,
                     'items' => $order->productItems->map(function ($item) {
+                        $images = $item->product->resolveImagePaths()->map(function ($path) {
+                            $path = (string) $path;
+                            if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                                return $path;
+                            }
+                            return asset('storage/' . ltrim($path, '/'));
+                        })->values();
+            
+                        // Skip products with no images
+                        if ($images->isEmpty()) {
+                            return null;
+                        }
+
+
                         return [
                             'id' => $item->product_id,
                             'name' => $item->product->name,
-                            'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                            'image' => $images,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];

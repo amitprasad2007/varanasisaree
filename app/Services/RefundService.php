@@ -13,8 +13,10 @@ use App\Models\SaleReturnItem;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class RefundService
 {
@@ -34,7 +36,7 @@ class RefundService
             
             // Validate vendor permissions
             $this->validateVendorPermissions($vendor, $sourceTransaction);
-
+        
             // Create refund record
             $refund = Refund::create([
                 'sale_id' => $data['sale_id'] ?? null,
@@ -74,7 +76,7 @@ class RefundService
             $refund->update([
                 'refund_status' => 'approved',
                 'approved_at' => now(),
-                'processed_by' => auth()->id(),
+                'processed_by' => Auth::id(),
                 'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
             ]);
 
@@ -97,7 +99,7 @@ class RefundService
             $refund->update([
                 'refund_status' => 'rejected',
                 'rejection_reason' => $reason,
-                'processed_by' => auth()->id(),
+                'processed_by' => Auth::id(),
                 'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
             ]);
 
@@ -317,7 +319,9 @@ class RefundService
         }
 
         if (isset($data['order_id'])) {
-            return Order::findOrFail($data['order_id']);
+            return Order::where('order_id', $data['order_id'])
+            ->where('customer_id', Auth::id())
+            ->firstOrFail();
         }
 
         throw new \InvalidArgumentException('Either sale_id or order_id must be provided');
