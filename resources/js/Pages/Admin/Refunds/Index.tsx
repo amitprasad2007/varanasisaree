@@ -234,7 +234,7 @@ export default function RefundIndex({ refunds, filters, statusOptions, refundTyp
                   <SelectTrigger>
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className='bg-white'>
                     <SelectItem value="all">All Statuses</SelectItem>
                     {statusOptions.map((status) => (
                       <SelectItem key={status} value={status}>
@@ -254,7 +254,7 @@ export default function RefundIndex({ refunds, filters, statusOptions, refundTyp
                   <SelectTrigger>
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className='bg-white'>
                     <SelectItem value="all">All Types</SelectItem>
                     {refundTypeOptions.map((type) => (
                       <SelectItem key={type} value={type}>
@@ -287,11 +287,11 @@ export default function RefundIndex({ refunds, filters, statusOptions, refundTyp
             </div>
 
             <div className="flex gap-2 mt-4">
-              <Button onClick={applyFilters}>
+              <Button  className="cursor-pointer" onClick={applyFilters}>
                 <Filter className="h-4 w-4 mr-2" />
                 Apply Filters
               </Button>
-              <Button variant="outline" onClick={clearFilters}>
+              <Button className="cursor-pointer"  variant="outline" onClick={clearFilters}>
                 Clear Filters
               </Button>
             </div>
@@ -356,6 +356,7 @@ export default function RefundIndex({ refunds, filters, statusOptions, refundTyp
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
+                            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" 
                             size="sm"
                             onClick={() => router.get(route('refunds.show', refund.id))}
                           >

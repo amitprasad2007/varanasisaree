@@ -4,450 +4,473 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import axios from 'axios';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import Swal from "sweetalert2";
-
-import { Eye, EyeOff, CheckCircle, XCircle, Building2 } from 'lucide-react';
+import { Eye, EyeOff, Building2, User, Mail, Lock, Phone, MapPin, FileText, Shield, Star, Users, TrendingUp, Award } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { cn } from '@/lib/utils';
 
 export default function VendorRegister() {
-    const { data, setData, post, processing, errors } = useForm({
-        username: '',
-        business_name: '',
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
         email: '',
-        phone: '',
         password: '',
         password_confirmation: '',
-        description: '',
-        address: '',
-        city: '',
-        state: '',
-        country: '',
-        postal_code: '',
-        gstin: '',
-        pan: '',
-        contact_person: '',
-        contact_email: '',
-        contact_phone: '',
+        phone: '',
+        business_name: '',
+        business_address: '',
+        business_description: '',
+        terms_accepted: false,
+        domain: window.location.hostname.split('.')[0],
     });
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
-    const [checkingSubdomain, setCheckingSubdomain] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('vendor.register.store'), {
+        post(route('vendor.register.store', { domain: data.domain }), {
             onSuccess: () => {
                 Swal.fire({
                     title: 'Success!',
-                    text: 'Vendor registered successfully. Please wait for admin approval',
+                    text: 'Your vendor account has been created successfully',
                     icon: 'success',
-                    timer: 4000,
-                    showConfirmButton: false
+                    timer: 3000,
+                    showConfirmButton: false as const
                 });
-            }
+            },
+            onFinish: () => reset('password', 'password_confirmation'),
         });
-
-    };
-
-
-    const checkSubdomain = async () => {
-        if (!data.username) return;
-        setCheckingSubdomain(true);
-        try {
-          const response = await axios.get(`/vendor/check-subdomain/${data.username}`);
-          const result = await response;
-          setSubdomainAvailable(response.data.available);
-        } catch (error) {
-          Swal.fire({
-            title: 'Error!',
-            text: 'Error fetching subcategories'+error,
-            icon: 'error',
-            timer: 3000,
-            showConfirmButton: false
-        });
-        }
-      };
-
-
-
-
-
-    const handleUsernameChange = (value: string) => {
-        setData('username', value);
-        setSubdomainAvailable(null);
-        if (value.length >= 3) {
-            checkSubdomain();
-        }
     };
 
     return (
         <>
             <Head title="Vendor Registration" />
 
-            <div className="min-h-screen bg-background flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl w-full space-y-8">
-                    <div className="text-center">
-                        <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
-                            <Building2 className="h-8 w-8 text-black" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-gray-900">Become a Vendor</h1>
-                        <p className="mt-2 text-gray-600">
-                            Join our marketplace and start selling your products
-                        </p>
-                    </div>
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-blue-600/20 rounded-full blur-3xl"></div>
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-pink-300/10 to-yellow-300/10 rounded-full blur-3xl"></div>
+                </div>
 
-                    <Card className="w-full border-2 shadow-lg">
-                        <CardHeader className="text-center">
-                            <CardTitle className="text-xl">Vendor Registration</CardTitle>
-                            <CardDescription>
-                                Fill in your business details to get started
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* Basic Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="username">Username *</Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="username"
-                                                type="text"
-                                                value={data.username}
-                                                onChange={(e) => handleUsernameChange(e.target.value)}
-                                                placeholder="mybusiness"
-                                                className={errors.username ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                            />
-                                            {subdomainAvailable !== null && (
-                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                    {subdomainAvailable ? (
-                                                        <CheckCircle className="h-5 w-5 text-green-500" />
-                                                    ) : (
-                                                        <XCircle className="h-5 w-5 text-red-500" />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                        {errors.username && (
-                                            <p className="text-sm text-red-500">{errors.username}</p>
-                                        )}
-                                        {subdomainAvailable !== null && (
-                                            <p className={`text-sm ${subdomainAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                                                {subdomainAvailable
-                                                    ? `Subdomain available: ${data.username}.yourdomain.com`
-                                                    : 'Username already taken'
-                                                }
-                                            </p>
-                                        )}
+                <div className="max-w-7xl w-full flex items-center justify-center relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
+                        {/* Left side - Branding & Benefits */}
+                        <div className="hidden lg:flex flex-col space-y-10 text-center lg:text-left">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-center lg:justify-start space-x-3">
+                                    <div className="h-14 w-14 bg-gradient-to-br from-emerald-600 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
+                                        <Building2 className="h-7 w-7 text-white" />
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="business_name">Business Name *</Label>
-                                        <Input
-                                            id="business_name"
-                                            type="text"
-                                            value={data.business_name}
-                                            onChange={(e) => setData('business_name', e.target.value)}
-                                            placeholder="My Business Store"
-                                            className={errors.business_name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.business_name && (
-                                            <p className="text-sm text-red-500">{errors.business_name}</p>
-                                        )}
-                                    </div>
+                                    <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                                        Join Our Marketplace
+                                    </h1>
                                 </div>
-
-                                {/* Contact Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">Email *</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
-                                            placeholder="business@example.com"
-                                            className={errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.email && (
-                                            <p className="text-sm text-red-500">{errors.email}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="phone">Phone *</Label>
-                                        <Input
-                                            id="phone"
-                                            type="tel"
-                                            value={data.phone}
-                                            onChange={(e) => setData('phone', e.target.value)}
-                                            placeholder="9876543210"
-                                            className={errors.phone ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.phone && (
-                                            <p className="text-sm text-red-500">{errors.phone}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Password */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password *</Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="password"
-                                                type={showPassword ? 'text' : 'password'}
-                                                value={data.password}
-                                                onChange={(e) => setData('password', e.target.value)}
-                                                placeholder="••••••••"
-                                                className={errors.password ? 'border-red-500 focus:ring-red-500 pr-10' : 'focus:ring-blue-500 pr-10'}
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                            >
-                                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </Button>
-                                        </div>
-                                        {errors.password && (
-                                            <p className="text-sm text-red-500">{errors.password}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password_confirmation">Confirm Password *</Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="password_confirmation"
-                                                type={showConfirmPassword ? 'text' : 'password'}
-                                                value={data.password_confirmation}
-                                                onChange={(e) => setData('password_confirmation', e.target.value)}
-                                                placeholder="••••••••"
-                                                className={errors.password_confirmation ? 'border-red-500 focus:ring-red-500 pr-10' : 'focus:ring-blue-500 pr-10'}
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer"
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            >
-                                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </Button>
-                                        </div>
-                                        {errors.password_confirmation && (
-                                            <p className="text-sm text-red-500">{errors.password_confirmation}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Business Description */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">Business Description</Label>
-                                    <Textarea
-                                        id="description"
-                                        value={data.description}
-                                        onChange={(e) => setData('description', e.target.value)}
-                                        placeholder="Tell us about your business..."
-                                        rows={3}
-                                        className={errors.description ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                    />
-                                    {errors.description && (
-                                        <p className="text-sm text-red-500">{errors.description}</p>
-                                    )}
-                                </div>
-
-                                {/* Address Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="address">Address</Label>
-                                        <Input
-                                            id="address"
-                                            type="text"
-                                            value={data.address}
-                                            onChange={(e) => setData('address', e.target.value)}
-                                            placeholder="123 Business Street"
-                                            className={errors.address ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.address && (
-                                            <p className="text-sm text-red-500">{errors.address}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="city">City</Label>
-                                        <Input
-                                            id="city"
-                                            type="text"
-                                            value={data.city}
-                                            onChange={(e) => setData('city', e.target.value)}
-                                            placeholder="Mumbai"
-                                            className={errors.city ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.city && (
-                                            <p className="text-sm text-red-500">{errors.city}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="state">State</Label>
-                                        <Input
-                                            id="state"
-                                            type="text"
-                                            value={data.state}
-                                            onChange={(e) => setData('state', e.target.value)}
-                                            placeholder="Maharashtra"
-                                            className={errors.state ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.state && (
-                                            <p className="text-sm text-red-500">{errors.state}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="country">Country</Label>
-                                        <Input
-                                            id="country"
-                                            type="text"
-                                            value={data.country}
-                                            onChange={(e) => setData('country', e.target.value)}
-                                            placeholder="India"
-                                            className={errors.country ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.country && (
-                                            <p className="text-sm text-red-500">{errors.country}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="postal_code">Postal Code</Label>
-                                        <Input
-                                            id="postal_code"
-                                            type="text"
-                                            value={data.postal_code}
-                                            onChange={(e) => setData('postal_code', e.target.value)}
-                                            placeholder="400001"
-                                            className={errors.postal_code ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.postal_code && (
-                                            <p className="text-sm text-red-500">{errors.postal_code}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Tax Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="gstin">GSTIN</Label>
-                                        <Input
-                                            id="gstin"
-                                            type="text"
-                                            value={data.gstin}
-                                            onChange={(e) => setData('gstin', e.target.value)}
-                                            placeholder="27ABCDE1234F1Z5"
-                                            className={errors.gstin ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.gstin && (
-                                            <p className="text-sm text-red-500">{errors.gstin}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="pan">PAN</Label>
-                                        <Input
-                                            id="pan"
-                                            type="text"
-                                            value={data.pan}
-                                            onChange={(e) => setData('pan', e.target.value)}
-                                            placeholder="ABCDE1234F"
-                                            className={errors.pan ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.pan && (
-                                            <p className="text-sm text-red-500">{errors.pan}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Additional Contact Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contact_person">Contact Person</Label>
-                                        <Input
-                                            id="contact_person"
-                                            type="text"
-                                            value={data.contact_person}
-                                            onChange={(e) => setData('contact_person', e.target.value)}
-                                            placeholder="John Doe"
-                                            className={errors.contact_person ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.contact_person && (
-                                            <p className="text-sm text-red-500">{errors.contact_person}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contact_email">Contact Email</Label>
-                                        <Input
-                                            id="contact_email"
-                                            type="email"
-                                            value={data.contact_email}
-                                            onChange={(e) => setData('contact_email', e.target.value)}
-                                            placeholder="contact@example.com"
-                                            className={errors.contact_email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.contact_email && (
-                                            <p className="text-sm text-red-500">{errors.contact_email}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="contact_phone">Contact Phone</Label>
-                                        <Input
-                                            id="contact_phone"
-                                            type="tel"
-                                            value={data.contact_phone}
-                                            onChange={(e) => setData('contact_phone', e.target.value)}
-                                            placeholder="9876543210"
-                                            className={errors.contact_phone ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}
-                                        />
-                                        {errors.contact_phone && (
-                                            <p className="text-sm text-red-500">{errors.contact_phone}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="pt-4">
-                                    <Button
-                                        type="submit"
-                                        className="w-full bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm"
-                                        disabled={processing || subdomainAvailable === false}
-                                    >
-                                        {processing ? 'Creating Account...' : 'Create Vendor Account'}
-                                    </Button>
-                                </div>
-
-                                <div className="text-center">
-                                    <p className="text-sm text-gray-600">
-                                        Already have an account?{' '}
-                                        <a href="/vendor/login" className="text-blue-600 hover:text-blue-500 font-medium">
-                                            Sign in here
-                                        </a>
+                                
+                                <div className="space-y-4">
+                                    <h2 className="text-5xl font-bold text-gray-900 leading-tight">
+                                        Start Selling<br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">
+                                            Today
+                                        </span>
+                                    </h2>
+                                    <p className="text-xl text-gray-600 max-w-lg leading-relaxed">
+                                        Join thousands of successful vendors and grow your business with our powerful e-commerce platform.
                                     </p>
                                 </div>
-                            </form>
-                        </CardContent>
-                    </Card>
+                            </div>
+
+                            {/* Benefits grid */}
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                                    <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4">
+                                        <TrendingUp className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">Boost Sales</h3>
+                                    <p className="text-sm text-gray-600">Increase revenue with our advanced marketing tools</p>
+                                </div>
+                                
+                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                                    <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                                        <Users className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">Reach Millions</h3>
+                                    <p className="text-sm text-gray-600">Access to our vast customer base</p>
+                                </div>
+                                
+                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                                    <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                                        <Award className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">Premium Tools</h3>
+                                    <p className="text-sm text-gray-600">Professional seller tools included</p>
+                                </div>
+                                
+                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+                                    <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+                                        <Star className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">5-Star Support</h3>
+                                    <p className="text-sm text-gray-600">Dedicated support team for vendors</p>
+                                </div>
+                            </div>
+
+                            {/* Testimonial */}
+                            <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                                <div className="flex items-center space-x-4">
+                                    <div className="h-12 w-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                                        <span className="text-white font-bold">JD</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-700 text-sm mb-1">"Joining this platform was the best decision for my business. Sales increased by 300% in just 6 months!"</p>
+                                        <p className="text-xs text-gray-500 font-medium">- John Doe, Fashion Vendor</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right side - Registration form */}
+                        <div className="w-full max-w-lg mx-auto">
+                            <Card className="border-0 shadow-2xl shadow-emerald-500/10 bg-white/90 backdrop-blur-sm">
+                                <CardHeader className="text-center space-y-4 pb-6">
+                                    <div className="mx-auto h-16 w-16 bg-gradient-to-br from-emerald-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg lg:hidden">
+                                        <Building2 className="h-8 w-8 text-white" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <CardTitle className="text-2xl font-bold text-gray-900">Create Vendor Account</CardTitle>
+                                        <CardDescription className="text-gray-600">
+                                            Fill in your details to start selling on our platform
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                
+                                <CardContent className="space-y-6">
+                                    <form onSubmit={handleSubmit} className="space-y-5">
+                                        {/* Personal Information */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Personal Information</h3>
+                                            
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                                                        Full Name
+                                                    </Label>
+                                                    <div className="relative">
+                                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                            <User className="h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                        <Input
+                                                            id="name"
+                                                            type="text"
+                                                            value={data.name}
+                                                            onChange={(e) => setData('name', e.target.value)}
+                                                            placeholder="John Doe"
+                                                            className={cn(
+                                                                "pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                                errors.name && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                            )}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    {errors.name && (
+                                                        <p className="text-xs text-red-500">{errors.name}</p>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                                                        Phone Number
+                                                    </Label>
+                                                    <div className="relative">
+                                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                            <Phone className="h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                        <Input
+                                                            id="phone"
+                                                            type="tel"
+                                                            value={data.phone}
+                                                            onChange={(e) => setData('phone', e.target.value)}
+                                                            placeholder="+1 (555) 123-4567"
+                                                            className={cn(
+                                                                "pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                                errors.phone && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                            )}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    {errors.phone && (
+                                                        <p className="text-xs text-red-500">{errors.phone}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                                                    Email Address
+                                                </Label>
+                                                <div className="relative">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <Mail className="h-4 w-4 text-gray-400" />
+                                                    </div>
+                                                    <Input
+                                                        id="email"
+                                                        type="email"
+                                                        value={data.email}
+                                                        onChange={(e) => setData('email', e.target.value)}
+                                                        placeholder="john@business.com"
+                                                        className={cn(
+                                                            "pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                            errors.email && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                        )}
+                                                        required
+                                                    />
+                                                </div>
+                                                {errors.email && (
+                                                    <p className="text-xs text-red-500">{errors.email}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Business Information */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Business Information</h3>
+                                            
+                                            <div className="space-y-2">
+                                                <Label htmlFor="business_name" className="text-sm font-medium text-gray-700">
+                                                    Business Name
+                                                </Label>
+                                                <div className="relative">
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <Building2 className="h-4 w-4 text-gray-400" />
+                                                    </div>
+                                                    <Input
+                                                        id="business_name"
+                                                        type="text"
+                                                        value={data.business_name}
+                                                        onChange={(e) => setData('business_name', e.target.value)}
+                                                        placeholder="Your Business LLC"
+                                                        className={cn(
+                                                            "pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                            errors.business_name && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                        )}
+                                                        required
+                                                    />
+                                                </div>
+                                                {errors.business_name && (
+                                                    <p className="text-xs text-red-500">{errors.business_name}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="business_address" className="text-sm font-medium text-gray-700">
+                                                    Business Address
+                                                </Label>
+                                                <div className="relative">
+                                                    <div className="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <MapPin className="h-4 w-4 text-gray-400" />
+                                                    </div>
+                                                    <Textarea
+                                                        id="business_address"
+                                                        value={data.business_address}
+                                                        onChange={(e) => setData('business_address', e.target.value)}
+                                                        placeholder="123 Business St, City, State 12345"
+                                                        className={cn(
+                                                            "pl-9 min-h-[80px] bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all resize-none",
+                                                            errors.business_address && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                        )}
+                                                        required
+                                                    />
+                                                </div>
+                                                {errors.business_address && (
+                                                    <p className="text-xs text-red-500">{errors.business_address}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="business_description" className="text-sm font-medium text-gray-700">
+                                                    Business Description
+                                                </Label>
+                                                <div className="relative">
+                                                    <div className="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <FileText className="h-4 w-4 text-gray-400" />
+                                                    </div>
+                                                    <Textarea
+                                                        id="business_description"
+                                                        value={data.business_description}
+                                                        onChange={(e) => setData('business_description', e.target.value)}
+                                                        placeholder="Describe what your business does..."
+                                                        className={cn(
+                                                            "pl-9 min-h-[80px] bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all resize-none",
+                                                            errors.business_description && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                        )}
+                                                        required
+                                                    />
+                                                </div>
+                                                {errors.business_description && (
+                                                    <p className="text-xs text-red-500">{errors.business_description}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Security */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Security</h3>
+                                            
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                                                        Password
+                                                    </Label>
+                                                    <div className="relative">
+                                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                            <Lock className="h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                        <Input
+                                                            id="password"
+                                                            type={showPassword ? 'text' : 'password'}
+                                                            value={data.password}
+                                                            onChange={(e) => setData('password', e.target.value)}
+                                                            placeholder="••••••••••"
+                                                            className={cn(
+                                                                "pl-9 pr-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                                errors.password && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                            )}
+                                                            required
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                        >
+                                                            {showPassword ? 
+                                                                <EyeOff className="h-4 w-4 text-gray-400" /> : 
+                                                                <Eye className="h-4 w-4 text-gray-400" />
+                                                            }
+                                                        </Button>
+                                                    </div>
+                                                    {errors.password && (
+                                                        <p className="text-xs text-red-500">{errors.password}</p>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="password_confirmation" className="text-sm font-medium text-gray-700">
+                                                        Confirm Password
+                                                    </Label>
+                                                    <div className="relative">
+                                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                            <Lock className="h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                        <Input
+                                                            id="password_confirmation"
+                                                            type={showConfirmPassword ? 'text' : 'password'}
+                                                            value={data.password_confirmation}
+                                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                                            placeholder="••••••••••"
+                                                            className={cn(
+                                                                "pl-9 pr-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-all",
+                                                                errors.password_confirmation && 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                            )}
+                                                            required
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+                                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        >
+                                                            {showConfirmPassword ? 
+                                                                <EyeOff className="h-4 w-4 text-gray-400" /> : 
+                                                                <Eye className="h-4 w-4 text-gray-400" />
+                                                            }
+                                                        </Button>
+                                                    </div>
+                                                    {errors.password_confirmation && (
+                                                        <p className="text-xs text-red-500">{errors.password_confirmation}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Terms and Conditions */}
+                                        <div className="space-y-4">
+                                            <div className="flex items-start space-x-3">
+                                                <input
+                                                    id="terms_accepted"
+                                                    type="checkbox"
+                                                    checked={data.terms_accepted}
+                                                    onChange={(e) => setData('terms_accepted', e.target.checked)}
+                                                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded mt-1"
+                                                    required
+                                                />
+                                                <label htmlFor="terms_accepted" className="text-sm text-gray-700 leading-relaxed">
+                                                    I agree to the{' '}
+                                                    <a href="#" className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors">
+                                                        Terms of Service
+                                                    </a>
+                                                    {' '}and{' '}
+                                                    <a href="#" className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors">
+                                                        Privacy Policy
+                                                    </a>
+                                                </label>
+                                            </div>
+                                            {errors.terms_accepted && (
+                                                <p className="text-xs text-red-500">{errors.terms_accepted}</p>
+                                            )}
+                                        </div>
+
+                                        <Button
+                                            type="submit"
+                                            className="w-full h-12 bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold shadow-lg shadow-emerald-500/25 transition-all duration-200 transform hover:scale-[1.02]"
+                                            disabled={processing || !data.terms_accepted}
+                                        >
+                                            {processing ? (
+                                                <div className="flex items-center space-x-2">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                    <span>Creating Account...</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center space-x-2">
+                                                    <Shield className="h-4 w-4" />
+                                                    <span>Create Vendor Account</span>
+                                                </div>
+                                            )}
+                                        </Button>
+
+                                        <div className="relative">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <div className="w-full border-t border-gray-200" />
+                                            </div>
+                                            <div className="relative flex justify-center text-sm">
+                                                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="text-center">
+                                            <a 
+                                                href="/vendor/login" 
+                                                className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors hover:underline"
+                                            >
+                                                Sign in to your existing account
+                                            </a>
+                                        </div>
+                                    </form>
+                                </CardContent>
+                            </Card>
+
+                            {/* Security notice */}
+                            <div className="mt-6 text-center">
+                                <p className="text-xs text-gray-500 flex items-center justify-center space-x-1">
+                                    <Shield className="h-3 w-3" />
+                                    <span>Your information is protected with bank-level security</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

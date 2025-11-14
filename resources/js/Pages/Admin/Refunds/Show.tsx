@@ -122,6 +122,7 @@ const qcStatusBadgeVariants = {
 };
 
 export default function RefundShow({ refund }: RefundShowProps) {
+
   const [showApproveForm, setShowApproveForm] = useState(false);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [adminNotes, setAdminNotes] = useState(refund.admin_notes || '');
@@ -156,23 +157,70 @@ export default function RefundShow({ refund }: RefundShowProps) {
   };
 
   const handleApprove = () => {
+    console.log('Approve button clicked', { refund_id: refund.id, admin_notes: adminNotes });
+    
+    // Validate admin notes if provided
+    if (adminNotes.length > 1000) {
+      alert('Admin notes cannot exceed 1000 characters');
+      return;
+    }
+
     router.post(route('refunds.approve', refund.id), {
       admin_notes: adminNotes,
     }, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        console.log('Approval successful', response);
         setShowApproveForm(false);
+        setAdminNotes(''); // Reset form
       },
+      onError: (errors) => {
+        console.error('Approval failed', errors);
+        // Display specific error message
+        const errorMessage = errors.error || 'Failed to approve refund. Please try again.';
+        alert(errorMessage);
+      },
+      onFinish: () => {
+        console.log('Approval request finished');
+      }
     });
   };
 
   const handleReject = () => {
+    // Validate rejection reason
+    if (!rejectionReason.trim()) {
+      alert('Rejection reason is required');
+      return;
+    }
+    
+    if (rejectionReason.trim().length < 10) {
+      alert('Rejection reason must be at least 10 characters long');
+      return;
+    }
+    
+    if (rejectionReason.length > 1000) {
+      alert('Rejection reason cannot exceed 1000 characters');
+      return;
+    }
+    
+    if (adminNotes.length > 1000) {
+      alert('Admin notes cannot exceed 1000 characters');
+      return;
+    }
+
     router.post(route('refunds.reject', refund.id), {
-      rejection_reason: rejectionReason,
+      rejection_reason: rejectionReason.trim(),
       admin_notes: adminNotes,
     }, {
       onSuccess: () => {
         setShowRejectForm(false);
         setRejectionReason('');
+        setAdminNotes('');
+      },
+      onError: (errors) => {
+        console.error('Rejection failed', errors);
+        // Display specific error message
+        const errorMessage = errors.error || 'Failed to reject refund. Please try again.';
+        alert(errorMessage);
       },
     });
   };
@@ -201,6 +249,7 @@ export default function RefundShow({ refund }: RefundShowProps) {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
+              className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800'
               size="sm"
               onClick={() => router.get(route('refunds.index'))}
             >
@@ -377,15 +426,16 @@ export default function RefundShow({ refund }: RefundShowProps) {
                 {refund.status === 'pending' && (
                   <>
                     <Button
-                      className="w-full"
+                      variant="outline"
+                      className="w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                       onClick={() => setShowApproveForm(true)}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve Refund
                     </Button>
                     <Button
-                      variant="destructive"
-                      className="w-full"
+                      variant="outline"
+                      className="w-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                       onClick={() => setShowRejectForm(true)}
                     >
                       <XCircle className="h-4 w-4 mr-2" />

@@ -32,6 +32,7 @@ class SaleController extends Controller
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
+                    'slug' => $product->slug,
                     'price' => (float) $product->price,
                     'variants' => $product->variants->map(function ($v) {
                         return [

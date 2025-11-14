@@ -72,21 +72,57 @@ class RefundService
      */
     public function approveRefund(Refund $refund, array $data = []): Refund
     {
+        // Validation checks
+        if ($refund->refund_status !== 'pending') {
+            throw new \InvalidArgumentException("Refund is not in pending status. Current status: {$refund->refund_status}");
+        }
+
+        if (!Auth::id()) {
+            throw new \InvalidArgumentException('No authenticated user found');
+        }
+
+        // Additional business logic validation
+        $sourceTransaction = $refund->sale ?? $refund->order;
+        if ($sourceTransaction) {
+            $totalRefunded = $sourceTransaction->refunds()
+                ->where('id', '!=', $refund->id)
+                ->where('refund_status', '!=', 'rejected')
+                ->sum('amount');
+            
+            $maxRefundable = $sourceTransaction->total ?? $sourceTransaction->total_amount ?? 0;
+            
+            if (($totalRefunded + $refund->amount) > $maxRefundable) {
+                throw new \InvalidArgumentException('Refund amount would exceed the maximum refundable amount');
+            }
+        }
+
         return DB::transaction(function () use ($refund, $data) {
-            $refund->update([
-                'refund_status' => 'approved',
-                'approved_at' => now(),
-                'processed_by' => Auth::id(),
-                'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
-            ]);
+            try {
+                $refund->update([
+                    'refund_status' => 'approved',
+                    'approved_at' => now(),
+                    'processed_by' => Auth::id(),
+                    'admin_notes' => $data['admin_notes'] ?? $refund->admin_notes,
+                ]);
 
-            // Notify customer: approved
-            app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'approved');
+                // Notify customer: approved
+                if (class_exists(\App\Services\NotificationService::class)) {
+                    app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'approved');
+                }
 
-            // Process refund based on method
-            $this->processRefund($refund);
+                // Process refund based on method
+                $this->processRefund($refund);
 
-            return $refund->fresh();
+                return $refund->fresh();
+            } catch (\Exception $e) {
+                // Log the error for debugging
+                \Log::error('Refund approval failed in service', [
+                    'refund_id' => $refund->id,
+                    'error' => $e->getMessage(),
+                    'data' => $data
+                ]);
+                throw $e;
+            }
         });
     }
 

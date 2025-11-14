@@ -31,7 +31,20 @@ class RazorpayRefundService
             DB::beginTransaction();
 
             // Get the original payment
-            $payment = Payment::where('rzorder_id', $refundTransaction->refund->order->transaction_id)
+            $transactionId = null;
+            
+            // Try to get transaction_id from order or sale
+            if ($refundTransaction->refund->order && $refundTransaction->refund->order->transaction_id) {
+                $transactionId = $refundTransaction->refund->order->transaction_id;
+            } elseif ($refundTransaction->refund->sale && $refundTransaction->refund->sale->transaction_id) {
+                $transactionId = $refundTransaction->refund->sale->transaction_id;
+            }
+            
+            if (!$transactionId) {
+                throw new \Exception('No transaction ID found for this refund');
+            }
+            
+            $payment = Payment::where('rzorder_id', $transactionId)
                 ->where('status', 'captured')
                 ->first();
 

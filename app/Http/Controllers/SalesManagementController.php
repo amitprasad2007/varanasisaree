@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SalesManagementController extends Controller
 {
@@ -121,7 +123,7 @@ class SalesManagementController extends Controller
             'status_from' => $oldStatus,
             'status_to' => $newStatus,
             'notes' => $request->notes,
-            'changed_by' => auth()->id(),
+            'changed_by' => Auth::id(),
             'changed_at' => now(),
         ]);
 
@@ -144,7 +146,7 @@ class SalesManagementController extends Controller
             'reason' => 'nullable|string|max:500',
         ]);
 
-        return \DB::transaction(function () use ($sale, $request) {
+        return DB::transaction(function () use ($sale, $request) {
             $return = new SaleReturn();
             $return->sale_id = $sale->id;
             $return->reason = $request->reason;

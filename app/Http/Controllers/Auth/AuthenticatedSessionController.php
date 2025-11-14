@@ -26,7 +26,8 @@ class AuthenticatedSessionController extends Controller
 
     public function dashboard():Response
     {
-        return Inertia::render('dashboard');
+        $dashboardController = new \App\Http\Controllers\DashboardController();
+        return $dashboardController->index();
     }
 
     /**

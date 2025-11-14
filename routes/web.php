@@ -232,6 +232,7 @@ Route::middleware('auth')->group(function () {
 
     // Refund Management
     Route::get('refunds/report', [RefundManagementController::class, 'report'])->name('refunds.report');
+    Route::get('refunds/export', [RefundManagementController::class, 'export'])->name('refunds.export');
     Route::get('refunds', [RefundManagementController::class, 'index'])->name('refunds.index');
     Route::get('refunds/create', [RefundManagementController::class, 'create'])->name('refunds.create');
     Route::post('refunds', [RefundManagementController::class, 'store'])->name('refunds.store');
