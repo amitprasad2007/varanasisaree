@@ -110,7 +110,7 @@ class Order extends Model
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(Refund::class);
+        return $this->hasMany(Refund::class, 'order_id','order_id');
     }
 
     protected $casts = [

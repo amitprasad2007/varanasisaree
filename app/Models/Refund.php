@@ -65,7 +65,7 @@ class Refund extends Model
     // New relationships for comprehensive refund system
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Order::class ,'order_id','order_id');
     }
 
     public function customer(): BelongsTo

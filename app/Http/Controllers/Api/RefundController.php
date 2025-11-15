@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Customer;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class RefundController extends Controller
 {
@@ -379,10 +380,61 @@ class RefundController extends Controller
     }
     public function getOrderDetails(Request $request): JsonResponse
     {
+        // Add debugging information
+        $customerId = Auth::id();
+        $orderIdRequested = $request->order_id;
+        
+        // Debug: Log the request details
+        Log::info("RefundController@getOrderDetails Debug", [
+            'requested_order_id' => $orderIdRequested,
+            'authenticated_customer_id' => $customerId
+        ]);
+        
+        // First, let's check if the order exists at all
+        $orderExists = Order::where('order_id', $orderIdRequested)->first();
+        if (!$orderExists) {
+            Log::error("Order not found", ['order_id' => $orderIdRequested]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found',
+                'debug' => ['order_id' => $orderIdRequested]
+            ], 404);
+        }
+        
+        // Check if customer owns this order
+        if ($orderExists->customer_id != $customerId) {
+            Log::error("Customer mismatch", [
+                'order_customer_id' => $orderExists->customer_id,
+                'authenticated_customer_id' => $customerId
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to order',
+                'debug' => [
+                    'order_customer_id' => $orderExists->customer_id,
+                    'your_customer_id' => $customerId
+                ]
+            ], 403);
+        }
+       // dd($orderExists->refunds->count());
+        // Debug: Check refunds count before eager loading
+        $refundsCount = $orderExists->refunds->count();
+        Log::info("Refunds found for order", [
+            'order_internal_id' => $orderExists->id,
+            'order_id' => $orderExists->order_id,
+            'refunds_count' => $refundsCount
+        ]);
+        
         $order = Order::where('order_id', $request->order_id)
             ->where('customer_id', Auth::id())
-            ->with(['productItems.product.primaryImage'])
-            ->get()->map(function ($order) {
+            ->with([
+                'productItems.product.primaryImage',
+                'refunds.refundItems.product',
+                'refunds.refundItems.productVariant',
+                'refunds.refundTransaction',
+                'refunds.creditNote'
+            ])
+            ->get()->map(function ($order) use ($refundsCount) {
                 $statusColor = match($order->status) {
                     'delivered' => 'bg-green-500',
                     'processing' => 'bg-amber-500',
@@ -392,12 +444,86 @@ class RefundController extends Controller
                     default => 'bg-gray-500'
                 };
 
+                // Debug: Log refund information for this specific order
+                Log::info("Processing order refunds", [
+                    'order_id' => $order->order_id,
+                    'order_internal_id' => $order->id,
+                    'loaded_refunds_count' => $order->refunds->count(),
+                    'refunds_data' => $order->refunds->pluck('id', 'amount')->toArray()
+                ]);
+
                 return [
                     'id' => $order->order_id,
                     'date' => $order->created_at->format('d M Y'),
                     'total' => $order->total_amount,
                     'status' => ucfirst($order->status),
                     'statusColor' => $statusColor,
+                    'debug_info' => [
+                        'expected_refunds_count' => $refundsCount,
+                        'loaded_refunds_count' => $order->refunds->count(),
+                        'refund_ids' => $order->refunds->pluck('id')->toArray()
+                    ],
+                    'refundamountstatus' => $order->refunds->map(function($refund) {
+                        // Get refund items with their details
+                        $refundItems = $refund->refundItems->map(function($refundItem) {
+                            return [
+                                'product_id' => $refundItem->product_id,
+                                'product_variant_id' => $refundItem->product_variant_id,
+                                'quantity' => $refundItem->quantity,
+                                'unit_price' => $refundItem->unit_price,
+                                'total_amount' => $refundItem->total_amount,
+                                'status' => $refundItem->status,
+                                'qc_status' => $refundItem->qc_status,
+                                'reason' => $refundItem->reason,
+                            ];
+                        });
+
+                        // Get refund transaction details if exists
+                        $transactionDetails = null;
+                        if ($refund->refundTransaction) {
+                            $transactionDetails = [
+                                'transaction_id' => $refund->refundTransaction->transaction_id,
+                                'gateway' => $refund->refundTransaction->gateway,
+                                'status' => $refund->refundTransaction->status,
+                                'amount' => $refund->refundTransaction->amount,
+                                'gateway_transaction_id' => $refund->refundTransaction->gateway_transaction_id,
+                                'gateway_refund_id' => $refund->refundTransaction->gateway_refund_id,
+                                'processed_at' => $refund->refundTransaction->processed_at,
+                                'completed_at' => $refund->refundTransaction->completed_at,
+                            ];
+                        }
+
+                        // Get credit note details if exists
+                        $creditNoteDetails = null;
+                        if ($refund->creditNote) {
+                            $creditNoteDetails = [
+                                'credit_note_number' => $refund->creditNote->credit_note_number,
+                                'amount' => $refund->creditNote->amount,
+                                'used_amount' => $refund->creditNote->used_amount,
+                                'remaining_amount' => $refund->creditNote->remaining_amount,
+                                'status' => $refund->creditNote->status,
+                                'issued_at' => $refund->creditNote->issued_at,
+                                'expires_at' => $refund->creditNote->expires_at,
+                            ];
+                        }
+
+                        return [
+                            'refund_id' => $refund->id,
+                            'total_amount' => $refund->amount,
+                            'method' => $refund->method,
+                            'refund_status' => $refund->refund_status,
+                            'refund_type' => $refund->refund_type,
+                            'reason' => $refund->reason,
+                            'requested_at' => $refund->requested_at,
+                            'approved_at' => $refund->approved_at,
+                            'processed_at' => $refund->processed_at,
+                            'completed_at' => $refund->completed_at,
+                            'vendor_id' => $refund->vendor_id,
+                            'items' => $refundItems,
+                            'transaction' => $transactionDetails,
+                            'credit_note' => $creditNoteDetails,
+                        ];
+                    })->toArray(),
                     'items' => $order->productItems->map(function ($item) {
                         $images = $item->product->resolveImagePaths()->map(function ($path) {
                             $path = (string) $path;
