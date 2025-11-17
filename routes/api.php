@@ -191,6 +191,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
         Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
         Route::get('/refund-statistics', [RefundController::class, 'statistics']);
         Route::get('/return_orders/{order_id}', [RefundController::class, 'getOrderDetails']);
+        Route::get('/refunds-check-item-eligibility',[RefundController::class, 'getOrderitemsDetails']);
+        Route::get('/refunds-get-refundable-items',[RefundController::class, 'getRefundableItems']);
 
         
 
