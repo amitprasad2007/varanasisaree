@@ -143,7 +143,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route:: post('paychecksave', [PaymentController::class, 'paychecksave']);
     Route:: get('orderdetails/{orid}', [OrderController::class, 'orderdetails']);
     Route:: get('order/pdf/{orid}', [OrderController::class, 'generateInvoicePdf'])->name('api.order.pdf');
-
+    Route:: get('payment-methods', [PaymentController::class, 'getPaymentMethods']);
     // Address operations
     Route::get('/addresses', [AddressController::class, 'getAddresses']);
     Route::get('/addressesind', [AddressController::class, 'index']);
@@ -181,7 +181,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/recommeded-products', [ProductController::class, 'getRecommededProducts']);
     Route::get('/refund-eligibility', [RefundController::class, 'checkEligibility']);
     // Refund operations (authenticated)
-  
+
         Route::get('/refunds', [RefundController::class, 'index']);
         Route::post('/refunds', [RefundController::class, 'store']);
         Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
@@ -194,7 +194,7 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
         Route::get('/refunds-check-item-eligibility',[RefundController::class, 'getOrderitemsDetails']);
         Route::get('/refunds-get-refundable-items',[RefundController::class, 'getRefundableItems']);
 
-        
+
 
 });
 

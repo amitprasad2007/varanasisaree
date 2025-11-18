@@ -130,5 +130,16 @@ class PaymentController extends Controller
             ]);
         }
     }
+
+    public function getPaymentMethods(){
+        return response()->json([
+            'payment_methods' => [
+                ['id' => 'cod', 'type' => 'COD', 'name' => 'Cash on Delivery' ],
+                ['id' => 'upi', 'type' => 'UPI', 'name' => 'UPI Payment' ],
+                ['id' => 'card', 'type' => 'CARD', 'name' => 'Credit/Debit Card' ],
+                ['id' => 'netbanking', 'type' => 'NETBANKING', 'name' => 'Net Banking' ]
+            ]
+        ]);
+    }
 }
 
