@@ -76,7 +76,7 @@ class UserController extends Controller
 
     public function profile(Request $request)
     {
-        $user = $request->user()->load(['orders.orderItems.product', 'wishlists.product', 'addresses', 'cartItems.product','refunds']);
+        $user = $request->user()->load(['orders.orderItems.product.refunds', 'wishlists.product', 'addresses', 'cartItems.product']);
         return response()->json($this->userService->formatUserData($user));
     }
 

@@ -104,6 +104,13 @@ class CustomerService
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                     ];
+                })->toArray(),
+                'refunds' => $order->refunds->map(function ($refund) {
+                    return [
+                        'id' => $refund->id,
+                        'amount' => $refund->amount,
+                        'status' => $refund->status,
+                    ];
                 })->toArray()
             ];
         });
