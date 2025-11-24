@@ -67,7 +67,7 @@ export default function Login() {
               <img
                 src="/ChatGPT Image Nov 24, 2025, 05_45_18 PM.png"
                 alt="Logo"
-                className="h-45 w-45 rounded-full object-cover border-4 border-white/20 shadow-2xl"
+                className="h-45 w-45 rounded-4xl object-contain border-4 border-white/20 shadow-xl/30"
               />
             </div>
           </div>
