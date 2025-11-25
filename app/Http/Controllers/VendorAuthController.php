@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,13 +20,26 @@ class VendorAuthController extends Controller
         return Inertia::render('Vendor/Auth/Register');
     }
 
-    public function showLoginForm(): Response
+    public function showLoginForm(): Response|RedirectResponse
     {
-        return Inertia::render('Vendor/Auth/Login');
+        $subdomain = request()->route('domain');
+        $checkSubdomain = Vendor::where('subdomain', $subdomain)->first();
+        if (!$checkSubdomain) {
+            return Inertia::render('Vendor/Auth/Login', [
+                'subdomain' => $subdomain,
+                'error' => 'Invalid Subdomain',
+                'errorMessage' => "The subdomain '{$subdomain}' does not exist. Please check the URL or register a new vendor account.",
+                'showRegisterButton' => true,
+            ]);
+        }
+        return Inertia::render('Vendor/Auth/Login', [
+            'subdomain' => $subdomain,
+        ]);
     }
 
     public function register(Request $request)
     {
+        
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:50|unique:vendors|alpha_dash',
             'business_name' => 'required|string|max:255',

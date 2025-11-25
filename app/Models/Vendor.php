@@ -53,6 +53,11 @@ class Vendor extends Authenticatable
         'status' => 'string',
     ];
 
+    protected $appends = [
+        'subdomain_url',
+        'full_business_name',
+    ];
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

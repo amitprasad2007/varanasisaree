@@ -5,8 +5,12 @@ use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorController;
 use App\Http\Controllers\VendorAuthController;
 
+
+Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
+
 Route::domain('{domain}.' . env('APP_URL'))->group(function () {
     Route::get('/', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
+    Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
     Route::post('/vendor/login', [VendorAuthController::class, 'login'])->name('vendor.login.store');
     Route::get('/dashboard',  [VendorDashboardController::class, 'dashboard'])->name('vendor.dashboard');
     
