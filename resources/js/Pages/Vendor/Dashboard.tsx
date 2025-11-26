@@ -17,9 +17,10 @@ import {
     Eye,
     LogOut
 } from 'lucide-react';
+import VendorLayout from '@/layouts/VendorLayout';
 
 interface DashboardProps {
-    vendor: {business_name:string};
+    vendor: { business_name: string };
     stats: {
         total_products: number;
         active_products: number;
@@ -61,7 +62,7 @@ export default function VendorDashboard({
     const domain = window.location.hostname.split('.')[0];
 
     const handleLogout = () => {
-        router.post(route('vendor.logout', {domain}));
+        router.post(route('vendor.logout', { domain }));
     };
 
     const formatCurrency = (amount: number) => {
@@ -88,22 +89,14 @@ export default function VendorDashboard({
         <>
             <Head title="Vendor Dashboard" />
 
-            <div className="min-h-screen bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="">
+                <div className="">
                     {/* Header */}
                     <div className="mb-8 flex justify-between items-center">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Dashboard ({vendor.business_name})</h1>
-                            <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
+                            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                            <p className="text-gray-600">Welcome back, {vendor.business_name}! Here's what's happening with your business.</p>
                         </div>
-                        <Button 
-                            variant="outline" 
-                            onClick={handleLogout}
-                            className="flex items-center space-x-2"
-                        >
-                            <LogOut className="h-4 w-4" />
-                            <span>Logout</span>
-                        </Button>
                     </div>
 
                     {/* Date Filter */}
@@ -209,7 +202,7 @@ export default function VendorDashboard({
                                         <div key={index} className="flex flex-col items-center">
                                             <div
                                                 className="w-8 bg-blue-500 rounded-t"
-                                                style={{ height: `${(day.sales / Math.max(...sales_chart.map(d => d.sales))) * 200 }px` }}
+                                                style={{ height: `${(day.sales / Math.max(...sales_chart.map(d => d.sales))) * 200}px` }}
                                             ></div>
                                             <span className="text-xs text-gray-500 mt-2">{day.date}</span>
                                         </div>
@@ -308,3 +301,5 @@ export default function VendorDashboard({
         </>
     );
 }
+
+VendorDashboard.layout = (page: any) => <VendorLayout children={page} title="Vendor Dashboard" />;
