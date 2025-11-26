@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -183,8 +182,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('permissions', PermissionManagementController::class);
 
     // Admin controlle Vendors routes
-    Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');
-    Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');
+    Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');   
+    Route::get('admin/vendors/create', [VendorController::class, 'create'])->name('admin.vendors.create');
+    Route::post('admin/vendors', [VendorController::class, 'store'])->name('admin.vendors.store');
+    Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');   
+    Route::get('admin/vendors/{id}/edit', [VendorController::class, 'edit'])->name('admin.vendors.edit');
     Route::post('admin/vendors/{id}/approve', [VendorController::class, 'approve'])->name('admin.vendors.approve');
     Route::post('admin/vendors/{id}/suspend', [VendorController::class, 'suspend'])->name('admin.vendors.suspend');
     Route::post('admin/vendors/{id}/activate', [VendorController::class, 'activate'])->name('admin.vendors.activate');

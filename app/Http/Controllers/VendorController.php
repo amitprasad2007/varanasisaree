@@ -217,5 +217,81 @@ class VendorController  extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-   
+    public function create()
+    {
+       
+        return Inertia::render('Admin/Vendors/Create');
+    }
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:50|unique:vendors|alpha_dash',
+            'business_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:vendors',
+            'phone' => 'required|string|max:20|unique:vendors',
+            'password' => 'required|string|min:8|confirmed',
+            'description' => 'nullable|string|max:1000',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'gstin' => 'nullable|string|max:15|unique:vendors',
+            'pan' => 'nullable|string|max:10|unique:vendors',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        // Generate subdomain from username
+        $subdomain = $this->generateUniqueSubdomain($request->username);
+
+        try {
+            $vendor = Vendor::create([
+                'username' => $request->username,
+                'business_name' => $request->business_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'description' => $request->description,
+                'address' => $request->address,
+                'city' => $request->city,
+                'state' => $request->state,
+                'country' => $request->country,
+                'postal_code' => $request->postal_code,
+                'gstin' => $request->gstin,
+                'pan' => $request->pan,
+                'contact_person' => $request->contact_person,
+                'contact_email' => $request->contact_email,
+                'contact_phone' => $request->contact_phone,
+                'subdomain' => $subdomain,
+                'status' => 'active',
+                'is_verified' => true,
+            ]);
+
+            return redirect()->route('admin.vendors.index')
+                ->with('success', 'Vendor created successfully.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Creation failed: ' . $e->getMessage()])->withInput();
+        }
+    }
+
+    private function generateUniqueSubdomain(string $username): string
+    {
+        $baseSubdomain = Str::slug($username);
+        $subdomain = $baseSubdomain;
+        $counter = 1;
+
+        while (Vendor::where('subdomain', $subdomain)->exists()) {
+            $subdomain = $baseSubdomain . '-' . $counter;
+            $counter++;
+        }
+
+        return $subdomain;
+    }
 }

@@ -8,6 +8,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Eye, EyeOff, Building2, User, Mail, Lock, Phone, MapPin, FileText, Shield, Star, Users, TrendingUp, Award, CreditCard, Globe } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { cn } from '@/lib/utils';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
+const indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+    "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra",
+    "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+    "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+    "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+    "Lakshadweep", "Delhi", "Puducherry", "Ladakh", "Jammu and Kashmir"
+];
 
 export default function VendorRegister() {
     const { data, setData, post, processing, errors, reset } = useForm<{
@@ -41,7 +57,7 @@ export default function VendorRegister() {
         address: '',
         city: '',
         state: '',
-        country: '',
+        country: 'India',
         postal_code: '',
         gstin: '',
         pan: '',
@@ -282,7 +298,7 @@ export default function VendorRegister() {
                                                     id="phone"
                                                     value={data.phone}
                                                     onChange={(e) => setData('phone', e.target.value)}
-                                                    placeholder="+1 (555) 000-0000"
+                                                    placeholder="+91 98765 43210"
                                                     className={cn(errors.phone && 'border-red-500')}
                                                     required
                                                 />
@@ -295,7 +311,7 @@ export default function VendorRegister() {
                                                     id="gstin"
                                                     value={data.gstin}
                                                     onChange={(e) => setData('gstin', e.target.value)}
-                                                    placeholder="GSTIN12345"
+                                                    placeholder="22AAAAA0000A1Z5"
                                                     className={cn(errors.gstin && 'border-red-500')}
                                                 />
                                                 {errors.gstin && <p className="text-xs text-red-500">{errors.gstin}</p>}
@@ -341,7 +357,7 @@ export default function VendorRegister() {
                                                     id="city"
                                                     value={data.city}
                                                     onChange={(e) => setData('city', e.target.value)}
-                                                    placeholder="New York"
+                                                    placeholder="Kolkata"
                                                     className={cn(errors.city && 'border-red-500')}
                                                 />
                                                 {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
@@ -349,13 +365,18 @@ export default function VendorRegister() {
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="state" className="text-sm font-medium text-gray-700">State</Label>
-                                                <Input
-                                                    id="state"
-                                                    value={data.state}
-                                                    onChange={(e) => setData('state', e.target.value)}
-                                                    placeholder="NY"
-                                                    className={cn(errors.state && 'border-red-500')}
-                                                />
+                                                <Select onValueChange={(value) => setData('state', value)} defaultValue={data.state}>
+                                                    <SelectTrigger className={cn(errors.state && 'border-red-500')}>
+                                                        <SelectValue placeholder="Select State" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className='bg-white'>
+                                                        {indianStates.map((state) => (
+                                                            <SelectItem key={state} value={state}>
+                                                                {state}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                                 {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
                                             </div>
 
@@ -365,19 +386,20 @@ export default function VendorRegister() {
                                                     id="country"
                                                     value={data.country}
                                                     onChange={(e) => setData('country', e.target.value)}
-                                                    placeholder="USA"
-                                                    className={cn(errors.country && 'border-red-500')}
+                                                    placeholder="India"
+                                                    readOnly
+                                                    className={cn("bg-gray-50", errors.country && 'border-red-500')}
                                                 />
                                                 {errors.country && <p className="text-xs text-red-500">{errors.country}</p>}
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label htmlFor="postal_code" className="text-sm font-medium text-gray-700">Postal Code</Label>
+                                                <Label htmlFor="postal_code" className="text-sm font-medium text-gray-700">Pincode</Label>
                                                 <Input
                                                     id="postal_code"
                                                     value={data.postal_code}
                                                     onChange={(e) => setData('postal_code', e.target.value)}
-                                                    placeholder="10001"
+                                                    placeholder="110001"
                                                     className={cn(errors.postal_code && 'border-red-500')}
                                                 />
                                                 {errors.postal_code && <p className="text-xs text-red-500">{errors.postal_code}</p>}
@@ -424,7 +446,7 @@ export default function VendorRegister() {
                                                     id="contact_phone"
                                                     value={data.contact_phone}
                                                     onChange={(e) => setData('contact_phone', e.target.value)}
-                                                    placeholder="+1 (555) 987-6543"
+                                                    placeholder="+91 98765 43210"
                                                     className={cn(errors.contact_phone && 'border-red-500')}
                                                 />
                                                 {errors.contact_phone && <p className="text-xs text-red-500">{errors.contact_phone}</p>}
