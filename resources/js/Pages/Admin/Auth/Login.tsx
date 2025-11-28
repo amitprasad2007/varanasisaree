@@ -65,9 +65,9 @@ export default function Login() {
           <div className="relative z-10">
             <div className="p-1 bg-white/10 rounded-full backdrop-blur-sm inline-block">
               <img
-                src="/ChatGPT Image Nov 24, 2025, 05_45_18 PM.png"
+                src="/logoImage background.png"
                 alt="Logo"
-                className="h-45 w-45 rounded-4xl object-contain border-4 border-white/20 shadow-xl/30"
+                className="h-45 w-45 rounded-4xl object-contain border-4 bg-white/10 shadow-xl/30"
               />
             </div>
           </div>
@@ -78,12 +78,12 @@ export default function Login() {
               <span className="text-indigo-300">Empire</span> with ease.
             </h1>
             <p className="text-lg text-indigo-200/80 leading-relaxed">
-              Welcome to the Varanasi Saree Admin Portal. Streamline your operations, manage vendors, and track performance all in one place.
+              Welcome to the Shiwasha Info Admin Portal. Streamline your operations, manage vendors, and track performance all in one place.
             </p>
           </div>
 
           <div className="relative z-10 text-sm text-indigo-300/60">
-            © {new Date().getFullYear()} Varanasi Saree. All rights reserved.
+            © {new Date().getFullYear()} Shiwasha Info. All rights reserved.
           </div>
         </div>
 
