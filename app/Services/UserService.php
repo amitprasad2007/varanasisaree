@@ -100,6 +100,18 @@ class UserService
 
     private function formatCartItems($cartItems)
     {
+
+        if ($cartItems->isEmpty()) {
+            return [
+                'items' => [],
+                'subtotal' => 0,
+                'discount' => 0,
+                'shipping' => 0,
+                'tax' => 0,
+                'total' => 0
+            ];
+        }
+
         $subtotal = $cartItems->sum(function ($item) {
             return $item->price * $item->quantity;
         });
@@ -107,7 +119,7 @@ class UserService
         $tax = $subtotal * 0.18;
         $discount = 5000;
         $shipping = 0;
-        $total = $subtotal + $tax + $shipping - $discount;
+        $total = ($subtotal + $tax + $shipping) - $discount;
 
         return [
             'items' => $cartItems->map(function ($item) {
