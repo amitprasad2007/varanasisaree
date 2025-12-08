@@ -53,7 +53,44 @@ class CollectionController extends Controller
                       ->orderBy('pivot_sort_order');
                 },
             ])
-            ->firstOrFail(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description']);
+            ->firstOrFail(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description'])->map(function ($collection) {
+                $collection->products = $collection->products->map(function ($product) {
+                     // Images (resolve and convert to absolute URLs)
+                    $images = $product->resolveImagePaths()->map(function ($path) {
+                        $path = (string) $path;
+                        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                            return $path;
+                        }
+                        return asset('storage/' . ltrim($path, '/'));
+                    })->values();
+        
+                    // Skip products with no images
+                    if ($images->isEmpty()) {
+                        return null;
+                    }
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'slug' => $product->slug,
+                        'price' => $product->price,
+                        'status' => $product->status,
+                        'images' => $images,
+                    ];
+                });
+                return [
+                    'id' => $collection->id,
+                    'collection_type_id' => $collection->collection_type_id,
+                    'name' => $collection->name,
+                    'slug' => $collection->slug,
+                    'description' => $collection->description,
+                    'banner_image' => $collection->banner_image,
+                    'thumbnail_image' => $collection->thumbnail_image,
+                    'seo_title' => $collection->seo_title,
+                    'seo_description' => $collection->seo_description,
+                    'collection_type' => $collection->collectionType,
+                    'products' => $collection->products,
+                ];
+            });
 
         return response()->json($collection);
     }
