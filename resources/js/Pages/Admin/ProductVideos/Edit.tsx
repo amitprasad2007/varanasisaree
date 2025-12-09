@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,7 +34,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useController, useForm } from 'react-hook-form';
 import { Product, ProductVideo, VideoProvider } from '@/types/product';
-import { Inertia } from '@inertiajs/inertia';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';
@@ -92,17 +91,17 @@ export default function Edit({ product, video, providers }: EditProps) {
     }
 
     // Submit the form using Inertia
-    Inertia.post(route('product-videos.update', [product.id, video.id]), formData, {
+    router.post(route('product-videos.update', [product.id, video.id]), formData, {
       forceFormData: true,
       onSuccess: () => {
         Swal.fire({
-           title: 'Success!',
-           text: 'Video  Updated successfully',
-           icon: 'success',
-           timer: 4000,
-           showConfirmButton: false
-       });
-     }
+          title: 'Success!',
+          text: 'Video  Updated successfully',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
     });
   };
 
@@ -130,22 +129,22 @@ export default function Edit({ product, video, providers }: EditProps) {
   return (
     <DashboardLayout title={`Edit Video for ${product.name}`}>
       <div className="space-y-6">
-      <div className="space-y-4 pb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Edit Video</h1>
-            <p className="text-muted-foreground">
-              Update video details for {product.name}
-            </p>
+        <div className="space-y-4 pb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Edit Video</h1>
+              <p className="text-muted-foreground">
+                Update video details for {product.name}
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href={route('product-videos.index', product.id)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Videos
+              </Link>
+            </Button>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={route('product-videos.index', product.id)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Videos
-            </Link>
-          </Button>
-        </div>
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
+          <Breadcrumbs breadcrumbs={breadcrumbs} />
         </div>
         <Card>
           <CardHeader>
