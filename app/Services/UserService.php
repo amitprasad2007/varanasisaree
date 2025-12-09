@@ -116,19 +116,27 @@ class UserService
             return $item->price * $item->quantity;
         });
 
-        $tax = $subtotal * 0.18;
-        $discount = 5000;
+        $tax = round($subtotal * 0.18, 2);
+        $discount = min(round($subtotal * 0.1, 2), 5000);
         $shipping = 0;
         $total = ($subtotal + $tax + $shipping) - $discount;
 
         return [
             'items' => $cartItems->map(function ($item) {
+                $images = $item->product->resolveImagePaths()->map(function ($path) {
+                    $path = (string) $path;
+                    if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                        return $path;
+                    }
+                    return asset('storage/' . ltrim($path, '/'));
+                })->values();
                 return [
                     'id' => $item->product_id,
+                    'cart_id' =>$item->id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'image' => $item->product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
+                    'image' => $images,
                 ];
             }),
             'subtotal' => $subtotal,

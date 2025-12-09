@@ -71,7 +71,7 @@ Route::get('getcategorybyname/{slug}', [CategoryController::class, 'getcategoryb
 // Product APIs
 Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts']);
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
-Route::get('/featured-collections', [ProductController::class, 'getFeaturedProducts']);
+Route::get('/featured-collections', [CollectionController::class, 'featured']);
 
 
 Route::get('/getProductDetails/{slug}',[ProductController::class, 'getProductDetails']);

@@ -186,7 +186,7 @@ class CustomerService
         });
 
         $tax = round($subtotal * 0.18, 2);
-        $discount = round($subtotal * 0.1, 2);
+        $discount = min(round($subtotal * 0.1, 2), 5000);
         $shipping = 0;
         $total = ($subtotal + $tax + $shipping) - $discount;
 
@@ -201,6 +201,7 @@ class CustomerService
                 })->values();
                 return [
                     'id' => $item->product_id,
+                    'cart_id' =>$item->id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
