@@ -140,7 +140,7 @@ class OrderController extends Controller
             // Update cart items with order_id
             Cart::where('customer_id', $customer->id)
                 ->whereNull('order_id')
-                ->update(['order_id' => $order->id]);
+                ->update(['order_id' => $order->id, 'status' => 'progress']);
 
             DB::commit();
 
