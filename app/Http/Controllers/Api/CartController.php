@@ -166,7 +166,6 @@ class CartController extends Controller
 
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
-           // dd($item->productVariant->color->name);
             return [
                 'id' => $item->id,
                 'name' => $item->product->name ?? '',
@@ -184,12 +183,11 @@ class CartController extends Controller
             ];
         });
 
-        // Calculate cart summary
-        $subTotal = $cartItems->sum('price');
+        $subTotal = $cartItems->sum('amount');
         $quantity = $cartItems->sum('quantity');
         $tax = round($subTotal * 0.18, 2);
         $discount = min(round($subTotal * 0.1, 2), 5000);
-        $shipping = ($subtotal > 50000) ? 0 : 499; // You can implement shipping calculation logic here
+        $shipping = ($subTotal > 50000) ? 0 : 499; // You can implement shipping calculation logic here
         $total = ($subTotal + $tax + $shipping) - $discount;
 		$cartdetails = $this->getCustomerCart($customer->id);
         return response()->json([
