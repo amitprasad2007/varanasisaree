@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Collection;
 use App\Models\CollectionType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CollectionController extends Controller
 {
