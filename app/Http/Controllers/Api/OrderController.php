@@ -118,8 +118,6 @@ class OrderController extends Controller
                 }
             }
 
-            $totalAmount = $subTotal - $discount;
-
             // Create order
             $order = Order::create([
                 'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)), // Generate a unique order ID
@@ -128,7 +126,9 @@ class OrderController extends Controller
                 'sub_total' => $subTotal,
                 'shipping_id' => 1, // Assuming a fixed shipping ID for this example
                 'quantity' => $quantity,
-                'total_amount' => $totalAmount,
+                'shipping_cost'=>$request->shippingcost,
+                'tax' => $request->tax,
+                'total_amount' => $request->total,
                 'coupon' => $discount,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
