@@ -185,7 +185,7 @@ class CartController extends Controller
         });
 
         // Calculate cart summary
-        $subTotal = $cartItems->sum('amount');
+        $subTotal = $cartItems->sum('price');
         $quantity = $cartItems->sum('quantity');
         $tax = round($subTotal * 0.18, 2);
         $discount = min(round($subTotal * 0.1, 2), 5000);
