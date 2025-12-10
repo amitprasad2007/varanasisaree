@@ -187,8 +187,10 @@ class CartController extends Controller
         // Calculate cart summary
         $subTotal = $cartItems->sum('amount');
         $quantity = $cartItems->sum('quantity');
-        $shipping = 0; // You can implement shipping calculation logic here
-        $total = $subTotal + $shipping;
+        $tax = round($subTotal * 0.18, 2);
+        $discount = min(round($subTotal * 0.1, 2), 5000);
+        $shipping = ($subtotal > 50000) ? 0 : 499; // You can implement shipping calculation logic here
+        $total = ($subTotal + $tax + $shipping) - $discount;
 		$cartdetails = $this->getCustomerCart($customer->id);
         return response()->json([
             'cartdetails' => $cartdetails,
@@ -196,6 +198,8 @@ class CartController extends Controller
             'summary' => [
                 'sub_total' => $subTotal,
                 'quantity' => $quantity,
+                'tax' => $tax,
+                'discount' => $discount,
                 'shipping' => $shipping,
                 'total' => $total
             ]
@@ -216,15 +220,15 @@ class CartController extends Controller
         });
 
         // Calculate tax (assuming 18% GST)
-        $tax = $subtotal * 0.18;
+        $tax = round($subtotal * 0.18, 2);
 
         // For this example, we'll use a fixed discount
-        $discount = ($subtotal > 15000) ? 1000 : 0 ;
+        $discount = min(round($subtotal * 0.1, 2), 5000);
 
         // Free shipping for this example
         $shipping = ($subtotal > 50000) ? 0 : 499;
 
-        $total = $subtotal + $tax + $shipping - $discount;
+        $total = ($subtotal + $tax + $shipping) - $discount;
 
         $formattedItems = $cartItems->map(function ($item) {
             return [
@@ -245,6 +249,7 @@ class CartController extends Controller
 			'address' => $customer->addressesdefault,
             'items' => $formattedItems,
             'subtotal' => $subtotal,
+            'quantity' => $cartItems->sum('quantity'),
             'discount' => $discount,
             'shipping' => $shipping,
             'tax' => $tax,

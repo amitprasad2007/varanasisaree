@@ -187,7 +187,7 @@ class CustomerService
 
         $tax = round($subtotal * 0.18, 2);
         $discount = min(round($subtotal * 0.1, 2), 5000);
-        $shipping = 0;
+        $shipping = ($subtotal > 50000) ? 0 : 499;
         $total = ($subtotal + $tax + $shipping) - $discount;
 
         return [
@@ -211,6 +211,7 @@ class CustomerService
             'subtotal' => $subtotal,
             'discount' => $discount,
             'shipping' => $shipping,
+            'quantity' => $cartItems->sum('quantity'),
             'tax' => $tax,
             'total' => $total
         ];
