@@ -22,15 +22,16 @@ class PaymentController extends Controller
             'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)), // Generate a unique order ID
             'customer_id' => $customer->id,
             'address_id' => $request->address_id,
+            'shipping_id' => 1, // Assuming a fixed shipping ID for this example
             'sub_total' => $request->subtotal,
             'quantity' => $request->totalquantity,
-            'shippingcost' => $request->shippingcost,
+            'shipping_cost' => $request->shippingcost,
             'tax' => $request->tax,
+            'discount' => $request->discount,
             'total_amount' => $request->total,
             'payment_method' => ($request->payment_method == 'online') ? 'razorpay' : 'cod',
             'payment_status' => ($request->payment_method == 'online') ? 'paid' : 'unpaid',
-            'status' => 'pending',
-            'shipping_id' => null // Set shipping_id to null since we're using address_id instead
+            'status' => 'pending'            
         ]);
         foreach( $request->items as $product){
             OrderItem::create([

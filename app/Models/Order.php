@@ -39,6 +39,9 @@ class Order extends Model
         'tracking_events',
         'order_priority',
         'assigned_to',
+        'tax',
+        'discount',
+        'shipping_cost'
     ];
 
     /**
