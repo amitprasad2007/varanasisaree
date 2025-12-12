@@ -309,7 +309,8 @@ class ProductController extends Controller
          }
  
          // Fetch products after applying filters and sorting
-         $products = $query->get();
+         // LIMIT to 20 products to prevent JSON response truncation
+         $products = $query->take(20)->get();
  
          if ($products->isEmpty()) {
              return response()->json([]);
