@@ -191,7 +191,7 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!$validated['product_variant_id'] ) {
+        if (empty($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
         }else{

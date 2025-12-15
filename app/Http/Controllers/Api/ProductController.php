@@ -574,7 +574,7 @@ class ProductController extends Controller
                     'images' => $imagePaths->map(fn($path) => asset('storage/' . $path)),
                     'price' => (float) $product->price,
                     'originalPrice' => (float) ($product->price + ($product->price * $product->discount / 100)),
-                    'category' => $product->category->name,
+                    'category' => optional($product->category)->title,
                 ];
             })
             ->filter()
