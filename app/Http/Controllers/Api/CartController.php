@@ -35,7 +35,11 @@ class CartController extends Controller
         if ($variantId) {
             $variant = \App\Models\ProductVariant::where('id', $variantId)
                 ->where('product_id', $product->id)
-                ->firstOrFail();
+                ->first();
+
+            if (!$variant) {
+                return response()->json(['message' => 'Invalid variant selected for this product.'], 422);
+            }
         }
 
         // Check if product already exists in cart
@@ -115,7 +119,7 @@ class CartController extends Controller
 		$cart = Cart::where('id', $request->cart_id)
 			->where('customer_id', $customer->id)
             ->whereNull('order_id')
-            ->firstOrFail();
+            ->first();
 
         $cart->quantity = $request->quantity;
         $cart->amount = $cart->price * $request->quantity;
@@ -141,7 +145,7 @@ class CartController extends Controller
 		$cart = Cart::where('id', $request->cart_id)
 			->where('customer_id', $customer->id)
             ->whereNull('order_id')
-            ->firstOrFail();
+            ->first();
 
         $cart->delete();
 
@@ -173,7 +177,7 @@ class CartController extends Controller
                 'category' => $item->product->category->id ?? '',
                 'subcategory' => $item->product->subcategory->id ?? '',
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
-                    ?? $item->product->primaryImage->first()?->image_path
+                    ?? $item->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
                 'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
@@ -369,7 +373,11 @@ class CartController extends Controller
         if ($variantId) {
             $variant = \App\Models\ProductVariant::where('id', $variantId)
                 ->where('product_id', $product->id)
-                ->firstOrFail();
+                ->first();
+
+            if (!$variant) {
+                return response()->json(['message' => 'Invalid variant selected for this product.'], 422);
+            }
         }
 
         // Check if product already exists in cart

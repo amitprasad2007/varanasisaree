@@ -192,20 +192,19 @@ class CustomerService
 
         return [
             'items' => $cartItems->map(function ($item) {
-                $images = $item->product->resolveImagePaths()->map(function ($path) {
-                    $path = (string) $path;
-                    if (Str::startsWith($path, ['http://', 'https://', '//'])) {
-                        return $path;
-                    }
-                    return asset('storage/' . ltrim($path, '/'));
-                })->values();
+                $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
+                    ?? $item->product->resolveImagePaths()->first();
+
+                $image = $rawPath 
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                    : 'https://via.placeholder.com/150';
                 return [
                     'id' => $item->product_id,
                     'cart_id' =>$item->id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'image' => $images,
+                    'image' => $image,
                 ];
             }),
             'subtotal' => $subtotal,
