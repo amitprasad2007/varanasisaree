@@ -88,7 +88,8 @@ class Order extends Model
 
     public function payment(): HasOne
     {
-        return $this->hasOne(Payment::class,'order_id','order_number');
+        // Link payments.order_id (business order identifier) to orders.order_id
+        return $this->hasOne(Payment::class, 'order_id', 'order_id');
     }
 
     public function statusLogs(): HasMany
