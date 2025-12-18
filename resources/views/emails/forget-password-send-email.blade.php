@@ -5,9 +5,10 @@
 </head>
 
 <body>
-    <h2>Hello, {{ Illuminate\Support\Str::title($data['data']->name) }}!</h2>
+    <h2>Hello, {{ Illuminate\Support\Str::title($data['data']['name'] ?? 'Customer') }}!</h2>
     <p>We received a request to reset the password for your account. If you made this request, please click the link below to reset your password:</p>
-    <a href="{{env('FRONTEND_URL')}}forgotpasswordchange/{{$data['data']->remember_token}} ">Reset Password</a>
+    <a href="{{ rtrim(env('FRONTEND_URL'), '/') }}/reset-password?token={{ urlencode($data['data']['token']) }}&email={{ urlencode($data['data']['email']) }}">Reset Password</a>
+    <p>This link will expire shortly for your security.</p>
     <p>If you did not request a password reset, please ignore this email.</p>
     <p>Thank you!</p>
     <p>Best regards,</p>

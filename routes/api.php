@@ -217,7 +217,7 @@ Route::prefix('guest')->group(function () {
 });
 
 // Admin routes for refund management
-Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin'])->group(function () {
     // Refund management
     Route::get('/refunds', [AdminRefundController::class, 'index']);
     Route::get('/refunds/{refund}', [AdminRefundController::class, 'show']);

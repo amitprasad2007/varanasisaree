@@ -46,7 +46,7 @@ Route::get('/auth/{provider}/callback', [CustomerAuthController::class, 'handleG
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login.form');
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('dashboard', [AuthenticatedSessionController::class, 'dashboard'] )->name('dashboard');
     // API Playground
     Route::get('api-playground', [ApiPlaygroundController::class, 'index'])->name('api.playground');

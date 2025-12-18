@@ -254,7 +254,7 @@ class Refund extends Model
     public function requiresVendorApproval(): bool
     {
         // Large refunds or full refunds might require additional approval
-        $threshold = config('refunds.vendor_approval_threshold', 1000);
+        $threshold = config('refunds.approval_thresholds.vendor_approval_threshold', 1000);
         
         return $this->amount >= $threshold || 
                ($this->sale && $this->amount >= $this->sale->total * 0.8) ||
