@@ -1,5 +1,6 @@
 // Components
 import { Head, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -18,7 +19,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        post(route('password.email'));
+        axios.post('/api/forgot-password', { email: data.email })
+            .then(() => {
+                // Always show success to avoid leaking user existence
+                alert('If your email exists in our system, a reset link has been sent.');
+            })
+            .catch(() => {
+                // Also report success-like message
+                alert('If your email exists in our system, a reset link has been sent.');
+            });
     };
 
     return (
