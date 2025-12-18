@@ -13,7 +13,7 @@ class Payment extends Model
         'payment_details' => 'array',
     ];
 
-{
+
     /** @use HasFactory<\Database\Factories\PaymentFactory> */
     use HasFactory;
     protected $fillable = ['payment_id','amount','status','method','order_id','card_id','email','contact','customer_id','payment_details','rzorder_id'];
