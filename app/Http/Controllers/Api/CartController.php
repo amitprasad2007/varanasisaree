@@ -171,12 +171,14 @@ class CartController extends Controller
         // Map cart items to the required format
         $formattedCartItems = $cartItems->map(function ($item) {
             return [
-                'id' => $item->id,
+                'id' => $item->product_id,
+                'cart_id' => $item->id,
+                'variant_id' => $item->product_variant_id,
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
                 'category' => $item->product->category->id ?? '',
                 'subcategory' => $item->product->subcategory->id ?? '',
-                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path?? null) : null)
+                'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path ?? null) : null)
                     ?? $item->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
                 'price' => $item->price,
@@ -236,6 +238,7 @@ class CartController extends Controller
             return [
                 'cart_id' => $item->id,
                 'id' => $item->product_id,
+                'variant_id' => $item->product_variant_id,
                 'name' => $item->product->name,
                 'price' => $item->price,
                 'quantity' => $item->quantity,
