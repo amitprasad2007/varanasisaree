@@ -26,6 +26,7 @@ class AdminRefundController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Refund::class);
         $query = Refund::with([
             'customer',
             'sale',
@@ -71,6 +72,7 @@ class AdminRefundController extends Controller
      */
     public function show(Refund $refund): JsonResponse
     {
+        $this->authorize('view', $refund);
         $refund->load([
             'customer',
             'sale.customer',
@@ -94,6 +96,7 @@ class AdminRefundController extends Controller
      */
     public function approve(Refund $refund, Request $request): JsonResponse
     {
+        $this->authorize('approve', $refund);
         $request->validate([
             'admin_notes' => 'nullable|string|max:1000'
         ]);
@@ -126,6 +129,7 @@ class AdminRefundController extends Controller
      */
     public function reject(Refund $refund, Request $request): JsonResponse
     {
+        $this->authorize('reject', $refund);
         $request->validate([
             'reason' => 'required|string|max:1000',
             'admin_notes' => 'nullable|string|max:1000'
@@ -159,6 +163,7 @@ class AdminRefundController extends Controller
      */
     public function process(Refund $refund, Request $request): JsonResponse
     {
+        $this->authorize('process', $refund);
         $request->validate([
             'admin_notes' => 'nullable|string|max:1000'
         ]);
@@ -220,7 +225,7 @@ class AdminRefundController extends Controller
                     'status' => $result['status'],
                     'gateway_transaction_id' => $result['refund_id'],
                     'gateway_refund_id' => $result['refund_id'],
-                    'gateway_response' => json_encode($result['gateway_response']),
+                    'gateway_response' => $result['gateway_response'],
                     'completed_at' => $result['processed_at'],
                 ]);
 

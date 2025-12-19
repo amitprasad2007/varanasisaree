@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->string('payment_id')->unique();
-            $table->float('amount');
+            $table->decimal('amount', 12, 2);
             $table->string('status');
             $table->string('method');
             $table->string('rzorder_id')->nullable();

@@ -249,20 +249,20 @@ class RefundService
                     'status' => $result['status'],
                     'gateway_transaction_id' => $result['refund_id'],
                     'gateway_refund_id' => $result['refund_id'],
-                    'gateway_response' => json_encode($result['gateway_response']),
+                    'gateway_response' => $result['gateway_response'],
                     'completed_at' => $result['processed_at'],
                 ]);
             } else {
                 $transaction->update([
                     'status' => 'failed',
-                    'gateway_response' => json_encode(['error' => $result['error']]),
+                    'gateway_response' => ['error' => $result['error']],
                     'completed_at' => now(),
                 ]);
             }
         } catch (\Exception $e) {
             $transaction->update([
                 'status' => 'failed',
-                'gateway_response' => json_encode(['error' => $e->getMessage()]),
+                'gateway_response' => ['error' => $e->getMessage()],
                 'completed_at' => now(),
             ]);
         }
@@ -273,9 +273,6 @@ class RefundService
      */
     protected function simulateGatewayRefund(RefundTransaction $transaction): void
     {
-        // Simulate processing delay
-        sleep(1);
-
         $transaction->update([
             'status' => 'completed',
             'gateway_transaction_id' => 'TXN_' . Str::random(10),

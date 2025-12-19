@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'payment_details' => 'array',
+    ];
+
+
     /** @use HasFactory<\Database\Factories\PaymentFactory> */
     use HasFactory;
     protected $fillable = ['payment_id','amount','status','method','order_id','card_id','email','contact','customer_id','payment_details','rzorder_id'];

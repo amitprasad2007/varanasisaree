@@ -11,6 +11,7 @@ use App\Models\AddressUser;
 use App\Models\Coupon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -68,9 +69,33 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Transform order with images
+            $order->load(['cartItems.product', 'cartItems.productVariant', 'cartItems.productVariant.images']);
+            $orderArray = $order->toArray();
+            $orderArray['cart_items'] = $order->cartItems->map(function ($item) {
+                $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
+                    ?? $item->product->resolveImagePaths()->first();
+
+                $image = $rawPath 
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                    : 'https://via.placeholder.com/150';
+
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_variant_id' => $item->product_variant_id,
+                    'name' => $item->product->name ?? '',
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'amount' => $item->amount,
+                    'image' => $image,
+                    'product' => $item->product
+                ];
+            });
+
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $order->load(['cartItems.product', 'cartItems.productVariant'])
+                'order' => $orderArray
             ]);
 
         } catch (\Exception $e) {
@@ -145,9 +170,33 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Transform order with images for the confirmation screen
+            $order->load(['cartItems.product', 'cartItems.productVariant', 'cartItems.productVariant.images']);
+            $orderArray = $order->toArray();
+            $orderArray['cart_items'] = $order->cartItems->map(function ($item) {
+                $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
+                    ?? $item->product->resolveImagePaths()->first();
+
+                $image = $rawPath 
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                    : 'https://via.placeholder.com/150';
+
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_variant_id' => $item->product_variant_id,
+                    'name' => $item->product->name ?? '',
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'amount' => $item->amount,
+                    'image' => $image,
+                    'product' => $item->product
+                ];
+            });
+
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $order->load('cartItems.product')
+                'order' => $orderArray
             ]);
 
         } catch (\Exception $e) {
@@ -168,7 +217,7 @@ class OrderController extends Controller
 
         $customer = $request->user();
         $query = Order::where('customer_id', $customer->id)
-            ->with(['cartItems.product', 'address'])
+            ->with(['cartItems.product', 'cartItems.productVariant', 'address'])
             ->orderBy('created_at', 'desc');
 
         // Filter by status if provided
@@ -188,7 +237,7 @@ class OrderController extends Controller
         $customer = $request->user();
 
         $orders = Order::where('customer_id', $customer->id)
-            ->with(['productItems.product'])
+            ->with(['productItems.product', 'productItems.variant', 'productItems.variant.images'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($order) {
@@ -208,10 +257,17 @@ class OrderController extends Controller
                     'status' => ucfirst($order->status),
                     'statusColor' => $statusColor,
                     'items' => $order->productItems->map(function ($item) {
+                        $rawPath = ($item->product_variant_id ? ($item->variant?->primaryImage()?->image_path ?? $item->variant?->image_path) : null)
+                            ?? $item->product->resolveImagePaths()->first();
+
+                        $image = $rawPath 
+                            ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                            : 'https://via.placeholder.com/150';
+
                         return [
                             'id' => $item->product_id,
                             'name' => $item->product->name,
-                            'image' => $item->product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
+                            'image' => $image,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
@@ -223,46 +279,51 @@ class OrderController extends Controller
     }
 
     public function orderdetails(Request $request,$orid){
-        $orderdetails = Order::where('order_id',$orid)->with(['address','productItems.product.imageproducts','payment'])->get();
+        $item = Order::where('order_id',$orid)->with(['address','productItems.product','productItems.variant','productItems.variant.images','payment'])->first();
 
-        if (!$orderdetails) {
+        if (!$item) {
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        $formattedOrder = $orderdetails->map(function($item) use ($request) {
-            return [
-                'order_id' => $item->order_id,
-                'order_date' => $item->created_at,
-                'order_status' => $item->status,
-                'order_total' => $item->total_amount,
-                'order_address' => $item->address->address_line1 . ' ' . $item->address->address_line2,
-                'order_city' => $item->address->city,
-                'shippingcost' => $item->shippingcost,
-                'sub_total' => $item->sub_total,
-                'name'=> $request->user()->name,
-                'order_state' => $item->address->state,
-                'order_zip' => $item->address->postal_code,
-                'order_country' => $item->address->country,
-                'order_phone' => $request->user()->phone,
-                'order_email' => $item->customer->email,
-                'payment_status'=> $item->payment_status,
-                'tax'=> $item->tax,
-                'payment_method' => $item->payment_method,
-                'payment_online_details' => $item->payment ? $item->payment->payment_details->toArray() : [],
-                'invoice_download_url' => route('api.order.pdf', $item->order_id),
-                'order_items' => $item->productItems->map(function($item) {
-                    return [
-                        'product_id' => $item->product_id,
-                        'product_name' => $item->product->name,
-                        'product_image' => $item->product->imageproducts->first() ? asset('storage/products/photos/thumbnails/'.$item->product->imageproducts->first()->photo_path) : null,
-                        'product_price' => $item->product->price,
-                        'product_discount' => $item->product->discount,
-                        'product_price_after_discount' => $item->product->price - ($item->product->price * $item->product->discount) / 100,
-                        'product_quantity' => $item->quantity,
-                    ];
-                })
-            ];
-        });
-        return response()->json($formattedOrder);
+        $formattedOrder = [
+            'order_id' => $item->order_id,
+            'order_date' => $item->created_at,
+            'order_status' => $item->status,
+            'order_total' => $item->total_amount,
+            'order_address' => $item->address->address_line1 . ' ' . $item->address->address_line2,
+            'order_city' => $item->address->city,
+            'shippingcost' => $item->shippingcost,
+            'sub_total' => $item->sub_total,
+            'name'=> $request->user()->name,
+            'order_state' => $item->address->state,
+            'order_zip' => $item->address->postal_code,
+            'order_country' => $item->address->country,
+            'order_phone' => $request->user()->phone,
+            'order_email' => $item->customer->email,
+            'payment_status'=> $item->payment_status,
+            'tax'=> $item->tax,
+            'payment_method' => $item->payment_method,
+            'payment_online_details' => $item->payment ? $item->payment->payment_details->toArray() : [],
+            'invoice_download_url' => route('api.order.pdf', $item->order_id),
+            'order_items' => $item->productItems->map(function($subItem) {
+                $rawPath = ($subItem->product_variant_id ? ($subItem->variant?->primaryImage()?->image_path ?? $subItem->variant?->image_path) : null)
+                    ?? $subItem->product->resolveImagePaths()->first();
+
+                $image = $rawPath 
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                    : 'https://via.placeholder.com/150';
+
+                return [
+                    'product_id' => $subItem->product_id,
+                    'product_name' => $subItem->product->name,
+                    'product_image' => $image,
+                    'product_price' => $subItem->product->price,
+                    'product_discount' => $subItem->product->discount,
+                    'product_price_after_discount' => $subItem->product->price - ($subItem->product->price * $subItem->product->discount) / 100,
+                    'product_quantity' => $subItem->quantity,
+                ];
+            })
+        ];
+        return response()->json(['order' => $formattedOrder]);
     }
 }

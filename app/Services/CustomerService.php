@@ -201,6 +201,7 @@ class CustomerService
                 return [
                     'id' => $item->product_id,
                     'cart_id' =>$item->id,
+                    'variant_id' => $item->product_variant_id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,

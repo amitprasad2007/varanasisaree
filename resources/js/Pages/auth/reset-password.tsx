@@ -1,4 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
+import axios from 'axios';
+import { useEffect } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -21,18 +23,44 @@ type ResetPasswordForm = {
 };
 
 export default function ResetPassword({ token, email }: ResetPasswordProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<Required<ResetPasswordForm>>({
+    const { data, setData, processing, errors, reset } = useForm<Required<ResetPasswordForm>>({
         token: token,
         email: email,
         password: '',
         password_confirmation: '',
     });
 
+    useEffect(() => {
+        // If token/email not provided as props, try to parse from URL
+        if (!token || !email) {
+            const params = new URLSearchParams(window.location.search);
+            const t = params.get('token') || '';
+            const e = params.get('email') || '';
+            if (t && e) {
+                setData('token', t);
+                setData('email', e);
+            }
+        }
+    }, []);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('password.store'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
+        axios.post('/api/changepassword', {
+            email: data.email,
+            token: data.token,
+            password: data.password,
+            password_confirmation: data.password_confirmation,
+        })
+        .then((res) => {
+            if (res.data?.status) {
+                alert('Password reset successful. Please log in.');
+                window.location.href = '/admin/login';
+            } else {
+                alert('Reset failed. The token may be invalid or expired.');
+            }
+        })
+        .catch(() => alert('An error occurred. Please try again.'))
+        .finally(() => reset('password', 'password_confirmation'));
     };
 
     return (
@@ -50,7 +78,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                             autoComplete="email"
                             value={data.email}
                             className="mt-1 block w-full"
-                            readOnly
                             onChange={(e) => setData('email', e.target.value)}
                         />
                         <InputError message={errors.email} className="mt-2" />

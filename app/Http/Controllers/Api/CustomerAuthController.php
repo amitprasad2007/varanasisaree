@@ -7,6 +7,8 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Services\CustomerService;
 use Laravel\Socialite\Facades\Socialite;
@@ -152,40 +154,69 @@ class CustomerAuthController extends Controller
         $customer = Customer::where('email', $request->email)->first();
 
         if (!$customer) {
-            return response()->json(['message' => 'Customer not found'], 404);
+            // Avoid leaking whether the email exists; return success message
+            return response()->json(['status' => true]);
         }
 
-        $token = Str::random(60);
+        // Create a reset token using the customers broker
+        $token = Password::broker('customers')->getRepository()->create($customer);
 
-        $customer->remember_token = $token;
-        $customer->save();
-
+        // Send email with token and email for frontend to use
         Mail::to($customer->email)->send(new ForgetPasswordSendEmail([
             'subject' => 'Password Reset Link',
-            'data' => $customer,
+            'data' => [
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'token' => $token,
+            ],
         ]));
 
-        return response()->json(['status' => TRUE]);
+        return response()->json(['status' => true]);
     }
 
     public function changetokencheck (Request $request){
-
-        $customer = Customer::where('remember_token', $request->token)->first();
-        if (!$customer) {
-            return response()->json(['status' => FALSE]);
+        // Require both email and token to validate
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'token' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-        return response()->json(['status' => TRUE]);
+
+        $record = DB::table('customer_password_reset_tokens')->where('email', $request->email)->first();
+        if (!$record) {
+            return response()->json(['status' => false]);
+        }
+        $isValid = \Illuminate\Support\Facades\Hash::check($request->token, $record->token);
+
+        // Check expiry
+        $expires = config('auth.passwords.customers.expire', 60);
+        $notExpired = $record->created_at && now()->diffInMinutes(\Carbon\Carbon::parse($record->created_at)) <= $expires;
+
+        return response()->json(['status' => $isValid && $notExpired]);
     }
 
     public function changepassword (Request $request){
-        $customer = Customer::where('remember_token', $request->token)->first();
-        if (!$customer) {
-            return response()->json(['status' => FALSE]);
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-        $customer->password = Hash::make($request->password);
-        $customer->remember_token =null;
-        $customer->save();
-        return response()->json(['status' => TRUE]);
+
+        $status = Password::broker('customers')->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($customer) use ($request) {
+                $customer->password = Hash::make($request->password);
+                $customer->setRememberToken(Str::random(60));
+                $customer->save();
+            }
+        );
+
+        return response()->json(['status' => $status === Password::PASSWORD_RESET]);
     }
 
 }
