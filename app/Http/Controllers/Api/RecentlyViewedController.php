@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\RecentView;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RecentlyViewedController extends Controller
 {
@@ -12,14 +12,23 @@ class RecentlyViewedController extends Controller
     public function index(Request $request)
     {
         $customer = $request->user();
-        $limit = (int) $request->get('limit', 10);
+        $limit = max(1, min(50, (int) $request->get('limit', 10)));
 
-        $items = DB::table('recent_views as rv')
-            ->join('products as p', 'p.id', '=', 'rv.product_id')
-            ->where('rv.customer_id', $customer->id)
-            ->orderByDesc('rv.viewed_at')
-            ->limit(max(1, min(50, $limit)))
-            ->get(['p.id', 'p.name', 'p.slug']);
+        $items = RecentView::query()
+            ->with(['product:id,name,slug'])
+            ->where('customer_id', $customer->id)
+            ->orderByDesc('viewed_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (RecentView $rv) {
+                return [
+                    'id' => $rv->product?->id,
+                    'name' => $rv->product?->name,
+                    'slug' => $rv->product?->slug,
+                ];
+            })
+            ->filter(fn ($row) => $row['id'] !== null)
+            ->values();
 
         return response()->json($items);
     }
@@ -34,29 +43,18 @@ class RecentlyViewedController extends Controller
 
         $now = now();
 
-        DB::table('recent_views')->updateOrInsert(
+        RecentView::updateOrCreate(
             [
                 'customer_id' => $customer->id,
                 'product_id' => $validated['product_id'],
             ],
             [
+                'session_token' => null,
                 'viewed_at' => $now,
-                'updated_at' => $now,
-                'created_at' => DB::raw("COALESCE(created_at, '$now')"),
             ]
         );
 
-        // Prune to last 50 items per customer
-        $keep = 50;
-        $idsToDelete = DB::table('recent_views')
-            ->where('customer_id', $customer->id)
-            ->orderByDesc('viewed_at')
-            ->skip($keep)
-            ->take(PHP_INT_MAX)
-            ->pluck('id');
-        if ($idsToDelete->isNotEmpty()) {
-            DB::table('recent_views')->whereIn('id', $idsToDelete)->delete();
-        }
+        $this->pruneCustomer($customer->id, 50);
 
         return response()->json(['status' => 'ok']);
     }
@@ -74,30 +72,19 @@ class RecentlyViewedController extends Controller
         $now = now();
 
         foreach ($items as $productId) {
-            DB::table('recent_views')->updateOrInsert(
+            RecentView::updateOrCreate(
                 [
                     'customer_id' => $customer->id,
                     'product_id' => $productId,
                 ],
                 [
+                    'session_token' => null,
                     'viewed_at' => $now,
-                    'updated_at' => $now,
-                    'created_at' => DB::raw("COALESCE(created_at, '$now')"),
                 ]
             );
         }
 
-        // Prune to last 50
-        $keep = 50;
-        $idsToDelete = DB::table('recent_views')
-            ->where('customer_id', $customer->id)
-            ->orderByDesc('viewed_at')
-            ->skip($keep)
-            ->take(PHP_INT_MAX)
-            ->pluck('id');
-        if ($idsToDelete->isNotEmpty()) {
-            DB::table('recent_views')->whereIn('id', $idsToDelete)->delete();
-        }
+        $this->pruneCustomer($customer->id, 50);
 
         return response()->json(['status' => 'ok']);
     }
@@ -110,31 +97,18 @@ class RecentlyViewedController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
         ]);
 
-        $now = now();
-        DB::table('recent_views')->updateOrInsert(
+        RecentView::updateOrCreate(
             [
                 'session_token' => $validated['session_token'],
                 'product_id' => $validated['product_id'],
             ],
             [
                 'customer_id' => null,
-                'viewed_at' => $now,
-                'updated_at' => $now,
-                'created_at' => $now,
+                'viewed_at' => now(),
             ]
         );
 
-        // prune last 50 by session_token
-        $keep = 50;
-        $idsToDelete = DB::table('recent_views')
-            ->where('session_token', $validated['session_token'])
-            ->orderByDesc('viewed_at')
-            ->skip($keep)
-            ->take(PHP_INT_MAX)
-            ->pluck('id');
-        if ($idsToDelete->isNotEmpty()) {
-            DB::table('recent_views')->whereIn('id', $idsToDelete)->delete();
-        }
+        $this->pruneGuestSession($validated['session_token'], 50);
 
         return response()->json(['status' => 'ok']);
     }
@@ -145,14 +119,52 @@ class RecentlyViewedController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
-        $limit = (int) ($validated['limit'] ?? 10);
-        $items = DB::table('recent_views as rv')
-            ->join('products as p', 'p.id', '=', 'rv.product_id')
-            ->where('rv.session_token', $validated['session_token'])
-            ->orderByDesc('rv.viewed_at')
-            ->limit(max(1, min(50, $limit)))
-            ->get(['p.id', 'p.name', 'p.slug']);
+
+        $limit = max(1, min(50, (int) ($validated['limit'] ?? 10)));
+
+        $items = RecentView::query()
+            ->with(['product:id,name,slug'])
+            ->where('session_token', $validated['session_token'])
+            ->orderByDesc('viewed_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (RecentView $rv) {
+                return [
+                    'id' => $rv->product?->id,
+                    'name' => $rv->product?->name,
+                    'slug' => $rv->product?->slug,
+                ];
+            })
+            ->filter(fn ($row) => $row['id'] !== null)
+            ->values();
+
         return response()->json($items);
+    }
+
+    private function pruneCustomer(int $customerId, int $keep): void
+    {
+        $idsToDelete = RecentView::query()
+            ->where('customer_id', $customerId)
+            ->orderByDesc('viewed_at')
+            ->skip($keep)
+            ->pluck('id');
+
+        if ($idsToDelete->isNotEmpty()) {
+            RecentView::query()->whereIn('id', $idsToDelete)->delete();
+        }
+    }
+
+    private function pruneGuestSession(string $sessionToken, int $keep): void
+    {
+        $idsToDelete = RecentView::query()
+            ->where('session_token', $sessionToken)
+            ->orderByDesc('viewed_at')
+            ->skip($keep)
+            ->pluck('id');
+
+        if ($idsToDelete->isNotEmpty()) {
+            RecentView::query()->whereIn('id', $idsToDelete)->delete();
+        }
     }
 }
 
