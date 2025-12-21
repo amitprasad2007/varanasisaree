@@ -70,7 +70,6 @@ class CustomerService
 
     private function formatOrders($orders)
     {
-        //dd($orders);
         return $orders->map(function ($order) {
             $statusColor = match($order->status) {
                 'delivered' => 'bg-green-500',
@@ -88,15 +87,31 @@ class CustomerService
                 'status' => ucfirst($order->status),
                 'statusColor' => $statusColor,
                 'items' => $order->cartItems->map(function ($item) {
+                    // Check if product exists
+                    if (!$item->product) {
+                         return [
+                            'id' => $item->product_id,
+                            'name' => 'Product Unavailable',
+                            'image' => 'https://via.placeholder.com/150',
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                        ];
+                    }
+
                     $images = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? null) : null)
                     ?? $item->product->resolveImagePaths()->map(function ($path) {
                         $path = (string) $path;
-                        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+                        if (Str::startsWith($path, ["http://", "https://", "//"])) {
                             return $path;
                         }
-                        return asset('storage/' . ltrim($path, '/'));
-                    })->values()
+                        return asset("storage/" . ltrim($path, "/"));
+                    })->values()->first()
                     ?? 'https://via.placeholder.com/150';
+
+                    // Ensure images is a string or array as expected by frontend
+                    // If frontend expects array of strings for multiple images in order details:
+                    $imageList = is_string($images) ? [$images] : (is_array($images) ? $images : [$images]);
+
                     return [
                         'id' => $item->product_id,
                         'name' => $item->product->name,
@@ -120,6 +135,11 @@ class CustomerService
     {
         return $wishlists->map(function ($wishlist) {
             $product = $wishlist->product;
+            
+            if (!$product) {
+                return null;
+            }
+
             // Images (resolve and convert to absolute URLs)
             $images = $product->resolveImagePaths()->map(function ($path) {
                 $path = (string) $path;
@@ -143,7 +163,7 @@ class CustomerService
                 'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
                 'category' => $product->category->name ?? 'Uncategorized',
             ];
-        });
+        })->filter()->values(); // Filter out nulls and re-index
     }
 
     private function formatAddresses($addresses)
@@ -192,12 +212,25 @@ class CustomerService
 
         return [
             'items' => $cartItems->map(function ($item) {
+                if (!$item->product) {
+                    return null;
+                }
+
                 $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
                     ?? $item->product->resolveImagePaths()->first();
 
                 $image = $rawPath 
-                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                    ? (Str::startsWith($rawPath, ["http://", "https://", "//"]) ? $rawPath : asset("storage/" . ltrim($rawPath, "/")))
                     : 'https://via.placeholder.com/150';
+                
+                // Wrap image in array for consistency with frontend ApiCartItem interface (image: string[])
+                // But wait, frontend expects string[]? Let's check formatCartItems output in previous code...
+                // Previous code returned single string for 'image'. Frontend ApiCartItem says image: string[].
+                // This might be another bug, but let's stick to what was there or what's safe. 
+                // Using array since usually cart items allow multiple? No, previous code returned single string.
+                // Let's coerce to array if frontend expects it, OR keep as string if that's what was working before (frontend might have loose typing or interface might be wrong).
+                // Looking at `ApiCartItem` interface in `api.ts`: `image: string[];`. Use array.
+                
                 return [
                     'id' => $item->product_id,
                     'cart_id' =>$item->id,
@@ -205,9 +238,9 @@ class CustomerService
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
-                    'image' => $image,
+                    'image' => [$image], // Correcting to array to match interface
                 ];
-            }),
+            })->filter()->values(),
             'subtotal' => $subtotal,
             'discount' => $discount,
             'shipping' => $shipping,
