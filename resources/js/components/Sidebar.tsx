@@ -23,7 +23,8 @@ import {
   BookOpen,
   Folder,
   HelpCircle,
-  Info
+  Info,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -69,14 +70,14 @@ const Sidebar = () => {
         { icon: Ruler, label: 'Sizes', path: '/sizes' },
         { icon: Layers, label: 'Collection Types', path: '/collection-types' },
         { icon: Tags, label: 'Collections', path: '/collections' },
-				{
-					icon: FileText,
-					label: 'About Us',
-					path: '/aboutus',
-					subItems: [
-						{ icon: FileText, label: 'Sections', path: aboutusId ? `/aboutus/${aboutusId}/sections` : '/aboutus' },
-					],
-				},
+        {
+          icon: FileText,
+          label: 'About Us',
+          path: '/aboutus',
+          subItems: [
+            { icon: FileText, label: 'Sections', path: aboutusId ? `/aboutus/${aboutusId}/sections` : '/aboutus' },
+          ],
+        },
         {
           icon: Captions,
           label: 'Categories',
@@ -103,6 +104,7 @@ const Sidebar = () => {
       items: [
         { icon: BadgePercent, label: 'Coupons', path: '/coupons' },
         { icon: MessageSquare, label: 'Testimonials', path: '/testimonials' },
+        { icon: Star, label: 'Product Reviews', path: '/product-reviews' },
         { icon: Video, label: 'Video Providers', path: '/video-providers' },
       ],
     },

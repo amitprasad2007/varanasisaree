@@ -12,10 +12,10 @@ class ProductRating extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_id',
         'product_id',
+        'customer_id',
         'rating',
-        'product_variant_id',
+        'review_id',
     ];
 
     public function customer(): BelongsTo
@@ -31,5 +31,9 @@ class ProductRating extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class);
+    }
+    public function review(): BelongsTo
+    {
+        return $this->belongsTo(ProductReview::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductReview;
+use App\Models\ProductRatings;
 use App\Models\Product;
 use App\Models\Customer;
 use Illuminate\Http\Request;
@@ -99,7 +100,7 @@ class ProductReviewController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Product not found'
-                ], 404);
+                ], 200);
             }
 
             // Verify customer exists
@@ -109,7 +110,7 @@ class ProductReviewController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Customer not found'
-                ], 404);
+                ], 200);
             }
 
             // Check if customer already reviewed this product
@@ -121,7 +122,7 @@ class ProductReviewController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'You have already reviewed this product'
-                ], 400);
+                ], 200);
             }
 
             // Create new review
@@ -132,6 +133,17 @@ class ProductReviewController extends Controller
                 'review' => $request->reviewText,
                 'status' => 'pending' // Reviews need approval
             ]);
+
+            if($review){
+                $rating = ProductRatings::create([
+                    'product_id' => $product->id,
+                    'customer_id' => $request->userId,
+                    'rating' => $request->rating,
+                    'review_id' => $review->id  
+                ]);
+            }
+
+
 
             return response()->json([
                 'success' => true,

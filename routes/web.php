@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ImageProductController;
 use App\Http\Controllers\ProductSpecificationController;
@@ -46,7 +47,7 @@ Route::get('/auth/{provider}/callback', [CustomerAuthController::class, 'handleG
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login.form');
 
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [AuthenticatedSessionController::class, 'dashboard'] )->name('dashboard');
     // API Playground
     Route::get('api-playground', [ApiPlaygroundController::class, 'index'])->name('api.playground');
@@ -247,6 +248,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('refunds-export', [RefundManagementController::class, 'export'])->name('refunds.export');
 
     // Customer refunds UI removed: no customer login/portal flow
+    
+    // Product Review Management
+    Route::get('product-reviews', [ProductReviewController::class, 'index'])->name('product-reviews.index');
+    Route::post('product-reviews/{id}/approve', [ProductReviewController::class, 'approve'])->name('product-reviews.approve');
+    Route::post('product-reviews/{id}/reject', [ProductReviewController::class, 'reject'])->name('product-reviews.reject');
+    Route::delete('product-reviews/{id}', [ProductReviewController::class, 'destroy'])->name('product-reviews.destroy');
 
 });
 
