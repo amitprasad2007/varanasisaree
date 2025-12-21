@@ -82,7 +82,7 @@ class CustomerService
             };
 
             return [
-                'id' => $order->order_id,
+                'id' => "$order->order_id",
                 'date' => $order->created_at->format('d M Y'),
                 'total' => $order->total_amount,
                 'status' => ucfirst($order->status),

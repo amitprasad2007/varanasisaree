@@ -97,7 +97,7 @@ class RecentlyViewedController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
         ]);
 
-        RecentView::updateOrCreate(
+        $recentView = RecentView::updateOrCreate(
             [
                 'session_token' => $validated['session_token'],
                 'product_id' => $validated['product_id'],
@@ -107,8 +107,6 @@ class RecentlyViewedController extends Controller
                 'viewed_at' => now(),
             ]
         );
-
-        $this->pruneGuestSession($validated['session_token'], 50);
 
         return response()->json(['status' => 'ok']);
     }
@@ -146,7 +144,7 @@ class RecentlyViewedController extends Controller
         $idsToDelete = RecentView::query()
             ->where('customer_id', $customerId)
             ->orderByDesc('viewed_at')
-            ->skip($keep)
+            ->take(1000)
             ->pluck('id');
 
         if ($idsToDelete->isNotEmpty()) {
@@ -159,7 +157,7 @@ class RecentlyViewedController extends Controller
         $idsToDelete = RecentView::query()
             ->where('session_token', $sessionToken)
             ->orderByDesc('viewed_at')
-            ->skip($keep)
+            ->take(1000)
             ->pluck('id');
 
         if ($idsToDelete->isNotEmpty()) {
