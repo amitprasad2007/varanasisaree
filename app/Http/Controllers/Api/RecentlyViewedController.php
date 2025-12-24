@@ -4,10 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\RecentView;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 
 class RecentlyViewedController extends Controller
 {
+
+    public $productService;
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
     // Return last N items viewed by the authenticated customer
     public function index(Request $request)
     {
@@ -19,18 +26,12 @@ class RecentlyViewedController extends Controller
             ->where('customer_id', $customer->id)
             ->orderByDesc('viewed_at')
             ->limit($limit)
-            ->get()
-            ->map(function (RecentView $rv) {
-                return [
-                    'id' => $rv->product?->id,
-                    'name' => $rv->product?->name,
-                    'slug' => $rv->product?->slug,
-                ];
-            })
-            ->filter(fn ($row) => $row['id'] !== null)
-            ->values();
+            ->get();
 
-        return response()->json($items);
+        $products = $items->pluck('product');
+        
+        $result = $this->productService->productdetails($products);
+        return response()->json($result);
     }
 
     // Add a product to recent views; keep only latest N per user to avoid bloat
@@ -125,18 +126,10 @@ class RecentlyViewedController extends Controller
             ->where('session_token', $validated['session_token'])
             ->orderByDesc('viewed_at')
             ->limit($limit)
-            ->get()
-            ->map(function (RecentView $rv) {
-                return [
-                    'id' => $rv->product?->id,
-                    'name' => $rv->product?->name,
-                    'slug' => $rv->product?->slug,
-                ];
-            })
-            ->filter(fn ($row) => $row['id'] !== null)
-            ->values();
-
-        return response()->json($items);
+            ->get();
+            $products = $items->pluck('product');
+            $result = $this->productService->productdetails($products);
+            return response()->json($result);
     }
 
     private function pruneCustomer(int $customerId, int $keep): void

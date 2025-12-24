@@ -10,9 +10,15 @@ use Illuminate\Support\Str;
 use App\Models\Cart;
 use App\Models\RecentView;
 use App\Models\Wishlist;
+use App\Services\ProductService;
 
 class ProductController extends Controller
 {
+    public $productService;
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
     public function getFeaturedProducts(Request $request)
     {
         $query = Product::with(['imageproducts', 'category', 'variants.images'])
@@ -130,60 +136,7 @@ class ProductController extends Controller
              return response()->json([]);
          }
  
-         // Aggregate review counts and average ratings (approved only)
-         $reviewStats = DB::table('product_reviews')
-             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
-             ->whereIn('product_id', $products->pluck('id'))
-             ->where('status', 'approved')
-             ->groupBy('product_id')
-             ->get()
-             ->keyBy('product_id');
- 
-         $result = $products->map(function (Product $product) use ($reviewStats) {
-             // Prices
-             $basePrice = (float) $product->price;
-             $discountPercent = (float) ($product->discount ?? 0);
-             $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
- 
-             // Images (resolve and convert to absolute URLs)
-             $images = $product->resolveImagePaths()->map(function ($path) {
-                 $path = (string) $path;
-                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
-                     return $path;
-                 }
-                 return asset('storage/' . ltrim($path, '/'));
-             })->values();
- 
-             // Skip products with no images
-             if ($images->isEmpty()) {
-                 return null;
-             }
- 
-             // Reviews
-             $stats = $reviewStats->get($product->id);
-             $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
-             $reviewCount = $stats ? (int) $stats->review_count : 0;
- 
-             return [
-                 'id' => $product->id,
-                 'name' => $product->name,
-                 'slug' => $product->slug,
-                 'images' => $images,
-                 'price' => (int) round($finalPrice),
-                 'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
-                 'rating' => round($avgRating, 1),
-                 'reviewCount' => $reviewCount,
-                 'category' => optional($product->category)->title,
-                 'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
-                 'isBestseller' => (bool) ($product->is_bestseller ?? false),
-             ];
-         })->filter()->map(function ($item) {
-             // Remove null originalPrice to match samples where it's omitted when no discount
-             if ($item['originalPrice'] === null) {
-                 unset($item['originalPrice']);
-             }
-             return $item;
-         })->values();
+         $result = $this->productService->productdetails($products);
  
          // Apply collection-level sorting when needed (e.g., rating)
          if ($sort === 'rating') {
@@ -316,60 +269,7 @@ class ProductController extends Controller
              return response()->json([]);
          }
  
-         // Aggregate review counts and average ratings (approved only)
-         $reviewStats = DB::table('product_reviews')
-             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
-             ->whereIn('product_id', $products->pluck('id'))
-             ->where('status', 'approved')
-             ->groupBy('product_id')
-             ->get()
-             ->keyBy('product_id');
- 
-         $result = $products->map(function (Product $product) use ($reviewStats) {
-             // Prices
-             $basePrice = (float) $product->price;
-             $discountPercent = (float) ($product->discount ?? 0);
-             $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
- 
-             // Images (resolve and convert to absolute URLs)
-             $images = $product->resolveImagePaths()->map(function ($path) {
-                 $path = (string) $path;
-                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
-                     return $path;
-                 }
-                 return asset('storage/' . ltrim($path, '/'));
-             })->values();
- 
-             // Skip products with no images
-             if ($images->isEmpty()) {
-                 return null;
-             }
- 
-             // Reviews
-             $stats = $reviewStats->get($product->id);
-             $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
-             $reviewCount = $stats ? (int) $stats->review_count : 0;
- 
-             return [
-                 'id' => $product->id,
-                 'name' => $product->name,
-                 'slug' => $product->slug,
-                 'images' => $images,
-                 'price' => (int) round($finalPrice),
-                 'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
-                 'rating' => round($avgRating, 1),
-                 'reviewCount' => $reviewCount,
-                 'category' => optional($product->category)->title,
-                 'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
-                 'isBestseller' => (bool) ($product->is_bestseller ?? false),
-             ];
-         })->filter()->map(function ($item) {
-             // Remove null originalPrice to match samples where it's omitted when no discount
-             if ($item['originalPrice'] === null) {
-                 unset($item['originalPrice']);
-             }
-             return $item;
-         })->values();
+        $result = $this->productService->productdetails($products);
  
          // Apply collection-level sorting when needed (e.g., rating)
          if ($sort === 'rating') {
@@ -549,7 +449,7 @@ class ProductController extends Controller
         }
 
         // Find related products based on category, subcategory, brand, and price
-        $relatedProducts = Product::with(['imageproducts', 'category', 'variants.images'])
+        $products = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('id', '!=', $currentProduct->id) // Exclude the current product
             ->where('category_id', $currentProduct->category_id)
             ->orWhere('subcategory_id', $currentProduct->subcategory_id)
@@ -561,24 +461,9 @@ class ProductController extends Controller
             ->where('status', 'active')
             ->take(20) // Limit the number of related products
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($product) {
-                $imagePaths = $product->resolveImagePaths();
-                if ($imagePaths->isEmpty()) {
-                    return null;
-                }
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'slug' => $product->slug,
-                    'images' => $imagePaths->map(fn($path) => asset('storage/' . $path)),
-                    'price' => (float) $product->price,
-                    'originalPrice' => (float) ($product->price + ($product->price * $product->discount / 100)),
-                    'category' => optional($product->category)->title,
-                ];
-            })
-            ->filter()
-            ->values();
+            ->get();
+
+        $relatedProducts = $this->productService->productdetails($products);
 
         return response()->json($relatedProducts);
     }
@@ -592,51 +477,7 @@ class ProductController extends Controller
             return response()->json([]);
         }
 
-        // Aggregate approved reviews: count and average rating
-        $reviewStats = DB::table('product_reviews')
-            ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
-            ->whereIn('product_id', $products->pluck('id'))
-            ->where('status', 'approved')
-            ->groupBy('product_id')
-            ->get()
-            ->keyBy('product_id');
-
-        $result = $products->map(function (Product $product) use ($reviewStats) {
-            // Resolve images; skip products without any
-            $imagePaths = $product->resolveImagePaths();
-            if ($imagePaths->isEmpty()) {
-                return null;
-            }
-
-            // Prices
-            $basePrice = (float) $product->price;
-            $discountPercent = (float) ($product->discount ?? 0);
-            $finalPrice = (int) round($basePrice - ($basePrice * $discountPercent / 100));
-
-            // Reviews
-            $stats = $reviewStats->get($product->id);
-            $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
-            $reviewCount = $stats ? (int) $stats->review_count : 0;
-
-            return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'slug' => $product->slug,
-                'images' => $imagePaths->map(fn($path) => asset('storage/' . ltrim($path, '/')))->values(),
-                'price' => $finalPrice,
-                'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
-                'rating' => round($avgRating, 1),
-                'reviewCount' => $reviewCount,
-                'category' => optional($product->category)->title,
-                'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
-                'isBestseller' => (bool) ($product->is_bestseller ?? false),
-            ];
-        })->filter()->map(function ($item) {
-            if ($item['originalPrice'] === null) {
-                unset($item['originalPrice']);
-            }
-            return $item;
-        })->values();
+        $result = $this->productService->productdetails($products);
 
         return response()->json($result);
     }
@@ -805,60 +646,7 @@ class ProductController extends Controller
              return response()->json([]);
          }
  
-         // Aggregate review counts and average ratings (approved only)
-         $reviewStats = DB::table('product_reviews')
-             ->select('product_id', DB::raw('COUNT(*) as review_count'), DB::raw('AVG(rating) as avg_rating'))
-             ->whereIn('product_id', $products->pluck('id'))
-             ->where('status', 'approved')
-             ->groupBy('product_id')
-             ->get()
-             ->keyBy('product_id');
- 
-         $result = $products->map(function (Product $product) use ($reviewStats) {
-             // Prices
-             $basePrice = (float) $product->price;
-             $discountPercent = (float) ($product->discount ?? 0);
-             $finalPrice = $basePrice - ($basePrice * $discountPercent / 100);
- 
-             // Images (resolve and convert to absolute URLs)
-             $images = $product->resolveImagePaths()->map(function ($path) {
-                 $path = (string) $path;
-                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
-                     return $path;
-                 }
-                 return asset('storage/' . ltrim($path, '/'));
-             })->values();
- 
-             // Skip products with no images
-             if ($images->isEmpty()) {
-                 return null;
-             }
- 
-             // Reviews
-             $stats = $reviewStats->get($product->id);
-             $avgRating = $stats ? (float) $stats->avg_rating : 0.0;
-             $reviewCount = $stats ? (int) $stats->review_count : 0;
- 
-             return [
-                 'id' => $product->id,
-                 'name' => $product->name,
-                 'slug' => $product->slug,
-                 'images' => $images,
-                 'price' => (int) round($finalPrice),
-                 'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
-                 'rating' => round($avgRating, 1),
-                 'reviewCount' => $reviewCount,
-                 'category' => optional($product->category)->title,
-                 'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
-                 'isBestseller' => (bool) ($product->is_bestseller ?? false),
-             ];
-         })->filter()->map(function ($item) {
-             // Remove null originalPrice to match samples where it's omitted when no discount
-             if ($item['originalPrice'] === null) {
-                 unset($item['originalPrice']);
-             }
-             return $item;
-         })->values();
+         $result = $this->productService->productdetails($products);
  
          // Apply collection-level sorting when needed (e.g., rating)
          if ($sort === 'rating') {
