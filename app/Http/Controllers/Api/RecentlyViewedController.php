@@ -22,7 +22,6 @@ class RecentlyViewedController extends Controller
         $limit = max(1, min(50, (int) $request->get('limit', 10)));
 
         $items = RecentView::query()
-            ->with(['product:id,name,slug'])
             ->where('customer_id', $customer->id)
             ->orderByDesc('viewed_at')
             ->limit($limit)
@@ -122,7 +121,6 @@ class RecentlyViewedController extends Controller
         $limit = max(1, min(50, (int) ($validated['limit'] ?? 10)));
 
         $items = RecentView::query()
-            ->with(['product:id,name,slug'])
             ->where('session_token', $validated['session_token'])
             ->orderByDesc('viewed_at')
             ->limit($limit)
