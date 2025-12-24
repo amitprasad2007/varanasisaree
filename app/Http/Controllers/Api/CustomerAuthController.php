@@ -82,21 +82,7 @@ class CustomerAuthController extends Controller
 
     public function profile(Request $request)
     {
-        $customer = $request->user();
-        
-        // Load limited orders
-        $customer->load(['orders' => function($query) {
-            $query->latest()->take(5)->with(['cartItems', 'cartItems.product', 'cartItems.productVariant']);
-        }]);
-
-        // Load limited wishlists
-        $customer->load(['wishlists' => function($query) {
-            $query->latest()->take(10)->with('product');
-        }]);
-
-        // Load other relations normaly
-        $customer->load(['addresses', 'cartItems.product', 'cartItems.productVariant']);
-
+        $customer = $request->user()->load(['orders.cartItems', 'wishlists.product', 'addresses', 'cartItems.product','cartItems.productVariant']);
         return response()->json($this->customerService->formatCustomerData($customer));
     }
 

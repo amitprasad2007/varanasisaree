@@ -124,8 +124,7 @@ class ProductController extends Controller
          }
  
          // Fetch products after applying filters and sorting
-         // LIMIT to 10 products to prevent JSON response truncation
-         $products = $query->take(10)->get();
+         $products = $query->get();
  
          if ($products->isEmpty()) {
              return response()->json([]);
@@ -140,7 +139,7 @@ class ProductController extends Controller
              ->get()
              ->keyBy('product_id');
  
-        $result = $products->map(function (Product $product) use ($reviewStats) {
+         $result = $products->map(function (Product $product) use ($reviewStats) {
              // Prices
              $basePrice = (float) $product->price;
              $discountPercent = (float) ($product->discount ?? 0);
@@ -149,10 +148,10 @@ class ProductController extends Controller
              // Images (resolve and convert to absolute URLs)
              $images = $product->resolveImagePaths()->map(function ($path) {
                  $path = (string) $path;
-                 if (Str::startsWith($path, ["http://", "https://", "//"])) {
+                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                      return $path;
                  }
-                 return asset("storage/" . ltrim($path, "/"));
+                 return asset('storage/' . ltrim($path, '/'));
              })->values();
  
              // Skip products with no images
@@ -178,13 +177,13 @@ class ProductController extends Controller
                  'isNew' => $product->created_at ? $product->created_at->gt(now()->subDays(30)) : false,
                  'isBestseller' => (bool) ($product->is_bestseller ?? false),
              ];
-        })->filter()->map(function ($item) {
-            // Remove null originalPrice to match samples where it's omitted when no discount
-            if ($item['originalPrice'] === null) {
-                unset($item['originalPrice']);
-            }
-            return $item;
-        })->values();
+         })->filter()->map(function ($item) {
+             // Remove null originalPrice to match samples where it's omitted when no discount
+             if ($item['originalPrice'] === null) {
+                 unset($item['originalPrice']);
+             }
+             return $item;
+         })->values();
  
          // Apply collection-level sorting when needed (e.g., rating)
          if ($sort === 'rating') {
@@ -311,8 +310,8 @@ class ProductController extends Controller
  
          // Fetch products after applying filters and sorting
          // LIMIT to 20 products to prevent JSON response truncation
-        $products = $query->take(10)->get();
-
+         $products = $query->take(20)->get();
+ 
          if ($products->isEmpty()) {
              return response()->json([]);
          }
