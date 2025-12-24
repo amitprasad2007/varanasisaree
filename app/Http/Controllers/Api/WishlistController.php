@@ -7,32 +7,28 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Wishlist;
 use App\Models\ProductVariant;
+use App\Services\ProductService;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
 class WishlistController extends Controller
 {
+    public $productService;
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
     public function getWishlistItems(Request $request)
     {
         $customer = $request->user();
 
         $wishlistItems = Wishlist::where('customer_id', $customer->id)
             ->with(['product.category'])
-            ->get()
-            ->map(function ($wishlist) {
-                $product = $wishlist->product;
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'slug' => $product->slug,
-                    'image' => $product->primaryImage->first()?->image_url ?? 'https://via.placeholder.com/150',
-                    'price' => $product->price,
-                    'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
-                    'category' => $product->category->name ?? 'Uncategorized',
-                ];
-            });
+            ->get();
 
-        return response()->json($wishlistItems);
+        $products = $wishlistItems->pluck('product');
+        $result = $this->productService->productdetails($products);
+        return response()->json($result);
     }
 
     public function add(Request $request)
@@ -181,7 +177,9 @@ class WishlistController extends Controller
             ->orderByDesc('w.updated_at')
             ->limit(200)
             ->get(['p.id', 'p.name', 'p.slug', 'w.product_variant_id']);
-        return response()->json($items);
+            $products = $items->pluck('product');
+            $result = $this->productService->productdetails($products);
+        return response()->json($result);
     }
 
     public function guestcheckwishlist(Request $request)
