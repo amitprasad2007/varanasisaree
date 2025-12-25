@@ -128,7 +128,7 @@ class ProductController extends Controller
                  // Leave default order (could be customized later)
                  break;
          }
- 
+         $query->limit(5);
          // Fetch products after applying filters and sorting
          $products = $query->get();
  
@@ -462,6 +462,9 @@ class ProductController extends Controller
             ->take(20) // Limit the number of related products
             ->orderBy('created_at', 'desc')
             ->get();
+            if($products->isEmpty()){
+                return response()->json([]);
+            }
 
         $relatedProducts = $this->productService->productdetails($products);
 

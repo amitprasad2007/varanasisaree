@@ -28,6 +28,9 @@ class RecentlyViewedController extends Controller
             ->get();
 
         $products = $items->pluck('product');
+        if($products->isEmpty()){
+            return response()->json([]);
+        }
         
         $result = $this->productService->productdetails($products);
         return response()->json($result);
@@ -126,6 +129,9 @@ class RecentlyViewedController extends Controller
             ->limit($limit)
             ->get();
             $products = $items->pluck('product');
+            if($products->isEmpty()){
+                return response()->json([]);
+            }
             $result = $this->productService->productdetails($products);
             return response()->json($result);
     }

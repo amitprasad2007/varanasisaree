@@ -27,6 +27,9 @@ class WishlistController extends Controller
             ->get();
 
         $products = $wishlistItems->pluck('product');
+        if( $products->isEmpty()){
+            return response()->json([]);
+        }
         $result = $this->productService->productdetails($products);
         return response()->json($result);
     }
@@ -124,11 +127,9 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!$validated['product_variant_id'] ) {
+        if (!isset($validated['product_variant_id']) ) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
-        }else{
-            $validated['product_variant_id'] = null;
         }
         DB::table('wishlists')->updateOrInsert(
             [
@@ -152,11 +153,9 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!$validated['product_variant_id'] ) {
+        if (!isset($validated['product_variant_id']) ) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($productId)->variants->first()?->id;
-        }else{
-            $validated['product_variant_id'] = null;
         }
         DB::table('wishlists')
             ->where('session_token', $validated['session_token'])
@@ -171,13 +170,14 @@ class WishlistController extends Controller
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
         ]);
-        $items = DB::table('wishlists as w')
-            ->join('products as p', 'p.id', '=', 'w.product_id')
-            ->where('w.session_token', $validated['session_token'])
-            ->orderByDesc('w.updated_at')
+        $items =  Wishlist::where('session_token', $validated['session_token'])
+            ->orderByDesc('updated_at')
             ->limit(200)
-            ->get(['p.id', 'p.name', 'p.slug', 'w.product_variant_id']);
+            ->get();
             $products = $items->pluck('product');
+            if( $products->isEmpty()){
+                return response()->json([]);
+            }
             $result = $this->productService->productdetails($products);
         return response()->json($result);
     }
@@ -192,8 +192,6 @@ class WishlistController extends Controller
         if (empty($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
-        }else{
-            $validated['product_variant_id'] = null;
         }
         $whistcount = Wishlist::where('session_token',$validated['session_token'] )
             ->where('product_id', $validated['product_id'])
