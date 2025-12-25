@@ -459,7 +459,7 @@ class ProductController extends Controller
                 $currentProduct->price + 10
             ])
             ->where('status', 'active')
-            ->take(20) // Limit the number of related products
+            ->take(10) // Limit the number of related products
             ->orderBy('created_at', 'desc')
             ->get();
             if($products->isEmpty()){
