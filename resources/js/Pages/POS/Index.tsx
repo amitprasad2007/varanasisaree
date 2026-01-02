@@ -101,7 +101,7 @@ export default function POSPage() {
 
   async function scanAdd(e: React.KeyboardEvent<HTMLInputElement>) {
     // console.log(e.key);
-    if (e.key == 'Enter') return;
+    if (e.key !== 'Enter') return;
     const code = barcode.trim();
     if (!code) return;
     try {
@@ -206,7 +206,7 @@ export default function POSPage() {
       }
       // Fetch customer by name (if exists)
       try {
-        const { data: customers } = await axios.get('/customers/search', { params: { name: customerName } });
+        const { data: customers } = await axios.get('/pos/customers/search', { params: { q: customerName } });
         if (customers[0]) {
           setCustomerObj(customers[0]);
           const notes = await axios.get('/pos/credit-notes', { params: { customer_id: customers[0].id } });

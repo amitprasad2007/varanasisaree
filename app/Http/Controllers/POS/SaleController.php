@@ -5,11 +5,34 @@ namespace App\Http\Controllers\POS;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use App\Models\{Product, ProductVariant, Sale, SaleItem, SalePayment, Customer};
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
+    protected function currentVendorId(): ?int
+    {
+        $user = auth()->user();
+        if (!$user) return null;
+        return $user->vendor_id ?? null;
+    }
+
+    protected function scopeVendor($query)
+    {
+        $vendorId = $this->currentVendorId();
+        return $vendorId ? $query->where('vendor_id', $vendorId) : $query;
+    }
+
+    protected function assertVendorOwnsSale(Sale $sale): void
+    {
+        $vendorId = $this->currentVendorId();
+        if ($vendorId && (int)$sale->vendor_id !== (int)$vendorId) {
+            abort(403, 'Forbidden');
+        }
+    }
+
     public function searchProducts(Request $request)
     {
         $query = trim((string) $request->input('q'));
@@ -90,6 +113,26 @@ class SaleController extends Controller
         }
 
         return response()->json($merged->values());
+    }
+
+    public function searchCustomers(Request $request)
+    {
+        $q = trim((string) $request->input('q'));
+        if ($q === '') {
+            return response()->json([]);
+        }
+
+        $customers = Customer::query()
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'phone', 'email']);
+
+        return response()->json($customers);
     }
 
     public function scan(Request $request)
@@ -185,12 +228,17 @@ class SaleController extends Controller
             $taxAmount = $taxPercent > 0 ? ($taxable * $taxPercent / 100.0) : 0.0;
             $total = $taxable + $taxAmount;
 
-            // Create sale
+            // Create sale (use a temporary unique invoice number, then replace with final number based on id)
             $sale = Sale::create([
                 'customer_id' => $customerId,
-                'vendor_id' => auth()->user()->vendor_id ?? null, // Get vendor from current user
-                'invoice_number' => static::generateInvoiceNumber(),
+                'vendor_id' => $this->currentVendorId(),
+                'invoice_number' => 'TMP-' . Str::uuid(),
                 'status' => 'completed',
+            ]);
+            $sale->update(['invoice_number' => static::generateInvoiceNumberFromId($sale->id)]);
+
+            // Update financial fields
+            $sale->update([
                 'subtotal' => $subtotal,
                 'discount_type' => $discountType,
                 'discount_value' => $discountValue,
@@ -202,7 +250,29 @@ class SaleController extends Controller
                 'refund_status' => 'none',
             ]);
 
-            // Items + stock deduction
+            // Items + stock deduction (validate inventory first to prevent negative stock)
+            foreach ($data['items'] as $item) {
+                $qty = (int) $item['quantity'];
+
+                if (!empty($item['product_variant_id'])) {
+                    $variant = ProductVariant::lockForUpdate()->find($item['product_variant_id']);
+                    if (!$variant) {
+                        throw ValidationException::withMessages(['items' => 'Invalid product variant.']);
+                    }
+                    if ((int) $variant->stock_quantity < $qty) {
+                        throw ValidationException::withMessages(['items' => "Insufficient stock for variant {$variant->sku}. Available: {$variant->stock_quantity}"]); 
+                    }
+                } else {
+                    $product = Product::lockForUpdate()->find($item['product_id']);
+                    if (!$product) {
+                        throw ValidationException::withMessages(['items' => 'Invalid product.']);
+                    }
+                    if ((int) $product->stock_quantity < $qty) {
+                        throw ValidationException::withMessages(['items' => "Insufficient stock for {$product->name}. Available: {$product->stock_quantity}"]); 
+                    }
+                }
+            }
+
             foreach ($data['items'] as $item) {
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -231,9 +301,14 @@ class SaleController extends Controller
 
             // Credit Note Usages (if customer is using store credit)
             $paymentCreditNote = collect($data['payments'])->firstWhere('method', 'credit_note');
+            if ($paymentCreditNote) {
+                if (!$customerId) {
+                    throw ValidationException::withMessages(['payments' => 'Customer is required to use credit notes.']);
+                }
+            }
             if ($paymentCreditNote && $customerId) {
                 $toUseAmount = (float)$paymentCreditNote['amount'];
-                $vendorId = auth()->user()->vendor_id ?? null;
+                $vendorId = $this->currentVendorId();
                 
                 // Find active, remaining credit notes for this vendor and customer, oldest first
                 $creditNotes = \App\Models\CreditNote::where('customer_id', $customerId)
@@ -242,7 +317,14 @@ class SaleController extends Controller
                     ->when($vendorId, function ($query) use ($vendorId) {
                         return $query->where('vendor_id', $vendorId);
                     })
-                    ->orderBy('created_at')->get();
+                    ->orderBy('created_at')
+                    ->lockForUpdate()
+                    ->get();
+
+                $available = (float) $creditNotes->sum('remaining_amount');
+                if ($toUseAmount - $available > 0.001) {
+                    throw ValidationException::withMessages(['payments' => 'Insufficient credit note balance.']);
+                }
                     
                 foreach ($creditNotes as $note) {
                     if ($toUseAmount <= 0) break;
@@ -260,8 +342,11 @@ class SaleController extends Controller
                 }
             }
 
-            // Payments
+            // Payments (avoid duplicating credit_note entries; those are recorded per note above)
             foreach ($data['payments'] as $payment) {
+                if ($payment['method'] === 'credit_note') {
+                    continue;
+                }
                 SalePayment::create([
                     'sale_id' => $sale->id,
                     'method' => $payment['method'],
@@ -279,8 +364,10 @@ class SaleController extends Controller
 
     public function showInvoice($id)
     {
-        $sale = Sale::with(['customer', 'items.product', 'items.variant', 'payments'])
+        $sale = $this->scopeVendor(Sale::query())
+            ->with(['customer', 'items.product', 'items.variant', 'payments'])
             ->findOrFail($id);
+        $this->assertVendorOwnsSale($sale);
         if (request()->query('format') === 'pdf') {
             $pdf = Pdf::loadView('sales.invoice', compact('sale')); // simple A4
             return $pdf->download('invoice-'.$sale->invoice_number.'.pdf');
@@ -290,7 +377,8 @@ class SaleController extends Controller
 
     public function processReturn(Request $request, $id)
     {
-        $sale = Sale::with(['items'])->findOrFail($id);
+        $sale = $this->scopeVendor(Sale::query())->with(['items'])->findOrFail($id);
+        $this->assertVendorOwnsSale($sale);
         $data = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.sale_item_id' => 'required|exists:sale_items,id',
@@ -397,7 +485,8 @@ class SaleController extends Controller
      */
     public function attachCustomer(Request $request, $id)
     {
-        $sale = Sale::findOrFail($id);
+        $sale = $this->scopeVendor(Sale::query())->findOrFail($id);
+        $this->assertVendorOwnsSale($sale);
 
         $data = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
@@ -434,7 +523,7 @@ class SaleController extends Controller
     {
         $from = $request->date('from');
         $to = $request->date('to');
-        $q = Sale::query()->where('status', 'completed');
+        $q = $this->scopeVendor(Sale::query())->where('status', 'completed');
         if ($from) { $q->whereDate('created_at', '>=', $from); }
         if ($to) { $q->whereDate('created_at', '<=', $to); }
         $sales = $q->get();
@@ -503,8 +592,13 @@ class SaleController extends Controller
 
             $sale = Sale::create([
                 'customer_id' => $customerId,
-                'invoice_number' => static::generateInvoiceNumber(),
+                'vendor_id' => $this->currentVendorId(),
+                'invoice_number' => 'TMP-' . Str::uuid(),
                 'status' => 'draft',
+            ]);
+            $sale->update(['invoice_number' => static::generateInvoiceNumberFromId($sale->id)]);
+
+            $sale->update([
                 'subtotal' => $subtotal,
                 'discount_type' => $discountType,
                 'discount_value' => $discountValue,
@@ -533,7 +627,11 @@ class SaleController extends Controller
 
     public function resumeSale($id)
     {
-        $sale = Sale::with(['customer', 'items'])->where('status', 'draft')->findOrFail($id);
+        $sale = $this->scopeVendor(Sale::query())
+            ->with(['customer', 'items'])
+            ->where('status', 'draft')
+            ->findOrFail($id);
+        $this->assertVendorOwnsSale($sale);
         return response()->json([
             'id' => $sale->id,
             'invoiceNumber' => $sale->invoice_number,
@@ -558,7 +656,11 @@ class SaleController extends Controller
 
     public function finalizeSale(Request $request, $id)
     {
-        $sale = Sale::with(['items'])->where('status', 'draft')->findOrFail($id);
+        $sale = $this->scopeVendor(Sale::query())
+            ->with(['items'])
+            ->where('status', 'draft')
+            ->findOrFail($id);
+        $this->assertVendorOwnsSale($sale);
         $data = $request->validate([
             'discount.type' => 'nullable|in:percent,fixed',
             'discount.value' => 'nullable|numeric|min:0',
@@ -597,7 +699,28 @@ class SaleController extends Controller
                 'paid_total' => array_sum(array_map(fn($p) => (float) $p['amount'], $data['payments'])),
             ]);
 
-            // Deduct stock
+            // Deduct stock (validate inventory first)
+            foreach ($sale->items as $item) {
+                $qty = (int) $item->quantity;
+                if ($item->product_variant_id) {
+                    $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                    if (!$variant) {
+                        throw ValidationException::withMessages(['items' => 'Invalid product variant.']);
+                    }
+                    if ((int) $variant->stock_quantity < $qty) {
+                        throw ValidationException::withMessages(['items' => "Insufficient stock for variant {$variant->sku}. Available: {$variant->stock_quantity}"]); 
+                    }
+                } else {
+                    $product = Product::lockForUpdate()->find($item->product_id);
+                    if (!$product) {
+                        throw ValidationException::withMessages(['items' => 'Invalid product.']);
+                    }
+                    if ((int) $product->stock_quantity < $qty) {
+                        throw ValidationException::withMessages(['items' => "Insufficient stock for {$product->name}. Available: {$product->stock_quantity}"]); 
+                    }
+                }
+            }
+
             foreach ($sale->items as $item) {
                 if ($item->product_variant_id) {
                     $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
@@ -638,10 +761,10 @@ class SaleController extends Controller
         return response()->json($customer, 201);
     }
 
-    protected static function generateInvoiceNumber(): string
+    protected static function generateInvoiceNumberFromId(int $saleId): string
     {
         $prefix = 'INV-';
-        $next = str_pad((string) (Sale::max('id') + 1), 6, '0', STR_PAD_LEFT);
+        $next = str_pad((string) $saleId, 6, '0', STR_PAD_LEFT);
         return $prefix . $next;
     }
 
@@ -657,7 +780,8 @@ class SaleController extends Controller
      */
     public function listSales(Request $request)
     {
-        $query = Sale::query()->with(['customer', 'items'])
+        $query = $this->scopeVendor(Sale::query())
+            ->with(['customer', 'items'])
             ->where('status', 'completed')
             ->orderByDesc('created_at');
 
@@ -679,9 +803,13 @@ class SaleController extends Controller
     {
         $customerId = $request->input('customer_id');
         if (!$customerId) return response()->json([], 400);
+        $vendorId = $this->currentVendorId();
         $notes = \App\Models\CreditNote::where('customer_id', $customerId)
             ->where('status', 'active')
             ->where('remaining_amount', '>', 0)
+            ->when($vendorId, function ($q) use ($vendorId) {
+                return $q->where('vendor_id', $vendorId);
+            })
             ->orderBy('created_at')
             ->get(['id', 'credit_note_number', 'amount', 'remaining_amount', 'created_at']);
         return response()->json($notes);

@@ -36,8 +36,12 @@ return new class extends Migration
         Schema::create('sale_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sale_id')->constrained('sales')->cascadeOnDelete();
-            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
-            $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            // NOTE: products/product_variants tables are created later in the migration timeline.
+            // Avoid foreign key constraints here to prevent migration-order failures.
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_variant_id')->nullable();
+            $table->index('product_id');
+            $table->index('product_variant_id');
             $table->string('name');
             $table->string('sku')->nullable();
             $table->unsignedInteger('quantity');
@@ -67,8 +71,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sale_return_id')->constrained('sale_returns')->cascadeOnDelete();
             $table->foreignId('sale_item_id')->nullable()->constrained('sale_items')->nullOnDelete();
-            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
-            $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
+            // NOTE: products/product_variants tables are created later in the migration timeline.
+            // Avoid foreign key constraints here to prevent migration-order failures.
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_variant_id')->nullable();
+            $table->index('product_id');
+            $table->index('product_variant_id');
             $table->unsignedInteger('quantity');
             $table->decimal('amount', 12, 2); // refunded amount for these items
             $table->timestamps();

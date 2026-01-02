@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('refunds', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
+            // NOTE: orders table is created later in the migration timeline.
+            // Avoid foreign key constraints here to prevent migration-order failures.
+            $table->unsignedBigInteger('order_id');
+            $table->index('order_id');
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->foreignId('processed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->decimal('amount', 12, 2);

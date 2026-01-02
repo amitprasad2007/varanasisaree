@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('credit_note_number')->unique();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->foreignId('refund_id')->nullable()->constrained('refunds')->nullOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
+            // NOTE: orders table is created later in the migration timeline.
+            // Avoid foreign key constraints here to prevent migration-order failures.
+            $table->unsignedBigInteger('order_id')->nullable();
+            $table->index('order_id');
             $table->decimal('amount', 12, 2);
             $table->decimal('used_amount', 12, 2)->default(0);
             $table->decimal('remaining_amount', 12, 2);

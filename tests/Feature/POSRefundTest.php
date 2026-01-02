@@ -11,6 +11,7 @@ use App\Models\SaleItem;
 use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
 use App\Models\CreditNote;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class POSRefundTest extends TestCase
@@ -22,6 +23,7 @@ class POSRefundTest extends TestCase
      */
     public function test_pos_refund_creates_credit_note_and_restores_stock()
     {
+        $this->actingAs(User::factory()->create());
         // Create a customer
         $customer = Customer::factory()->create([
             'name' => 'Test Customer',
@@ -130,6 +132,7 @@ class POSRefundTest extends TestCase
      */
     public function test_partial_refund_process()
     {
+        $this->actingAs(User::factory()->create());
         $customer = Customer::factory()->create();
         $product = Product::factory()->create(['stock_quantity' => 10]);
         $variant = ProductVariant::factory()->create(['product_id' => $product->id, 'stock_quantity' => 10]);
@@ -193,6 +196,7 @@ class POSRefundTest extends TestCase
      */
     public function test_using_credit_note_for_payment()
     {
+        $this->actingAs(User::factory()->create());
         $customer = Customer::factory()->create();
 
         // Create credit note
