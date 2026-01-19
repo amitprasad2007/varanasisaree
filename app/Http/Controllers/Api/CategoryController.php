@@ -20,11 +20,16 @@ class CategoryController extends Controller
             ->whereNull('parent_id')
             ->get()
             ->map(function ($category) {
+                if(Str::startsWith($category->photo, 'http')  || Str::startsWith($category->photo, 'https')) {
+                    $images = $category->photo;
+                }else{
+                    $images = asset('storage/' . $category->photo);
+                }
                 return [
                     'id' => $category->id,
                     'name' => $category->title,
                     'description' => $category->summary,
-                    'image' => asset('storage/' . $category->photo), // You'll need to handle image storage
+                    'image' => $images,
                     'count' => $category->subcount,
                     'slug' => $category->slug,
                 ];
