@@ -55,6 +55,13 @@ const CategoriesIndex = ({ categories }: Props) => {
     });
   };
 
+  function showimage(image: string) {
+    if(image.startsWith('http')){
+      return image
+    }
+    return "/storage/"+image
+  }
+
   return (
     <DashboardLayout title="Categories">
       <div className="space-y-4 pb-6">
@@ -89,7 +96,7 @@ const CategoriesIndex = ({ categories }: Props) => {
                   {category.photo ? (
                     <div className="relative group">
                       <img
-                        src={`/storage/${category.photo}`}
+                        src={showimage(category.photo)}
                         alt={category.title}
                         className="w-12 h-12 object-cover rounded-md transition-all duration-300 group-hover:w-20 group-hover:h-20 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
                       />
