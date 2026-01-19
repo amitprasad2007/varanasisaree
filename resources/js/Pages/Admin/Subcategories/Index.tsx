@@ -55,6 +55,13 @@ const SubcategoriesIndex = ({ subcategories }: SubcategoriesIndexProps) => {
             }
           });
     };
+    function showimage(image: string) {
+        if(image.startsWith('http')){
+            return image
+        }
+        return "/storage/"+image
+    }
+        
     return (
         <DashboardLayout title="Subcategories">
             <div className="space-y-4 pb-6">
@@ -88,7 +95,7 @@ const SubcategoriesIndex = ({ subcategories }: SubcategoriesIndexProps) => {
                                     {subcategory.photo ? (
                                         <div className="relative group">
                                         <img
-                                            src={`/storage/${subcategory.photo}`}
+                                            src={showimage(subcategory.photo)}
                                             alt={subcategory.title}
                                             className="w-12 h-12 object-cover rounded-md transition-all duration-300 group-hover:w-20 group-hover:h-20 group-hover:shadow-lg group-hover:z-20 group-hover:relative"
                                         />
