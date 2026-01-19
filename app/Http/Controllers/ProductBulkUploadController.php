@@ -10,7 +10,7 @@ use App\Models\Size;
 use App\Models\VideoProvider;
 use App\Models\ProductVariant;
 use App\Models\ProductSpecification;
-use App\Models\ProductImage;
+use App\Models\ImageProduct;
 use App\Models\ProductVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -235,7 +235,7 @@ class ProductBulkUploadController extends Controller
                         $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
                         Storage::disk('public')->put($filename, $imageContent);
 
-                        ProductImage::create([
+                        ImageProduct::create([
                             'product_id' => $product->id,
                             'image_path' => $filename,
                             'alt_text' => $product->name . ' Image ' . ($index + 1),
