@@ -113,7 +113,6 @@ class ProductBulkUploadController extends Controller
             ['title' => $data['category_name']],
             ['slug' => Str::slug($data['category_name']), 'status' => 'active']
         );
-
         // Find or create subcategory
         $subcategory = Category::firstOrCreate(
             ['title' => $data['subcategory_name'], 'parent_id' => $category->id],
@@ -125,7 +124,6 @@ class ProductBulkUploadController extends Controller
             ['name' => $data['brand_name']],
             ['slug' => Str::slug($data['brand_name']), 'status' => 'active']
         );
-      //  dd( $brand);
         // Create product
         $product = Product::create([
             'name' => $data['name'],
@@ -146,7 +144,6 @@ class ProductBulkUploadController extends Controller
             'is_bestseller' => filter_var($data['is_bestseller'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'status' => $data['status'] ?? 'active',
         ]);
-        //dd($product);
         // Process specifications
         if (!empty($data['specifications'])) {
             $this->processSpecifications($product, $data['specifications'], $results);
@@ -227,11 +224,27 @@ class ProductBulkUploadController extends Controller
     {
         $images = explode('|', $imagesData);
         foreach ($images as $index => $imageUrl) {
-            if (filter_var(trim($imageUrl), FILTER_VALIDATE_URL)) {
-                try {
-                    $imageContent = file_get_contents(trim($imageUrl));
+            $imageUrl = trim($imageUrl);
+            if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                // try {
+                    // Create context with User-Agent to avoid 403 Forbidden on some servers
+                    $options = [
+                        "http" => [
+                            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"
+                        ],
+                        "ssl" => [
+                            "verify_peer" => false,
+                            "verify_peer_name" => false,
+                        ]
+                    ];
+                    $context = stream_context_create($options);
+                    
+                    $imageContent = file_get_contents($imageUrl, false, $context);
                     if ($imageContent !== false) {
-                        $extension = pathinfo(trim($imageUrl), PATHINFO_EXTENSION) ?: 'jpg';
+                        $extension = pathinfo($imageUrl, PATHINFO_EXTENSION) ?: 'jpg';
+                        // Clean extension (remove query params if any)
+                        $extension = explode('?', $extension)[0];
+
                         $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
                         Storage::disk('public')->put($filename, $imageContent);
 
@@ -242,10 +255,12 @@ class ProductBulkUploadController extends Controller
                             'is_primary' => $index === 0,
                             'display_order' => $index + 1
                         ]);
+                    } else {
+                         $results['warnings'][] = "Failed to download image: " . $imageUrl;
                     }
-                } catch (\Exception $e) {
-                    $results['warnings'][] = "Failed to download image: " . trim($imageUrl);
-                }
+                // } catch (\Exception $e) {
+                //    $results['warnings'][] = "Failed to download image: " . $imageUrl . " Error: " . $e->getMessage();
+                // }
             }
         }
     }
