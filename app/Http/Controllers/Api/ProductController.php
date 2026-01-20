@@ -392,7 +392,7 @@ class ProductController extends Controller
         })->values();
 
         // Top-level images and sku should match the default variant when present
-        $topImages = $product->resolveImagePaths()->map(fn($path) => asset('storage/' . $path));
+        $topImages = $product->resolveImagePaths()->map(fn($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/' . $path));
         $topSku = null;
         if ($defaultVariant) {
             $dvImages = collect($defaultVariant->images ?? [])->pluck('image_path')->filter()->values();
@@ -400,7 +400,7 @@ class ProductController extends Controller
                 $dvImages = collect([$defaultVariant->image_path]);
             }
             if ($dvImages->isNotEmpty()) {
-                $topImages = $dvImages->map(fn($path) => asset('storage/' . $path));
+                $topImages = $dvImages->map(fn($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/' . $path));
             }
             $topSku = $defaultVariant->sku;
         }
