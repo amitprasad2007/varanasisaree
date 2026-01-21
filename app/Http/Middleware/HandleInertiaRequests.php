@@ -52,6 +52,12 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error')
             ],
+            'vendor_menu' => fn () => \App\Models\VendorMenuItem::whereNull('parent_id')
+                ->with('children')
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->get()
+                ->groupBy('section'),
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

@@ -145,6 +145,7 @@ const Sidebar = () => {
         { icon: User, label: 'Roles', path: '/roles' },
         { icon: User, label: 'Permissions', path: '/permissions' },
         { icon: User, label: 'Vendor', path: '/admin/vendors' },
+        { icon: Layers, label: 'Vendor Sidebar', path: '/vendor-menus' },
         { icon: User, label: 'Api Playground', path: '/api-playground' },
       ],
     },

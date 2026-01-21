@@ -88,7 +88,6 @@ export default function VendorDashboard({
     return (
         <>
             <Head title="Vendor Dashboard" />
-
             <div className="">
                 <div className="">
                     {/* Header */}

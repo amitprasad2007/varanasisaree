@@ -79,24 +79,22 @@ class ProductBulkUploadController extends Controller
                 'warnings' => []
             ];
 
-            DB::beginTransaction();
-
             foreach ($csvData as $rowIndex => $row) {
                // dd($row);
+                DB::beginTransaction();
                 try {
                     $rowData = array_combine($headers, $row);
                     $this->processProductRow($rowData, $rowIndex + 2, $results);
+                    DB::commit();
                     $results['success']++;
                 } catch (\Exception $e) {
+                    DB::rollBack();
                     $results['errors'][] = "Row " . ($rowIndex + 2) . ": " . $e->getMessage();
                 }
             }
 
-            DB::commit();
-
             return response()->json($results);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => 0,
                 'errors' => ['File processing failed: ' . $e->getMessage()],
@@ -107,7 +105,7 @@ class ProductBulkUploadController extends Controller
 
     private function processProductRow($data, $rowNumber, &$results)
     {
-        //dd($data);
+
         // Find or create category
         $category = Category::firstOrCreate(
             ['title' => $data['category_name']],
@@ -155,9 +153,10 @@ class ProductBulkUploadController extends Controller
         }
 
         // Process images
-        if (!empty($data['images'])) {
-            $this->processImages($product, $data['images'], $results);
+        if (empty($data['images'])) {
+             throw new \Exception("Images are required for product: " . $data['name']);
         }
+        $this->processImages($product, $data['images'], $results);
 
         // Process videos
         if (!empty($data['videos'])) {
@@ -223,45 +222,52 @@ class ProductBulkUploadController extends Controller
     private function processImages($product, $imagesData, &$results)
     {
         $images = explode('|', $imagesData);
+        if (empty($images)) {
+             throw new \Exception("Image list is empty");
+        }
+
         foreach ($images as $index => $imageUrl) {
             $imageUrl = trim($imageUrl);
-            if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-                // try {
-                    // Create context with User-Agent to avoid 403 Forbidden on some servers
-                    $options = [
-                        "http" => [
-                            "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"
-                        ],
-                        "ssl" => [
-                            "verify_peer" => false,
-                            "verify_peer_name" => false,
-                        ]
-                    ];
-                    $context = stream_context_create($options);
-                    
-                    $imageContent = file_get_contents($imageUrl, false, $context);
-                    if ($imageContent !== false) {
-                        $extension = pathinfo($imageUrl, PATHINFO_EXTENSION) ?: 'jpg';
-                        // Clean extension (remove query params if any)
-                        $extension = explode('?', $extension)[0];
-
-                        $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
-                        Storage::disk('public')->put($filename, $imageContent);
-
-                        ImageProduct::create([
-                            'product_id' => $product->id,
-                            'image_path' => $filename,
-                            'alt_text' => $product->name . ' Image ' . ($index + 1),
-                            'is_primary' => $index === 0,
-                            'display_order' => $index + 1
-                        ]);
-                    } else {
-                         $results['warnings'][] = "Failed to download image: " . $imageUrl;
-                    }
-                // } catch (\Exception $e) {
-                //    $results['warnings'][] = "Failed to download image: " . $imageUrl . " Error: " . $e->getMessage();
-                // }
+            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                 throw new \Exception("Invalid image URL: " . $imageUrl);
             }
+
+            // Create context with User-Agent to avoid 403 Forbidden on some servers
+            $options = [
+                "http" => [
+                    "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"
+                ],
+                "ssl" => [
+                    "verify_peer" => false,
+                    "verify_peer_name" => false,
+                ]
+            ];
+            $context = stream_context_create($options);
+            $imageContent = @file_get_contents($imageUrl, false, $context);
+
+            if ($imageContent === false) {
+                 throw new \Exception("Failed to download image: " . $imageUrl);
+            }
+
+            // Verify it is an image
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($imageContent);
+            if (strpos($mimeType, 'image/') !== 0) {
+                throw new \Exception("URL did not return a valid image: " . $imageUrl . " (Type: $mimeType)");
+            }
+
+            $extension = pathinfo($imageUrl, PATHINFO_EXTENSION) ?: 'jpg';
+            // Clean extension (remove query params if any)
+            $extension = explode('?', $extension)[0];
+            $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
+            Storage::disk('public')->put($filename, $imageContent);
+            ImageProduct::create([
+                'product_id' => $product->id,
+                'image_path' => $filename,
+                'alt_text' => $product->name . ' Image ' . ($index + 1),
+                'is_primary' => $index === 0,
+                'display_order' => $index + 1
+            ]);
         }
     }
 

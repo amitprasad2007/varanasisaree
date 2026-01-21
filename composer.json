@@ -20,6 +20,7 @@
         "picqer/php-barcode-generator": "*",
         "razorpay/razorpay": "^2.9",
         "simplesoftwareio/simple-qrcode": "4.2",
+        "spatie/laravel-medialibrary": "^11.17",
         "spatie/laravel-permission": "^6.17",
         "tightenco/ziggy": "^2.4"
     },

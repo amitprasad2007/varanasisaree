@@ -255,6 +255,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('product-reviews/{id}/reject', [ProductReviewController::class, 'reject'])->name('product-reviews.reject');
     Route::delete('product-reviews/{id}', [ProductReviewController::class, 'destroy'])->name('product-reviews.destroy');
 
+    // Vendor Menu Management
+    Route::resource('vendor-menus', \App\Http\Controllers\VendorMenuController::class)->parameters([
+        'vendor-menus' => 'vendorMenu'
+    ]);
+
+
 });
 
 

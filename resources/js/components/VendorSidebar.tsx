@@ -10,7 +10,12 @@ import {
     Undo2,
     Package,
     DollarSign,
-    TrendingUp
+    TrendingUp,
+    LayoutDashboard,
+    Tags,
+    CreditCard,
+    PieChart,
+    Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -19,12 +24,34 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { Card } from "./ui/card";
 
+// Icon mapping
+const iconMap: Record<string, any> = {
+    Home: Home,
+    Dashboard: LayoutDashboard,
+    Barcode: Barcode,
+    Building: Building,
+    Settings: Settings,
+    User: User,
+    LogOutIcon: LogOutIcon,
+    ShoppingCart: ShoppingCart,
+    FileChartColumn: FileChartColumn,
+    Undo2: Undo2,
+    Package: Package,
+    DollarSign: DollarSign,
+    TrendingUp: TrendingUp,
+    Tags: Tags,
+    CreditCard: CreditCard,
+    PieChart: PieChart,
+    Users: Users
+};
+
 type MenuItem = {
-    icon: React.ComponentType<any>;
+    id: number;
+    icon: string; // Changed to string
     label: string;
     path: string;
-    isLogout?: boolean;
-    subItems?: Array<{ icon: React.ComponentType<any>; label: string; path: string }>;
+    is_logout?: boolean;
+    children?: MenuItem[];
 };
 
 type MenuSection = {
@@ -35,64 +62,26 @@ type MenuSection = {
 const VendorSidebar = () => {
     const { url, props } = usePage();
     const auth = (props as any)?.auth;
+    const vendorMenu = (props as any)?.vendor_menu; // Get from props
     const domain = window.location.hostname.split('.')[0];
 
-    const sections: MenuSection[] = useMemo(() => ([
-        {
-            label: 'Overview',
-            items: [
-                { icon: Home, label: 'Dashboard', path: '/dashboard' },
-            ],
-        },
-        {
-            label: 'Catalog',
-            items: [
-                { icon: Barcode, label: 'Products', path: '/vendor/products' },
-            ],
-        },
-        {
-            label: 'Sales & Orders',
-            items: [
-                { icon: ShoppingCart, label: 'Orders', path: '/vendor/orders' },
-                { icon: TrendingUp, label: 'Sales', path: '/vendor/sales' },
-                { icon: Undo2, label: 'Returns & Refunds', path: '/vendor/refunds' },
-            ],
-        },
-        {
-            label: 'Analytics',
-            items: [
-                { icon: FileChartColumn, label: 'Analytics', path: '/vendor/analytics' },
-            ],
-        },
-        {
-            label: 'Account',
-            items: [
-                {
-                    icon: Settings,
-                    label: 'Settings',
-                    path: '/vendor/settings',
-                    subItems: [
-                        { icon: User, label: 'Profile', path: '/vendor/profile' },
-                    ],
-                },
-                { icon: LogOutIcon, label: 'Logout', path: '/logout', isLogout: true },
-            ],
-        },
-    ]), []);
+    // Transform backend data to sections
+    const sections: Record<string, MenuItem[]> = vendorMenu || {};
 
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         // Auto-open section containing current url
         const next: Record<string, boolean> = {};
-        sections.forEach((section) => {
-            next[section.label] = section.items.some((item) => {
-                const active = url.startsWith(item.path) || item.subItems?.some((s) => url.startsWith(s.path));
+        Object.entries(sections).forEach(([label, items]) => {
+            next[label] = items.some((item) => {
+                const active = url.startsWith(item.path) || item.children?.some((s) => url.startsWith(s.path));
                 return active;
             });
         });
+
         setOpenSections((prev) => ({ ...prev, ...next }));
-    }, [url, sections]);
+    }, [url, sections]); // Depend on sections
 
     const toggleSection = (label: string) => {
         setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -115,9 +104,13 @@ const VendorSidebar = () => {
     };
 
     const renderItem = (item: MenuItem) => {
-        const Icon = item.icon;
-        const isActive = url.startsWith(item.path) || item.subItems?.some((s) => url.startsWith(s.path));
-        if (item.isLogout) {
+        // Resolve Icon from Map, default to Circle if not found
+        const Icon = iconMap[item.icon] || Home;
+
+        // Check active state recursively
+        const isActive = url.startsWith(item.path) || item.children?.some((s) => url.startsWith(s.path));
+
+        if (item.is_logout) {
             return (
                 <button
                     onClick={handleLogout}
@@ -146,9 +139,9 @@ const VendorSidebar = () => {
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
                 </Link>
-                {item.subItems && (
+                {item.children && item.children.length > 0 && (
                     <ul className="ml-6 mt-1 space-y-1">
-                        {item.subItems.map((sub) => (
+                        {item.children.map((sub) => (
                             <li key={sub.path}>
                                 <Link
                                     href={sub.path}
@@ -160,7 +153,11 @@ const VendorSidebar = () => {
                                     )}
                                     aria-current={url.startsWith(sub.path) ? 'page' : undefined}
                                 >
-                                    <sub.icon className="h-3.5 w-3.5" />
+                                    {/* Resolve Sub Icon */}
+                                    {(() => {
+                                        const SubIcon = iconMap[sub.icon] || Home;
+                                        return <SubIcon className="h-3.5 w-3.5" />;
+                                    })()}
                                     <span>{sub.label}</span>
                                 </Link>
                             </li>
@@ -187,18 +184,23 @@ const VendorSidebar = () => {
 
                 {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-                    {sections.map((section) => (
-                        <div key={section.label}>
+                    {/* Iterate over object entries since section doesn't have fixed order array in simple implementation, 
+                        but we rely on insertion order or backend returning ordered sections (which grouping does roughly)
+                        Ideally backend returns array of sections, but our group by returns object.
+                        Since we seeded in order, keys should be in order if PHP array preserves them.
+                    */}
+                    {Object.entries(sections).map(([label, items]) => (
+                        <div key={label}>
                             <button
-                                onClick={() => toggleSection(section.label)}
+                                onClick={() => toggleSection(label)}
                                 className="w-full flex items-center justify-between px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
                             >
-                                <span>{section.label}</span>
-                                <span className={cn('transition-transform', openSections[section.label] ? 'rotate-90' : '')}>›</span>
+                                <span>{label}</span>
+                                <span className={cn('transition-transform', openSections[label] ? 'rotate-90' : '')}>›</span>
                             </button>
-                            {openSections[section.label] && (
+                            {openSections[label] && (
                                 <ul className="mt-2 space-y-2">
-                                    {section.items.map((item) => (
+                                    {items.map((item) => (
                                         <li key={item.path}>{renderItem(item)}</li>
                                     ))}
                                 </ul>
