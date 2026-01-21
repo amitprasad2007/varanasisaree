@@ -75,7 +75,7 @@ export default function Index({ menus }: Props) {
         is_logout: false,
     });
 
-    const sections = ['Overview', 'Catalog', 'Sales & Orders', 'Analytics', 'Account'];
+    const sections = ['Overview', 'Catalog', 'Sales & Orders', 'Access Control', 'Account', 'Marketing', 'Content Management'];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -154,7 +154,7 @@ export default function Index({ menus }: Props) {
             <div className="space-y-4 pb-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Vendor Sidebar Management</h1>
-                    <Button onClick={handleCreate} className="flex items-center gap-2">
+                    <Button variant="outline" onClick={handleCreate} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 text-black shadow-sm">
                         <Plus className="h-4 w-4" />
                         Add Menu Item
                     </Button>
@@ -200,10 +200,10 @@ export default function Index({ menus }: Props) {
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                        <Button variant="ghost" size="icon" className='cursor-pointer' onClick={() => handleEdit(item)}>
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(item.id)}>
+                                                        <Button variant="ghost" size="icon" className="text-red-500 cursor-pointer" onClick={() => handleDelete(item.id)}>
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -218,10 +218,10 @@ export default function Index({ menus }: Props) {
                                                     <TableCell className="text-sm">-</TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">
-                                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(child)}>
+                                                            <Button variant="ghost" className='cursor-pointer' size="icon" onClick={() => handleEdit(child)}>
                                                                 <Edit className="h-3 w-3" />
                                                             </Button>
-                                                            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(child.id)}>
+                                                            <Button variant="ghost" size="icon" className="text-red-500 cursor-pointer" onClick={() => handleDelete(child.id)}>
                                                                 <Trash2 className="h-3 w-3" />
                                                             </Button>
                                                         </div>
@@ -291,7 +291,7 @@ export default function Index({ menus }: Props) {
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select section" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className='bg-white'>
                                     {sections.map(s => (
                                         <SelectItem key={s} value={s}>{s}</SelectItem>
                                     ))}
@@ -308,7 +308,7 @@ export default function Index({ menus }: Props) {
                                 <SelectTrigger>
                                     <SelectValue placeholder="None (Top level)" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className='bg-white'>
                                     <SelectItem value="null">None</SelectItem>
                                     {getAllParents().map(p => (
                                         <SelectItem key={p.id} value={p.id.toString()}>{p.label}</SelectItem>
@@ -327,8 +327,8 @@ export default function Index({ menus }: Props) {
                         </div>
 
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                            <Button type="submit" disabled={form.processing}>{editingItem ? 'Update' : 'Create'}</Button>
+                            <Button type="button" className='cursor-pointer hover:bg-red-100 text-black shadow-sm' variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit" className='cursor-pointer hover:bg-gray-100 text-black shadow-sm' variant="outline" disabled={form.processing}>{editingItem ? 'Update' : 'Create'}</Button>
                         </DialogFooter>
 
                     </form>
