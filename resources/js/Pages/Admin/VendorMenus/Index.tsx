@@ -50,6 +50,7 @@ interface MenuItem {
 
 interface Props {
     menus: Record<string, MenuItem[]>;
+    sections: [];
 }
 
 interface VendorMenuFormData {
@@ -62,7 +63,7 @@ interface VendorMenuFormData {
     [key: string]: any;
 }
 
-export default function Index({ menus }: Props) {
+export default function Index({ menus, sections }: Props) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
@@ -74,8 +75,6 @@ export default function Index({ menus }: Props) {
         parent_id: '',
         is_logout: false,
     });
-
-    const sections = ['Overview', 'Catalog', 'Sales & Orders', 'Access Control', 'Account', 'Marketing', 'Content Management'];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },

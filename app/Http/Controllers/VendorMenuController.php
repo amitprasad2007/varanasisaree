@@ -12,13 +12,15 @@ class VendorMenuController extends Controller
     {
         $items = VendorMenuItem::whereNull('parent_id')
             ->with(['children', 'vendorMenuSection'])
-            ->orderBy('order')
+            ->orderBy('vendorMenuSection.order')
+            ->orderBy('order')            
             ->get()
             ->groupBy('vendorMenuSection.name');
 
         // Inertia response
         return Inertia::render('Admin/VendorMenus/Index', [
             'menus' => $items,
+            'sections' => $items->keys()
         ]);
     }
 
