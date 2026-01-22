@@ -11,10 +11,10 @@ class VendorMenuController extends Controller
     public function index()
     {
         $items = VendorMenuItem::whereNull('parent_id')
-            ->with('children')
+            ->with(['children', 'vendorMenuSection'])
             ->orderBy('order')
             ->get()
-            ->groupBy('section');
+            ->groupBy('vendorMenuSection.name');
 
         // Inertia response
         return Inertia::render('Admin/VendorMenus/Index', [
@@ -28,14 +28,14 @@ class VendorMenuController extends Controller
             'label' => 'required|string|max:255',
             'path' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
-            'section' => 'required|string|max:255',
+            'vendor_menu_section_id' => 'required|exists:vendor_menu_sections,id',
             'parent_id' => 'nullable|exists:vendor_menu_items,id',
             'order' => 'nullable|integer',
             'is_logout' => 'boolean',
         ]);
 
         if (!isset($validated['order'])) {
-             $validated['order'] = VendorMenuItem::where('section', $validated['section'])
+             $validated['order'] = VendorMenuItem::where('vendor_menu_section_id', $validated['vendor_menu_section_id'])
                 ->where('parent_id', $validated['parent_id'])
                 ->max('order') + 1;
         }
@@ -51,7 +51,7 @@ class VendorMenuController extends Controller
             'label' => 'required|string|max:255',
             'path' => 'required|string|max:255',
             'icon' => 'nullable|string|max:255',
-            'section' => 'required|string|max:255',
+            'vendor_menu_section_id' => 'required|exists:vendor_menu_sections,id',
             'parent_id' => 'nullable|exists:vendor_menu_items,id',
             'order' => 'nullable|integer',
             'is_logout' => 'boolean',
