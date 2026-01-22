@@ -13,7 +13,7 @@ class VendorMenuItem extends Model
         'label',
         'path',
         'icon',
-        'section',
+        'vendor_menu_section_id',
         'parent_id',
         'order',
         'is_active',
@@ -33,5 +33,10 @@ class VendorMenuItem extends Model
     public function parent()
     {
         return $this->belongsTo(VendorMenuItem::class, 'parent_id');
+    }
+
+    public function vendorMenuSection()
+    {
+        return $this->belongsTo(VendorMenuSection::class, 'vendor_menu_section_id');
     }
 }
