@@ -12,7 +12,6 @@ class VendorMenuController extends Controller
     {
         $items = VendorMenuItem::whereNull('parent_id')
             ->with(['children', 'vendorMenuSection'])
-            ->orderBy('vendorMenuSection.order')
             ->orderBy('order')            
             ->get()
             ->groupBy('vendorMenuSection.name');
