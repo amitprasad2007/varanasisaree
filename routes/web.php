@@ -197,6 +197,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('admin/vendors/{id}', [VendorController::class, 'destroy'])->name('admin.vendors.destroy');
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
 
+    // Vendor Permissions
+    Route::get('admin/vendors/{vendor}/permissions', [\App\Http\Controllers\VendorPermissionController::class, 'edit'])->name('admin.vendors.permissions');
+    Route::post('admin/vendors/{vendor}/permissions', [\App\Http\Controllers\VendorPermissionController::class, 'update'])->name('admin.vendors.permissions.update');
+
     // Collection Types
     Route::resource('collection-types', AdminCollectionTypeController::class);
 

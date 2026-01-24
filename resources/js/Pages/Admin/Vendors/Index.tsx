@@ -373,6 +373,10 @@ export default function VendorsIndex({ vendors, stats, filters }: VendorsIndexPr
                                                         Reject
                                                     </DropdownMenuItem>
                                                 )}
+                                                <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800' onClick={() => window.location.href = `/admin/vendors/${vendor.id}/permissions`}>
+                                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                                    Permissions
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem className='cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600' onClick={() => handleDelete(vendor.id)}>
                                                     <Trash2 className="h-4 w-4 mr-2" />
                                                     Delete

@@ -39,4 +39,9 @@ class VendorMenuItem extends Model
     {
         return $this->belongsTo(VendorMenuSection::class, 'vendor_menu_section_id');
     }
+
+    public function vendors()
+    {
+        return $this->belongsToMany(Vendor::class, 'vendor_menu_item_vendor');
+    }
 }

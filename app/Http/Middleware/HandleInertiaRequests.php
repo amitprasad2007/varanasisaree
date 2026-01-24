@@ -52,12 +52,45 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error')
             ],
-            'vendor_menu' => fn () => \App\Models\VendorMenuItem::whereNull('parent_id')
-                ->with('children')
-                ->where('is_active', true)
-                ->orderBy('order')
-                ->get()
-                ->groupBy('section'),
+            'vendor_menu' => fn () => function() {
+                $vendor = \Illuminate\Support\Facades\Auth::guard('vendor')->user();
+                
+                if (!$vendor) {
+                    return [];
+                }
+
+                // Fetch Sections with Items
+                $sections = \App\Models\VendorMenuSection::where('is_active', true)
+                    ->orderBy('order')
+                    ->with(['vendormenuitems' => function($q) use ($vendor) {
+                        $q->whereNull('parent_id')
+                          ->where('is_active', true)
+                          ->with(['children' => function($cq) use ($vendor) {
+                              $cq->where('is_active', true);
+                              // Filter children permissions
+                              $cq->whereHas('vendors', function($vq) use ($vendor) {
+                                  $vq->where('vendors.id', $vendor->id);
+                              });
+                              $cq->orderBy('order');
+                          }])
+                          ->orderBy('order');
+
+                        // Filter parent permissions
+                        $q->whereHas('vendors', function($vq) use ($vendor) {
+                            $vq->where('vendors.id', $vendor->id);
+                        });
+                    }])
+                    ->get();
+
+                // Format: { "Overview": [Item1, Item2], "Catalog": [...] }
+                $menu = [];
+                foreach ($sections as $section) {
+                    if ($section->vendormenuitems->isNotEmpty()) {
+                        $menu[$section->name] = $section->vendormenuitems;
+                    }
+                }
+                return $menu;
+            },
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),

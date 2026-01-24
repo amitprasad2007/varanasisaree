@@ -151,4 +151,9 @@ class Vendor extends Authenticatable
     {
         return $this->isActive() && $this->is_verified;
     }
+
+    public function accessibleMenuItems()
+    {
+        return $this->belongsToMany(VendorMenuItem::class, 'vendor_menu_item_vendor');
+    }
 }
