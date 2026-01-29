@@ -42,11 +42,9 @@ class WishlistController extends Controller
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
 
-        if (!$validated['product_variant_id'] ) {
+        if (empty($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
-        }else{
-            $validated['product_variant_id'] = null;
         }
 
         $exists = Wishlist::where('customer_id', $customer->id)
@@ -206,11 +204,9 @@ class WishlistController extends Controller
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!$validated['product_variant_id'] ) {
+        if (empty($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
-        }else{
-            $validated['product_variant_id'] = null;
         }
         $whistcount = Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $validated['product_id'])
