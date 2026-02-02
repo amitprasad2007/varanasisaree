@@ -24,7 +24,8 @@ import {
   Folder,
   HelpCircle,
   Info,
-  Star
+  Star,
+  ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, usePage } from '@inertiajs/react';
@@ -62,6 +63,7 @@ const Sidebar = () => {
     {
       label: 'Catalog',
       items: [
+        { icon: ImageIcon, label: 'Image Optimizer', path: '/image-optimizer' },
         { icon: Image, label: 'Banners', path: '/banners' },
         { icon: Building, label: 'Brands', path: '/brands' },
         { icon: Barcode, label: 'Products', path: '/products' },

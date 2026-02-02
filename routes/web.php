@@ -265,6 +265,12 @@ Route::middleware(['auth'])->group(function () {
     ]);
 
 
+
+    // Image Optimizer
+    Route::get('image-optimizer', [\App\Http\Controllers\ImageOptimizerController::class, 'index'])->name('image-optimizer.index');
+    Route::get('api/image-optimizer/images', [\App\Http\Controllers\ImageOptimizerController::class, 'getImages'])->name('image-optimizer.get-images');
+    Route::post('api/image-optimizer/optimize', [\App\Http\Controllers\ImageOptimizerController::class, 'optimize'])->name('image-optimizer.optimize');
+
 });
 
 
