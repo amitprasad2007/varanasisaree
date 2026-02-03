@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Spatie\Image\Image;
-use Spatie\Image\Enums\ImageFormat;
 
 class ImageOptimizerController extends Controller
 {
@@ -46,6 +45,9 @@ class ImageOptimizerController extends Controller
 
     public function optimize(Request $request)
     {
+        set_time_limit(300); // Increase to 5 minutes
+        ini_set('memory_limit', '512M'); // Increase memory limit
+
         $request->validate([
             'images' => 'required|array',
             'images.*' => 'string',
@@ -85,7 +87,7 @@ class ImageOptimizerController extends Controller
                 }
 
                 if ($format === 'webp') {
-                    $image->format(ImageFormat::Webp);
+                    $image->format('webp');
                     $newPath = preg_replace('/\.(jpg|jpeg|png|gif)$/i', '.webp', $imagePath);
                 } else {
                     $newPath = $imagePath;
@@ -111,7 +113,8 @@ class ImageOptimizerController extends Controller
                     'status' => 'success'
                 ];
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                \Log::error("Image optimization failed for $imagePath: " . $e->getMessage());
                 $results[] = [
                     'path' => $imagePath,
                     'status' => 'error',

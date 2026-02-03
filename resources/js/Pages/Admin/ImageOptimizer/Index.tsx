@@ -110,7 +110,7 @@ export default function Index() {
         setResults([]);
 
         // Batch processing if many images selected
-        const batchSize = 5;
+        const batchSize = 3;
         const totalBatches = Math.ceil(selectedImages.length / batchSize);
         let allResults: OptimizationResult[] = [];
 
@@ -129,7 +129,8 @@ export default function Index() {
                 setResults([...allResults]);
                 setProgress(Math.round(((i + 1) / totalBatches) * 100));
             } catch (error: any) {
-                toast.error(`Error processing batch ${i + 1}`);
+                const errorMsg = error.response?.data?.message || error.message;
+                toast.error(`Error processing batch ${i + 1}: ${errorMsg}`);
             }
         }
 
