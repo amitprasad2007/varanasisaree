@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Spatie\Image\Image;
 
 class ProductBulkUploadController extends Controller
 {
@@ -256,11 +257,31 @@ class ProductBulkUploadController extends Controller
                 throw new \Exception("URL did not return a valid image: " . $imageUrl . " (Type: $mimeType)");
             }
 
-            $extension = pathinfo($imageUrl, PATHINFO_EXTENSION) ?: 'jpg';
-            // Clean extension (remove query params if any)
-            $extension = explode('?', $extension)[0];
+            $extension = 'webp';
             $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
-            Storage::disk('public')->put($filename, $imageContent);
+            
+            // Ensure the products directory exists
+            if (!Storage::disk('public')->exists('products')) {
+                Storage::disk('public')->makeDirectory('products');
+            }
+
+            // Save optimized image
+            $imagePath = Storage::disk('public')->path($filename);
+            
+            // Create a temporary file to process the image
+            $tempFile = tempnam(sys_get_temp_dir(), 'img_upload_');
+            file_put_contents($tempFile, $imageContent);
+
+            try {
+                Image::load($tempFile)
+                    ->quality(80)
+                    ->save($imagePath);
+            } finally {
+                if (file_exists($tempFile)) {
+                    unlink($tempFile);
+                }
+            }
+
             ImageProduct::create([
                 'product_id' => $product->id,
                 'image_path' => $filename,
