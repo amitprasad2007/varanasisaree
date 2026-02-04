@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Spatie\Image\Image;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductBulkUploadController extends Controller
 {
@@ -62,17 +63,47 @@ class ProductBulkUploadController extends Controller
 
     public function upload(Request $request)
     {
-       // dd($request);
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:10240',
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:20480',
         ]);
 
-       try {
+        try {
             $file = $request->file('file');
-            $csvData = array_map('str_getcsv', file($file->getRealPath()));
+            $extension = $file->getClientOriginalExtension();
+            $data = [];
+            $headers = [];
 
-            $headers = array_shift($csvData);
-            //dd($headers);
+            if (in_array($extension, ['xlsx', 'xls'])) {
+                // If zip extension is missing, PhpSpreadsheet might fail. 
+                // We'll try to use PowerShell to convert it to a temporary CSV if we're on Windows.
+                if (!extension_loaded('zip') && PHP_OS_FAMILY === 'Windows') {
+                    $tmpCsv = tempnam(sys_get_temp_dir(), 'export_') . '.csv';
+                    $filePath = str_replace('/', '\\', $file->getRealPath());
+                    $cmd = "powershell -Command \"\$excel = New-Object -ComObject Excel.Application; \$workbook = \$excel.Workbooks.Open('$filePath'); \$workbook.SaveAs('$tmpCsv', 6); \$workbook.Close(\$false); \$excel.Quit()\"";
+                    shell_exec($cmd);
+                    
+                    if (file_exists($tmpCsv)) {
+                        $csvData = array_map('str_getcsv', file($tmpCsv));
+                        $headers = array_shift($csvData);
+                        $data = $csvData;
+                        unlink($tmpCsv);
+                    }
+                }
+
+                if (empty($data)) {
+                    $spreadsheet = IOFactory::load($file->getRealPath());
+                    $worksheet = $spreadsheet->getActiveSheet();
+                    $rows = $worksheet->toArray();
+                    $headers = array_shift($rows);
+                    $data = $rows;
+                }
+            } else {
+                $csvData = array_map('str_getcsv', file($file->getRealPath()));
+                $headers = array_shift($csvData);
+                $data = $csvData;
+            }
+
+            $isShopify = in_array('Handle', $headers) && in_array('Image Src', $headers);
 
             $results = [
                 'success' => 0,
@@ -80,12 +111,22 @@ class ProductBulkUploadController extends Controller
                 'warnings' => []
             ];
 
-            foreach ($csvData as $rowIndex => $row) {
-               // dd($row);
+            $currentProduct = null;
+            $handleMap = [];
+
+            foreach ($data as $rowIndex => $row) {
+                if (empty(array_filter($row))) continue;
+
                 DB::beginTransaction();
                 try {
                     $rowData = array_combine($headers, $row);
-                    $this->processProductRow($rowData, $rowIndex + 2, $results);
+
+                    if ($isShopify) {
+                        $this->processShopifyRow($rowData, $rowIndex + 2, $results, $currentProduct, $handleMap);
+                    } else {
+                        $this->processProductRow($rowData, $rowIndex + 2, $results);
+                    }
+
                     DB::commit();
                     $results['success']++;
                 } catch (\Exception $e) {
@@ -104,9 +145,156 @@ class ProductBulkUploadController extends Controller
         }
     }
 
+    private function processShopifyRow($data, $rowNumber, &$results, &$currentProduct, &$handleMap)
+    {
+        $handle = $data['Handle'] ?? null;
+        if (empty($handle)) return;
+
+        // If this row has a Title, it's a new product or the first row of a product
+        if (!empty($data['Title'])) {
+            // Find or create category (Shopify uses 'Product Category' or 'Type')
+            $categoryName = !empty($data['Product Category']) ? $data['Product Category'] : (!empty($data['Type']) ? $data['Type'] : 'Uncategorized');
+            $category = Category::firstOrCreate(
+                ['title' => $categoryName],
+                ['slug' => Str::slug($categoryName), 'status' => 'active']
+            );
+
+            // Shopify doesn't have a direct subcategory in standard export, we'll use Type if Category was present
+            $subcategory = null;
+            if (!empty($data['Product Category']) && !empty($data['Type'])) {
+                $subcategory = Category::firstOrCreate(
+                    ['title' => $data['Type'], 'parent_id' => $category->id],
+                    ['slug' => Str::slug($data['Type']), 'status' => 'active']
+                );
+            }
+
+            // Brand (Vendor in Shopify)
+            $brandName = $data['Vendor'] ?? 'Generic';
+            $brand = Brand::firstOrCreate(
+                ['name' => $brandName],
+                ['slug' => Str::slug($brandName), 'status' => 'active']
+            );
+
+            // Create or Update Product
+            $product = Product::updateOrCreate(
+                ['slug' => $handle],
+                [
+                    'name' => $data['Title'],
+                    'category_id' => $category->id,
+                    'subcategory_id' => $subcategory ? $subcategory->id : $category->id,
+                    'brand_id' => $brand->id,
+                    'description' => $data['Body (HTML)'] ?? null,
+                    'price' => (float) ($data['Variant Price'] ?? 0),
+                    'discount' => 0,
+                    'stock_quantity' => (int) ($data['Variant Inventory Qty'] ?? 0),
+                    'status' => 'active',
+                ]
+            );
+            $currentProduct = $product;
+            $handleMap[$handle] = $product;
+        } else {
+            $product = $handleMap[$handle] ?? $currentProduct;
+        }
+
+        if (!$product) return;
+
+        // Process Variants (Shopify has Option1 Name, Option1 Value, etc.)
+        if (!empty($data['Option1 Value']) || !empty($data['Variant SKU'])) {
+            $this->processShopifyVariant($product, $data, $results);
+        }
+
+        // Process Images
+        if (!empty($data['Image Src'])) {
+            $this->processImages($product, $data['Image Src'], $results);
+        }
+    }
+
+    private function processShopifyVariant($product, $data, &$results)
+    {
+        $colorName = null;
+        $sizeName = null;
+
+        for ($i = 1; $i <= 3; $i++) {
+            $optionName = strtolower($data["Option{$i} Name"] ?? '');
+            $optionValue = $data["Option{$i} Value"] ?? null;
+
+            if (strpos($optionName, 'color') !== false || strpos($optionName, 'colour') !== false) {
+                $colorName = $optionValue;
+            } elseif (strpos($optionName, 'size') !== false) {
+                $sizeName = $optionValue;
+            }
+        }
+
+        $color = null;
+        if ($colorName) {
+            $color = Color::firstOrCreate(['name' => trim($colorName)], ['status' => 'active']);
+        }
+
+        $size = null;
+        if ($sizeName) {
+            $size = Size::firstOrCreate(['name' => trim($sizeName)], ['status' => 'active']);
+        }
+
+        $variantImagePath = null;
+        if (!empty($data['Variant Image'])) {
+            $variantImagePath = $this->downloadAndOptimizeImage($product, $data['Variant Image']);
+        }
+
+        ProductVariant::updateOrCreate(
+            ['sku' => trim($data['Variant SKU'] ?? $product->slug . '-' . time())],
+            [
+                'product_id' => $product->id,
+                'color_id' => $color ? $color->id : null,
+                'size_id' => $size ? $size->id : null,
+                'price' => (float) ($data['Variant Price'] ?? $product->price),
+                'discount' => 0,
+                'stock_quantity' => (int) ($data['Variant Inventory Qty'] ?? 0),
+                'image_path' => $variantImagePath,
+                'status' => 'active'
+            ]
+        );
+    }
+
+    private function downloadAndOptimizeImage($product, $imageUrl)
+    {
+        $imageUrl = trim($imageUrl);
+        if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) return null;
+
+        $options = [
+            "http" => ["header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"],
+            "ssl" => ["verify_peer" => false, "verify_peer_name" => false]
+        ];
+        $context = stream_context_create($options);
+        $imageContent = @file_get_contents($imageUrl, false, $context);
+
+        if ($imageContent === false) return null;
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->buffer($imageContent);
+        if (strpos($mimeType, 'image/') !== 0) return null;
+
+        $filename = 'products/' . $product->id . '_' . Str::random(8) . '.webp';
+        
+        if (!Storage::disk('public')->exists('products')) {
+            Storage::disk('public')->makeDirectory('products');
+        }
+
+        $imagePath = Storage::disk('public')->path($filename);
+        $tempFile = tempnam(sys_get_temp_dir(), 'img_v_');
+        file_put_contents($tempFile, $imageContent);
+
+        try {
+            Image::load($tempFile)->quality(80)->save($imagePath);
+            return $filename;
+        } catch (\Exception $e) {
+            return null;
+        } finally {
+            if (file_exists($tempFile)) unlink($tempFile);
+        }
+    }
+
     private function processProductRow($data, $rowNumber, &$results)
     {
-
         // Find or create category
         $category = Category::firstOrCreate(
             ['title' => $data['category_name']],
@@ -188,22 +376,14 @@ class ProductBulkUploadController extends Controller
             if (count($variantParts) >= 6) {
                 [$colorName, $sizeName, $sku, $price, $discount, $stock] = $variantParts;
 
-                // Find or create color
                 $color = null;
                 if (!empty($colorName)) {
-                    $color = Color::firstOrCreate(
-                        ['name' => trim($colorName)],
-                        ['status' => 'active']
-                    );
+                    $color = Color::firstOrCreate(['name' => trim($colorName)], ['status' => 'active']);
                 }
 
-                // Find or create size
                 $size = null;
                 if (!empty($sizeName)) {
-                    $size = Size::firstOrCreate(
-                        ['name' => trim($sizeName)],
-                        ['status' => 'active']
-                    );
+                    $size = Size::firstOrCreate(['name' => trim($sizeName)], ['status' => 'active']);
                 }
 
                 ProductVariant::create([
@@ -223,72 +403,56 @@ class ProductBulkUploadController extends Controller
     private function processImages($product, $imagesData, &$results)
     {
         $images = explode('|', $imagesData);
-        if (empty($images)) {
-             throw new \Exception("Image list is empty");
-        }
+        if (empty($images)) return;
 
         foreach ($images as $index => $imageUrl) {
             $imageUrl = trim($imageUrl);
-            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-                 throw new \Exception("Invalid image URL: " . $imageUrl);
-            }
+            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) continue;
 
-            // Create context with User-Agent to avoid 403 Forbidden on some servers
+            // Avoid re-downloading existing images if they are already in the database
+            $existingImage = ImageProduct::where('product_id', $product->id)
+                ->where('alt_text', 'LIKE', '%' . basename($imageUrl) . '%')
+                ->first();
+            if ($existingImage) continue;
+
             $options = [
-                "http" => [
-                    "header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"
-                ],
-                "ssl" => [
-                    "verify_peer" => false,
-                    "verify_peer_name" => false,
-                ]
+                "http" => ["header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\r\n"],
+                "ssl" => ["verify_peer" => false, "verify_peer_name" => false]
             ];
             $context = stream_context_create($options);
             $imageContent = @file_get_contents($imageUrl, false, $context);
 
-            if ($imageContent === false) {
-                 throw new \Exception("Failed to download image: " . $imageUrl);
-            }
+            if ($imageContent === false) continue;
 
-            // Verify it is an image
             $finfo = new \finfo(FILEINFO_MIME_TYPE);
             $mimeType = $finfo->buffer($imageContent);
-            if (strpos($mimeType, 'image/') !== 0) {
-                throw new \Exception("URL did not return a valid image: " . $imageUrl . " (Type: $mimeType)");
-            }
+            if (strpos($mimeType, 'image/') !== 0) continue;
 
-            $extension = 'webp';
-            $filename = 'products/' . $product->id . '_' . ($index + 1) . '.' . $extension;
+            $filename = 'products/' . $product->id . '_' . Str::random(5) . '_' . ($index + 1) . '.webp';
             
-            // Ensure the products directory exists
             if (!Storage::disk('public')->exists('products')) {
                 Storage::disk('public')->makeDirectory('products');
             }
 
-            // Save optimized image
             $imagePath = Storage::disk('public')->path($filename);
-            
-            // Create a temporary file to process the image
             $tempFile = tempnam(sys_get_temp_dir(), 'img_upload_');
             file_put_contents($tempFile, $imageContent);
 
             try {
-                Image::load($tempFile)
-                    ->quality(80)
-                    ->save($imagePath);
+                Image::load($tempFile)->quality(80)->save($imagePath);
+                
+                ImageProduct::create([
+                    'product_id' => $product->id,
+                    'image_path' => $filename,
+                    'alt_text' => $product->name . ' - ' . basename($imageUrl),
+                    'is_primary' => $index === 0 && !ImageProduct::where('product_id', $product->id)->where('is_primary', true)->exists(),
+                    'display_order' => ImageProduct::where('product_id', $product->id)->count() + 1
+                ]);
+            } catch (\Exception $e) {
+                $results['warnings'][] = "Failed to process image $imageUrl: " . $e->getMessage();
             } finally {
-                if (file_exists($tempFile)) {
-                    unlink($tempFile);
-                }
+                if (file_exists($tempFile)) unlink($tempFile);
             }
-
-            ImageProduct::create([
-                'product_id' => $product->id,
-                'image_path' => $filename,
-                'alt_text' => $product->name . ' Image ' . ($index + 1),
-                'is_primary' => $index === 0,
-                'display_order' => $index + 1
-            ]);
         }
     }
 

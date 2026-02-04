@@ -19,7 +19,7 @@ class ImageOptimizerController extends Controller
     public function getImages()
     {
         // Scan public storage - only specific directories to avoid scanning everything
-        $directories = ['categories', 'banners', 'products', 'blogs', 'testimonials', 'aboutus'];
+        $directories = ['categories', 'banners', 'products', 'blogs', 'testimonials', 'aboutus','brands','collection_types','collections','product-variant-images','product-variants'];
         $images = [];
 
         foreach ($directories as $directory) {
