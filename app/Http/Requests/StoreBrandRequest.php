@@ -25,8 +25,8 @@ class StoreBrandRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', 'unique:brands,name'],
             'slug' => ['required', 'string', 'max:255', 'unique:brands,slug'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'images' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'images' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:3048'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:3048'],
             'status' => ['required', 'boolean'],
         ];
     }
