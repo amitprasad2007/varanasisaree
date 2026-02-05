@@ -486,9 +486,9 @@ class ProductController extends Controller
     }
 
      /**
-     * Get recommeded products for API
+     * Get recommended products for API
      */
-    public function getRecommededProducts(Request $request)
+    public function getRecommendedProducts(Request $request)
     {
         $customer = $request->user();
         $cartItems = Cart::where('customer_id', $customer->id)
