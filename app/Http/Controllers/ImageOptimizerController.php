@@ -27,7 +27,7 @@ class ImageOptimizerController extends Controller
                 $files = Storage::disk('public')->allFiles($directory);
                 foreach ($files as $file) {
                     $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif','webP'])) {
+                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif','webp'])) {
                         $images[] = [
                             'path' => $file,
                             'url' => Storage::url($file),
