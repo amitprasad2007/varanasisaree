@@ -131,7 +131,6 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::delete('/cart/remove', [CartController::class, 'removeFromCart']);
     Route::get('/cart/checkout', [CartController::class, 'getCheckoutCart']);
     Route::get('/cart/summary', [CartController::class, 'getCartSummary']);
-    Route::get('/recommended-products', [CartController::class, 'getRecommendedProducts']);
 
     // Order operations
     Route::post('/order/buy-now', [OrderController::class, 'buyNow']);
@@ -178,8 +177,8 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     // Product Review operations (authenticated)
     Route::post('/product-reviews', [ProductReviewController::class, 'storeReview']);
 
-    Route::get('/getrecommededfillters/recommeded/', [ApiSearchController::class, 'getrecommededfillters']);
-    Route::get('/recommeded-products', [ProductController::class, 'getRecommededProducts']);
+    Route::get('/get-recommended-filters', [ApiSearchController::class, 'getRecommendedFilters']);
+    Route::get('/recommended-products', [ProductController::class, 'getRecommendedProducts']);
     Route::get('/refund-eligibility', [RefundController::class, 'checkEligibility']);
     // Refund operations (authenticated)
 

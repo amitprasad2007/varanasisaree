@@ -56,7 +56,7 @@ const presetEndpoints: Endpoint[] = [
   { method: 'GET', label: 'Product Details', path: '/api/getProductDetails/{slug}', category: 'Product' },
   { method: 'GET', label: 'Related Products', path: '/api/getRelatedProducts/{slug}', category: 'Product' },
   { method: 'GET', label: 'Get All Products', path: '/api/getallproducts', category: 'Product' },
-  { method: 'GET', label: 'Recommended Products', path: '/api/recommeded-products', category: 'Product' },
+  { method: 'GET', label: 'Recommended Products', path: '/api/recommended-products', category: 'Product' },
 
   // Banner
   { method: 'GET', label: 'Get Banners', path: '/api/getBanners', category: 'Banner' },
@@ -76,7 +76,7 @@ const presetEndpoints: Endpoint[] = [
   { method: 'GET', label: 'Bestseller Filters', path: '/api/getbestsellerfillters/bestsellers/', category: 'Search' },
   { method: 'GET', label: 'Featured Filters', path: '/api/getfeaturedfillters/featured/', category: 'Search' },
   { method: 'GET', label: 'Nav Items', path: '/api/navitems', category: 'Search' },
-  { method: 'GET', label: 'Recommended Filters', path: '/api/getrecommededfillters/recommeded/', category: 'Search' },
+  { method: 'GET', label: 'Recommended Filters', path: '/api/get-recommended-filters', category: 'Search' },
 
   // Collection
   { method: 'GET', label: 'Collection Types', path: '/api/collection-types', category: 'Collection' },
