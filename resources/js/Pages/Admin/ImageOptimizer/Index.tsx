@@ -49,6 +49,7 @@ export default function Index() {
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterDirectory, setFilterDirectory] = useState('all');
+    const [sizeFilter, setSizeFilter] = useState<'all' | number>('all');
 
     // Optimization Settings
     const [format, setFormat] = useState<'webp' | 'original'>('webp');
@@ -142,7 +143,8 @@ export default function Index() {
     const filteredImages = images.filter(img => {
         const matchesSearch = img.path.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesDir = filterDirectory === 'all' || img.path.startsWith(filterDirectory);
-        return matchesSearch && matchesDir;
+        const matchesSize = sizeFilter === 'all' || img.size >= (sizeFilter * 1024);
+        return matchesSearch && matchesDir && matchesSize;
     });
 
     const directories = Array.from(new Set(images.map(img => img.path.split('/')[0])));
@@ -251,7 +253,8 @@ export default function Index() {
                             </CardContent>
                             <CardFooter>
                                 <Button
-                                    className="w-full"
+                                    className="w-full "
+                                    variant={'outline'}
                                     size="lg"
                                     onClick={handleOptimize}
                                     disabled={isOptimizing || selectedImages.length === 0}
@@ -332,6 +335,39 @@ export default function Index() {
                                     {dir.charAt(0).toUpperCase() + dir.slice(1)}
                                 </Button>
                             ))}
+                        </div>
+
+                        {/* Size Filters */}
+                        <div className="flex flex-wrap gap-2 pb-2">
+                            <span className="text-sm font-medium self-center mr-2">Size:</span>
+                            <Button
+                                variant={sizeFilter === 'all' ? 'secondary' : 'outline'}
+                                size="sm"
+                                onClick={() => setSizeFilter('all')}
+                            >
+                                All Sizes
+                            </Button>
+                            <Button
+                                variant={sizeFilter === 500 ? 'secondary' : 'outline'}
+                                size="sm"
+                                onClick={() => setSizeFilter(500)}
+                            >
+                                &gt; 500 KB
+                            </Button>
+                            <Button
+                                variant={sizeFilter === 1000 ? 'secondary' : 'outline'}
+                                size="sm"
+                                onClick={() => setSizeFilter(1000)}
+                            >
+                                &gt; 1 MB
+                            </Button>
+                            <Button
+                                variant={sizeFilter === 2000 ? 'secondary' : 'outline'}
+                                size="sm"
+                                onClick={() => setSizeFilter(2000)}
+                            >
+                                &gt; 2 MB
+                            </Button>
                         </div>
 
                         {loading ? (
