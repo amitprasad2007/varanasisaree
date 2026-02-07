@@ -24,7 +24,8 @@ class ProductController extends Controller
         $query = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('status', 'active')
             ->where('stock_quantity', '>', 0)
-            ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc')
+            ->where('name', 'like', '%Saree%');
          // Parse filters
          $priceFilters = $request->query('price', []);
          $colorFilters = $request->query('colors', []);
