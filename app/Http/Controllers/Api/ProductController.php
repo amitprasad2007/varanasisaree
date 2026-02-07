@@ -129,7 +129,7 @@ class ProductController extends Controller
                  // Leave default order (could be customized later)
                  break;
          }
-         $query->limit(5);
+         $query->limit(14);
          // Fetch products after applying filters and sorting
          $products = $query->get();
  
