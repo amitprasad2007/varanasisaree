@@ -453,6 +453,7 @@ class ProductController extends Controller
         $products = Product::with(['imageproducts', 'category', 'variants.images'])
             ->where('id', '!=', $currentProduct->id) // Exclude the current product
             ->where('category_id', $currentProduct->category_id)
+            ->where('name', 'like', '%Saree%')
             ->orWhere('subcategory_id', $currentProduct->subcategory_id)
             ->orWhere('brand_id', $currentProduct->brand_id)
             ->orWhereBetween('price', [
@@ -461,7 +462,7 @@ class ProductController extends Controller
             ])
             ->where('status', 'active')
             ->take(10) // Limit the number of related products
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get();
             if($products->isEmpty()){
                 return response()->json([]);
