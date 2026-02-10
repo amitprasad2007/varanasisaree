@@ -82,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('products/{product}/images', [ImageProductController::class, 'index'])->name('product-images.index');
     Route::get('products/{product}/images/create', [ImageProductController::class, 'create'])->name('product-images.create');
     Route::post('products/{product}/images', [ImageProductController::class, 'store'])->name('product-images.store');
+    Route::post('products/{product}/images/url', [ImageProductController::class, 'storeByUrl'])->name('product-images.store-url');
     Route::put('product-images/{imageProduct}', [ImageProductController::class, 'update'])->name('product-images.update');
     Route::delete('product-images/{imageProduct}', [ImageProductController::class, 'destroy'])->name('product-images.destroy');
     Route::post('product-images/{imageProduct}/set-primary', [ImageProductController::class, 'setPrimary'])->name('product-images.set-primary');

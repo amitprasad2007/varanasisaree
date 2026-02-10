@@ -10,9 +10,11 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\CanHandleImageUploads;
 
 class ImageProductController extends Controller
 {
+    use CanHandleImageUploads;
     /**
      * Display a listing of the resource.
      */    
@@ -84,6 +86,66 @@ class ImageProductController extends Controller
 
         return redirect()->route('product-images.index', $product->id)
             ->with('success', 'Product images uploaded successfully.');
+    }
+
+    /**
+     * Store images from URLs.
+     */
+    public function storeByUrl(Request $request, Product $product)
+    {
+        $request->validate([
+            'image_urls' => 'required|string',
+            'alt_text' => 'nullable|string|max:255',
+            'is_primary' => 'nullable|boolean',
+        ]);
+
+        $imageUrls = $request->input('image_urls');
+        $altText = $request->input('alt_text', '');
+        $isPrimary = $request->boolean('is_primary', false);
+        $count = 0;
+
+        // If this is marked as primary, update all other images
+        if ($isPrimary) {
+            ImageProduct::where('product_id', $product->id)
+                ->update(['is_primary' => false]);
+        }
+
+        // Check if any primary image exists
+        $hasPrimary = ImageProduct::where('product_id', $product->id)
+            ->where('is_primary', true)
+            ->exists();
+
+        // Get the highest display order
+        $maxOrder = ImageProduct::where('product_id', $product->id)
+            ->max('display_order') ?? 0;
+
+        $urls = array_filter(explode('|', $imageUrls));
+        foreach ($urls as $index => $imageUrl) {
+            $imageUrl = trim($imageUrl);
+            if (empty($imageUrl)) continue;
+
+            $filename = $this->downloadAndOptimizeImage($product, $imageUrl);
+
+            if ($filename) {
+                $setAsPrimary = $isPrimary;
+                if (!$hasPrimary && $count === 0 && !$isPrimary) {
+                    $setAsPrimary = true;
+                    $hasPrimary = true;
+                }
+
+                ImageProduct::create([
+                    'product_id' => $product->id,
+                    'image_path' => $filename,
+                    'alt_text' => $altText ?: ($product->name . ' - ' . basename(explode('?', $imageUrl)[0])),
+                    'is_primary' => $setAsPrimary,
+                    'display_order' => $maxOrder + $count + 1,
+                ]);
+                $count++;
+            }
+        }
+
+        return redirect()->route('product-images.index', $product->id)
+            ->with('success', $count . ' images uploaded from URLs successfully.');
     }
 
     /**

@@ -8,17 +8,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from "sweetalert2";
-import { ArrowLeft, Upload, X, Image } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image, Link as LinkIcon } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 
 interface Product {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
 interface Props {
-    product: Product;
+  product: Product;
 }
 
 export default function Create({ product }: Props) {
@@ -31,6 +33,16 @@ export default function Create({ product }: Props) {
     is_primary: boolean;
   }>({
     images: [],
+    alt_text: '',
+    is_primary: false,
+  });
+
+  const urlForm = useForm<{
+    image_urls: string;
+    alt_text: string;
+    is_primary: boolean;
+  }>({
+    image_urls: '',
     alt_text: '',
     is_primary: false,
   });
@@ -106,17 +118,33 @@ export default function Create({ product }: Props) {
     formData.append('is_primary', data.is_primary ? '1' : '0');
 
     post(route('product-images.store', product.id), {
-        method: 'post',
-        ...Object.fromEntries(formData),
-        onSuccess: () => {
+      method: 'post',
+      ...Object.fromEntries(formData),
+      onSuccess: () => {
         Swal.fire({
-            title: 'Success!',
-            text: 'Images added successfully',
-            icon: 'success',
-            timer: 4000,
-            showConfirmButton: false
-            });
-        }
+          title: 'Success!',
+          text: 'Images added successfully',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
+    });
+  };
+
+  const handleUrlSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    urlForm.post(route('product-images.store-url', product.id), {
+      onSuccess: () => {
+        urlForm.reset();
+        Swal.fire({
+          title: 'Success!',
+          text: 'Images from URLs added successfully',
+          icon: 'success',
+          timer: 4000,
+          showConfirmButton: false
+        });
+      }
     });
   };
   const breadcrumbs: BreadcrumbItem[] = [
@@ -130,125 +158,197 @@ export default function Create({ product }: Props) {
   return (
     <DashboardLayout title={`${product.name} - Add Images`}>
       <div className="space-y-6">
-      <div className="space-y-4 pb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Upload Images</h1>
-            <p className="text-muted-foreground">
-              Add images for {product.name}
-            </p>
+        <div className="space-y-4 pb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Upload Images</h1>
+              <p className="text-muted-foreground">
+                Add images for {product.name}
+              </p>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href={route('product-images.index', product.id)}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Images
+              </Link>
+            </Button>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={route('product-images.index', product.id)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Images
-            </Link>
-          </Button>
-        </div>
-        <Breadcrumbs breadcrumbs={breadcrumbs} />
+          <Breadcrumbs breadcrumbs={breadcrumbs} />
         </div>
 
         <div className="bg-white rounded-md shadow-lg border border-gray-400 p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-6">
-              <div
-                className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
+          <Tabs defaultValue="files" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="files" className="flex items-center gap-2">
+                <Upload className="h-4 w-4" /> Upload Files
+              </TabsTrigger>
+              <TabsTrigger value="urls" className="flex items-center gap-2">
+                <LinkIcon className="h-4 w-4" /> Upload by URL
+              </TabsTrigger>
+            </TabsList>
 
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="h-10 w-10 text-gray-400" />
-                  <h3 className="text-lg font-medium">Drag & drop image files</h3>
-                  <p className="text-muted-foreground">
-                    or click to browse (JPG, PNG, GIF up to 2MB)
-                  </p>
-                  <Button type="button" variant="outline" className="mt-2">
-                    Select Files
-                  </Button>
-                </div>
-              </div>
+            <TabsContent value="files">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-6">
+                  <div
+                    className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
 
-              {errors.images && (
-                <div className="text-sm text-red-500">
-                  {errors.images}
-                </div>
-              )}
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Upload className="h-10 w-10 text-gray-400" />
+                      <h3 className="text-lg font-medium">Drag & drop image files</h3>
+                      <p className="text-muted-foreground">
+                        or click to browse (JPG, PNG, GIF up to 2MB)
+                      </p>
+                      <Button type="button" variant="outline" className="mt-2">
+                        Select Files
+                      </Button>
+                    </div>
+                  </div>
 
-              {previews.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Selected Images</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {previews.map((preview, index) => (
-                      <div key={index} className="relative group">
-                        <div className="relative aspect-square overflow-hidden rounded-md border bg-gray-50">
-                          <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
-                            className="h-full w-full object-cover transition-all group-hover:scale-105"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
+                  {errors.images && (
+                    <div className="text-sm text-red-500">
+                      {errors.images}
+                    </div>
+                  )}
+
+                  {previews.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Selected Images</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {previews.map((preview, index) => (
+                          <div key={index} className="relative group">
+                            <div className="relative aspect-square overflow-hidden rounded-md border bg-gray-50">
+                              <img
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                className="h-full w-full object-cover transition-all group-hover:scale-105"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+                  )}
+
+                  <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="alt_text">Alt Text</Label>
+                      <Input
+                        id="alt_text"
+                        value={data.alt_text}
+                        onChange={(e) => setData('alt_text', e.target.value)}
+                        placeholder="Describe the image for accessibility"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Helps with accessibility and SEO
+                      </p>
+                      {errors.alt_text && (
+                        <p className="text-sm text-red-500">{errors.alt_text}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is_primary"
+                        checked={data.is_primary}
+                        onCheckedChange={(checked) => setData('is_primary', Boolean(checked))}
+                      />
+                      <Label htmlFor="is_primary">Set as primary image</Label>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={processing || data.images.length === 0}
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      {processing ? 'Uploading...' : 'Upload Images'}
+                    </Button>
                   </div>
                 </div>
-              )}
+              </form>
+            </TabsContent>
 
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="alt_text">Alt Text</Label>
-                  <Input
-                    id="alt_text"
-                    value={data.alt_text}
-                    onChange={(e) => setData('alt_text', e.target.value)}
-                    placeholder="Describe the image for accessibility"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Helps with accessibility and SEO
-                  </p>
-                  {errors.alt_text && (
-                    <p className="text-sm text-red-500">{errors.alt_text}</p>
-                  )}
+            <TabsContent value="urls">
+              <form onSubmit={handleUrlSubmit} className="space-y-6">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="image_urls">Image URLs</Label>
+                    <Textarea
+                      id="image_urls"
+                      value={urlForm.data.image_urls}
+                      onChange={(e) => urlForm.setData('image_urls', e.target.value)}
+                      placeholder="https://example.com/image1.jpg|https://example.com/image2.jpg"
+                      rows={6}
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Paste multiple image URLs separated by a pipe character (|).
+                    </p>
+                    {urlForm.errors.image_urls && (
+                      <p className="text-sm text-red-500">{urlForm.errors.image_urls}</p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="url_alt_text">Alt Text (Optional)</Label>
+                      <Input
+                        id="url_alt_text"
+                        value={urlForm.data.alt_text}
+                        onChange={(e) => urlForm.setData('alt_text', e.target.value)}
+                        placeholder="Describe the image for accessibility"
+                      />
+                      {urlForm.errors.alt_text && (
+                        <p className="text-sm text-red-500">{urlForm.errors.alt_text}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="url_is_primary"
+                        checked={urlForm.data.is_primary}
+                        onCheckedChange={(checked) => urlForm.setData('is_primary', Boolean(checked))}
+                      />
+                      <Label htmlFor="url_is_primary">Set as primary image</Label>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={urlForm.processing || !urlForm.data.image_urls.trim()}
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      {urlForm.processing ? 'Uploading URLs...' : 'Upload by URL'}
+                    </Button>
+                  </div>
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="is_primary"
-                    checked={data.is_primary}
-                    onCheckedChange={(checked) => setData('is_primary', Boolean(checked))}
-                  />
-                  <Label htmlFor="is_primary">Set as primary image</Label>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  variant="outline"
-                  disabled={processing || data.images.length === 0}
-                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {processing ? 'Uploading...' : 'Upload Images'}
-                </Button>
-              </div>
-            </div>
-          </form>
+              </form>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </DashboardLayout>
