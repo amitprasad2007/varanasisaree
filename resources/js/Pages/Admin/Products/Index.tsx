@@ -135,12 +135,28 @@ export default function Index({ products, filters }: Props) {
       <div className="space-y-4 pb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Products</h1>
-          <Link href={route('products.create')}>
-            <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
-              <Plus className="h-4 w-4" />
-              Add Products
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 cursor-pointer hover:bg-gray-100"
+              onClick={() => {
+                const url = new URL(route('products.export'), window.location.origin);
+                const params = new URLSearchParams(window.location.search);
+                params.forEach((value, key) => {
+                  url.searchParams.set(key, value);
+                });
+                window.location.href = url.toString();
+              }}
+            >
+              Export
             </Button>
-          </Link>
+            <Link href={route('products.create')}>
+              <Button className="flex items-center gap-2 bg-primary cursor-pointer hover:bg-gray-100 text-black shadow-sm">
+                <Plus className="h-4 w-4" />
+                Add Products
+              </Button>
+            </Link>
+          </div>
         </div>
         <Breadcrumbs breadcrumbs={breadcrumbs} />
       </div>
@@ -221,39 +237,38 @@ export default function Index({ products, filters }: Props) {
                   <TableCell>₹{product.price}</TableCell>
                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      product.status === 'active'
+                    <span className={`px-2 py-1 rounded-full text-xs ${product.status === 'active'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
-                    }`}>
+                      }`}>
                       {product.status}
                     </span>
                   </TableCell>
                   <TableCell className="text-left">
                     <div className="flex  space-x-2">
-                        <Link href={route('products.show', product.id)}>
+                      <Link href={route('products.show', product.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
-                            <View className="h-4 w-4" />
+                          <View className="h-4 w-4" />
                         </Button>
-                        </Link>
-                        <Link href={route('product-variants.index', product.id)}>
+                      </Link>
+                      <Link href={route('product-variants.index', product.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
-                            <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                        </Link>
-                        <Link href={route('products.edit', product.id)}>
+                      </Link>
+                      <Link href={route('products.edit', product.id)}>
                         <Button variant="outline" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800" size="sm">
-                            <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        </Link>
-                        <Button
+                      </Link>
+                      <Button
                         variant="outline"
                         className="cursor-pointer text-red-600 hover:bg-red-50 dark:hover:bg-red-800"
                         size="sm"
                         onClick={() => handleDelete(product.id)}
-                        >
-                         <Trash2 className="h-4 w-4 cursor-pointer" />
-                        </Button>
+                      >
+                        <Trash2 className="h-4 w-4 cursor-pointer" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

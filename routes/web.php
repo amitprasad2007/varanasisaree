@@ -74,6 +74,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('products/bulkupload/template', [ProductBulkUploadController::class, 'downloadTemplate'])->name('products.bulkupload.template');
 
     // Products
+    Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
     Route::resource('products', ProductController::class);
     // Product Barcode & QR
     Route::get('products/{product}/barcode', [BarcodeController::class, 'productBarcode'])->name('products.barcode');

@@ -19,15 +19,29 @@ class ProductService
      */
     public function getProducts(Request $request): LengthAwarePaginator
     {
+        $perPage = (int) $request->input('perPage', 10);
+        $perPage = $this->validatePerPage($perPage);
+
+        return $this->getProductsQuery($request)
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * Get products query with filtering, searching, and sorting
+     *
+     * @param Request $request
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getProductsQuery(Request $request)
+    {
         $search = $request->input('search');
         $sort = $request->input('sort', 'created_at');
         $direction = $request->input('direction', 'desc');
-        $perPage = (int) $request->input('perPage', 10);
 
         // Sanitize and validate inputs
         $sort = $this->validateSortColumn($sort);
         $direction = $this->validateSortDirection($direction);
-        $perPage = $this->validatePerPage($perPage);
 
         return Product::with(['category', 'subcategory', 'brand'])
             ->when($search, function ($query) use ($search) {
@@ -36,9 +50,7 @@ class ProductService
                       ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->orderBy($sort, $direction)
-            ->paginate($perPage)
-            ->withQueryString();
+            ->orderBy($sort, $direction);
     }
 
     /**

@@ -12,6 +12,8 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ProductController extends Controller
 {
@@ -144,8 +146,49 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 
+    public function export(Request $request)
+    {
+        $products = $this->productService->getProductsQuery($request)->get();
 
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
+        // Set Headers
+        $headers = ['ID', 'Name', 'Category', 'Subcategory', 'Brand', 'Price', 'Stock', 'Status'];
+        $column = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($column . '1', $header);
+            $sheet->getStyle($column . '1')->getFont()->setBold(true);
+            $column++;
+        }
 
+        // Add Data
+        $row = 2;
+        foreach ($products as $product) {
+            $sheet->setCellValue('A' . $row, $product->id);
+            $sheet->setCellValue('B' . $row, $product->name);
+            $sheet->setCellValue('C' . $row, $product->category?->title ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $product->subcategory?->title ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $product->brand?->name ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $product->price);
+            $sheet->setCellValue('G' . $row, $product->stock_quantity);
+            $sheet->setCellValue('H' . $row, $product->status);
+            $row++;
+        }
 
+        // Auto-size columns
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'products_export_' . date('Y-m-d_H-i-s') . '.xlsx';
+        
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
 }
