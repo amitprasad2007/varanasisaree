@@ -127,14 +127,28 @@ class ProductVariantController extends Controller
         return redirect()->route('product-variants.index', $product)->with('success', 'Product variant deleted successfully.');
     }
 
-    public function allIndex()
+    public function allIndex(Request $request)
     {
+        $search = $request->input('search');
+        $perPage = (int) $request->input('perPage', 10);
+        if ($perPage < 1 || $perPage > 100) $perPage = 10;
+
         $variants = ProductVariant::with(['product', 'color', 'size'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('sku', 'like', "%{$search}%")
+                      ->orWhereHas('product', function ($pq) use ($search) {
+                          $pq->where('name', 'like', "%{$search}%");
+                      });
+                });
+            })
             ->orderBy('created_at', 'desc')
-            ->paginate(50);
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('Admin/ProductVariants/AllVariants', [
-            'variants' => $variants
+            'variants' => $variants,
+            'filters' => $request->only(['search', 'perPage'])
         ]);
     }
 }

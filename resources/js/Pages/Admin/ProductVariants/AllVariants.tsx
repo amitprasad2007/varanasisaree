@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useForm } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Link, router } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,11 +11,19 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Images, ExternalLink } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { Input } from '@/components/ui/input';
+import { Edit, Trash2, Images, ExternalLink, Search } from 'lucide-react';
 import Swal from 'sweetalert2';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 
-interface PaginationLink {
+interface PaginationLinkType {
     url: string | null;
     label: string;
     active: boolean;
@@ -23,9 +31,10 @@ interface PaginationLink {
 
 interface PaginationData<T> {
     data: T[];
-    links: PaginationLink[];
+    links: PaginationLinkType[];
     current_page: number;
     last_page: number;
+    per_page: number;
     total: number;
 }
 
@@ -59,11 +68,39 @@ interface ProductVariant {
     created_at: string;
 }
 
-interface Props {
-    variants: PaginationData<ProductVariant>;
+interface Filters {
+    search?: string;
+    perPage?: number;
 }
 
-export default function AllVariants({ variants }: Props) {
+interface Props {
+    variants: PaginationData<ProductVariant>;
+    filters?: Filters;
+}
+
+export default function AllVariants({ variants, filters }: Props) {
+    const [search, setSearch] = useState<string>(filters?.search ?? '');
+    const [perPage, setPerPage] = useState<number>(Number(filters?.perPage ?? 10));
+
+    const applyFilters = (newParams?: Partial<Filters> & { page?: number }) => {
+        const query = {
+            search,
+            perPage,
+            ...newParams,
+        } as Record<string, string | number | undefined>;
+
+        router.get(route('product-variants.all'), query, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const clearFilters = () => {
+        setSearch('');
+        setPerPage(10);
+        router.get(route('product-variants.all'), {}, { replace: true });
+    };
+
     const handleDelete = (productId: number, variantId: number) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -96,11 +133,51 @@ export default function AllVariants({ variants }: Props) {
                 <h1 className="text-2xl font-bold text-gray-900">All Product Variants</h1>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden">
+                <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between border-b border-gray-50">
+                    <div className="flex items-center gap-2 w-full md:w-1/2">
+                        <div className="relative w-full">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Search SKU or Product Name..."
+                                className="pl-9"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') applyFilters({ page: 1 });
+                                }}
+                            />
+                        </div>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100" onClick={() => applyFilters({ page: 1 })}>
+                            Search
+                        </Button>
+                        <Button variant="outline" className="cursor-pointer hover:bg-gray-100" onClick={clearFilters}>
+                            Clear
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm text-gray-600 font-medium">Per page</label>
+                        <select
+                            className="border rounded-md px-2 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none"
+                            value={perPage}
+                            onChange={(e) => {
+                                const value = Number(e.target.value);
+                                setPerPage(value);
+                                applyFilters({ perPage: value, page: 1 });
+                            }}
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </div>
+                </div>
+
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-gray-50">
-                            <TableHead className="w-[100px]">Image</TableHead>
+                        <TableRow className="bg-gray-50/50">
+                            <TableHead className="w-[80px]">Image</TableHead>
                             <TableHead>Product</TableHead>
                             <TableHead>SKU</TableHead>
                             <TableHead>Color/Size</TableHead>
@@ -113,9 +190,9 @@ export default function AllVariants({ variants }: Props) {
                     <TableBody>
                         {variants.data.length > 0 ? (
                             variants.data.map((variant) => (
-                                <TableRow key={variant.id} className="hover:bg-gray-50 transition-colors">
+                                <TableRow key={variant.id} className="hover:bg-gray-50/50 transition-colors">
                                     <TableCell>
-                                        <div className="w-12 h-12 rounded border bg-gray-100 flex items-center justify-center overflow-hidden">
+                                        <div className="w-12 h-12 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden shadow-sm">
                                             {variant.image_path ? (
                                                 <img
                                                     src={`/storage/${variant.image_path}`}
@@ -123,76 +200,76 @@ export default function AllVariants({ variants }: Props) {
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <ImageIcon className="w-6 h-6 text-gray-400" />
+                                                <ImageIcon className="w-6 h-6 text-gray-300" />
                                             )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-gray-900">{variant.product.name}</span>
+                                            <span className="font-semibold text-gray-900 leading-tight">{variant.product.name}</span>
                                             <Link
                                                 href={route('products.show', variant.product.id)}
-                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                                className="text-[11px] text-blue-500 hover:text-blue-700 hover:underline flex items-center gap-0.5 mt-0.5"
                                             >
-                                                View Product <ExternalLink className="w-3 h-3" />
+                                                View Product <ExternalLink className="w-2.5 h-2.5" />
                                             </Link>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="font-mono text-sm">{variant.sku}</TableCell>
+                                    <TableCell className="font-mono text-sm text-gray-600">{variant.sku}</TableCell>
                                     <TableCell>
                                         <div className="flex flex-col gap-1">
                                             {variant.color && (
                                                 <div className="flex items-center gap-1.5">
                                                     {variant.color.hex_code && (
                                                         <div
-                                                            className="w-3 h-3 rounded-full border border-gray-300"
+                                                            className="w-3.5 h-3.5 rounded-full border border-gray-200 shadow-sm"
                                                             style={{ backgroundColor: variant.color.hex_code }}
                                                         />
                                                     )}
-                                                    <span className="text-sm">{variant.color.name}</span>
+                                                    <span className="text-sm font-medium text-gray-700">{variant.color.name}</span>
                                                 </div>
                                             )}
                                             {variant.size && (
-                                                <span className="text-xs text-gray-500">Size: {variant.size.name}</span>
+                                                <span className="text-xs text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded w-fit">Size: {variant.size.name}</span>
                                             )}
-                                            {!variant.color && !variant.size && <span className="text-gray-400 text-xs">N/A</span>}
+                                            {!variant.color && !variant.size && <span className="text-gray-400 text-xs italic">Default</span>}
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
-                                            <span className="font-medium">₹{variant.price}</span>
+                                            <span className="font-bold text-gray-900">₹{variant.price}</span>
                                             {variant.discount > 0 && (
-                                                <span className="text-xs text-green-600">-{variant.discount}%</span>
+                                                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1 rounded w-fit">-{variant.discount}% OFF</span>
                                             )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={variant.stock_quantity > 0 ? 'outline' : 'destructive'}>
+                                        <Badge variant={variant.stock_quantity > 0 ? 'outline' : 'destructive'} className="font-bold">
                                             {variant.stock_quantity}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={variant.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                                        <Badge variant={variant.status === 'active' ? 'default' : 'secondary'} className="capitalize shadow-sm">
                                             {variant.status}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
+                                        <div className="flex justify-end gap-1.5">
                                             <Link href={route('product-variant-images.index', variant.id)}>
-                                                <Button variant="outline" size="sm" title="Manage Images">
-                                                    <Images className="w-4 h-4" />
+                                                <Button variant="outline" size="sm" title="Manage Images" className="h-8 w-8 p-0 cursor-pointer hover:bg-gray-100">
+                                                    <Images className="w-4 h-4 text-gray-600" />
                                                 </Button>
                                             </Link>
                                             <Link href={route('product-variants.edit', [variant.product.id, variant.id])}>
-                                                <Button variant="outline" size="sm" title="Edit Variant">
+                                                <Button variant="outline" size="sm" title="Edit Variant" className="h-8 w-8 p-0 cursor-pointer hover:bg-gray-100">
                                                     <Edit className="w-4 h-4 text-gray-600" />
                                                 </Button>
                                             </Link>
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() => handleDelete(variant.product.id, variant.id)}
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer border-red-100"
                                                 title="Delete"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -203,33 +280,54 @@ export default function AllVariants({ variants }: Props) {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-gray-500">
-                                    No variants found.
+                                <TableCell colSpan={8} className="h-32 text-center text-gray-500 italic">
+                                    No variants matching your criteria.
                                 </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
-            </div>
 
-            {variants.links.length > 3 && (
-                <div className="mt-6 flex justify-center gap-1">
-                    {variants.links.map((link, i) => (
-                        <Link
-                            key={i}
-                            href={link.url || '#'}
-                            className={cn(
-                                "px-4 py-2 text-sm rounded-md transition-colors",
-                                link.active
-                                    ? "bg-primary text-primary-foreground font-medium"
-                                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200",
-                                !link.url && "opacity-50 cursor-not-allowed"
-                            )}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
+                <div className="p-4 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
+                    <div className="text-sm text-gray-500 font-medium">
+                        Showing {variants.data.length} of {variants.total} variants
+                    </div>
+                    {variants.links && variants.links.length > 3 && (
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        href={variants.links[0]?.url ?? '#'}
+                                        onClick={(e) => {
+                                            if (!variants.links[0]?.url) e.preventDefault();
+                                        }}
+                                    />
+                                </PaginationItem>
+                                {variants.links.slice(1, variants.links.length - 1).map((link, idx) => (
+                                    <PaginationItem key={idx}>
+                                        <PaginationLink
+                                            href={link.url ?? '#'}
+                                            isActive={link.active}
+                                            onClick={(e) => {
+                                                if (!link.url) e.preventDefault();
+                                            }}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    </PaginationItem>
+                                ))}
+                                <PaginationItem>
+                                    <PaginationNext
+                                        href={variants.links[variants.links.length - 1]?.url ?? '#'}
+                                        onClick={(e) => {
+                                            if (!variants.links[variants.links.length - 1]?.url) e.preventDefault();
+                                        }}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
                 </div>
-            )}
+            </div>
         </DashboardLayout>
     );
 }
