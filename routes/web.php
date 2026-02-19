@@ -162,6 +162,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('company-info', \App\Http\Controllers\CompanyInfoManagementController::class);
 
     // Product Variants
+    Route::get('all-variants', [ProductVariantController::class, 'allIndex'])->name('product-variants.all');
     Route::get('products/{product}/variants', [ProductVariantController::class, 'index'])->name('product-variants.index');
     Route::get('products/{product}/variants/create', [ProductVariantController::class, 'create'])->name('product-variants.create');
     Route::post('products/{product}/variants', [ProductVariantController::class, 'store'])->name('product-variants.store');

@@ -126,4 +126,15 @@ class ProductVariantController extends Controller
         $variant->delete();
         return redirect()->route('product-variants.index', $product)->with('success', 'Product variant deleted successfully.');
     }
+
+    public function allIndex()
+    {
+        $variants = ProductVariant::with(['product', 'color', 'size'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(50);
+
+        return Inertia::render('Admin/ProductVariants/AllVariants', [
+            'variants' => $variants
+        ]);
+    }
 }
