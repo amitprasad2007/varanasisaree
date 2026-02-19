@@ -68,6 +68,7 @@ const Sidebar = () => {
         { icon: Building, label: 'Brands', path: '/brands' },
         { icon: Barcode, label: 'Products', path: '/products' },
         { icon: FileText, label: 'Product Bulk Upload', path: '/products/bulkupload' },
+        { icon: FileText, label: 'Variant Bulk Upload', path: '/variants/bulkupload' },
         { icon: Palette, label: 'Colors', path: '/colors' },
         { icon: Ruler, label: 'Sizes', path: '/sizes' },
         { icon: Layers, label: 'Collection Types', path: '/collection-types' },

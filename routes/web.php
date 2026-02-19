@@ -18,6 +18,7 @@ use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\ProductBulkUploadController;
+use App\Http\Controllers\VariantBulkUploadController;
 use App\Http\Controllers\ApiPlaygroundController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\PermissionManagementController;
@@ -72,6 +73,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('products/bulkupload', [ProductBulkUploadController::class, 'index'])->name('products.bulkupload');
     Route::post('products/bulkupload', [ProductBulkUploadController::class, 'upload'])->name('products.bulkupload.store');
     Route::get('products/bulkupload/template', [ProductBulkUploadController::class, 'downloadTemplate'])->name('products.bulkupload.template');
+
+    // Variant Bulk Upload
+    Route::get('variants/bulkupload', [VariantBulkUploadController::class, 'index'])->name('variants.bulkupload');
+    Route::post('variants/bulkupload', [VariantBulkUploadController::class, 'upload'])->name('variants.bulkupload.store');
+    Route::get('variants/bulkupload/template', [VariantBulkUploadController::class, 'downloadTemplate'])->name('variants.bulkupload.template');
 
     // Products
     Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
