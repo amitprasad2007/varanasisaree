@@ -44,5 +44,15 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT'),
     ],
+    'googleMobile' => [
+        'client_id' => env('GOOGLE_CLIENT_ID_MOBILE'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET_MOBILE'),
+        'redirect' => env('GOOGLE_REDIRECT_MOBILE'),
+    ],
+    'facebookMobile' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID_MOBILE'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET_MOBILE'),
+        'redirect' => env('FACEBOOK_REDIRECT_MOBILE'),
+    ],
 
 ];

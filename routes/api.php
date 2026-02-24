@@ -118,6 +118,8 @@ Route::post('/guestlogs', [UserLogController::class, 'store']);
 // Customer Authentication APIs (separate guard)
 Route::post('/register', [CustomerAuthController::class, 'register']);
 Route::post('/login', [CustomerAuthController::class, 'login']);
+Route::post('/auth/oauth/login', [CustomerAuthController::class, 'handleTokenCallback']);
+
 
 // Protected routes that require authentication
 Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {

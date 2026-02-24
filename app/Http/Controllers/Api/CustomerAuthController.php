@@ -141,6 +141,67 @@ class CustomerAuthController extends Controller
         }
     }
 
+    public function handleTokenCallback(Request $request, $provider)
+    {
+        try {
+            $request->validate([
+                'token' => 'required|string',
+            ]);
+
+            // Retrieve user details from the provider using the token provided by React Native SDK
+            $socialUser = Socialite::driver($provider)->userFromToken($request->token);
+
+            $customer = null;
+            if ($provider === 'googleMobile') {
+                $customer = Customer::where('google_id', $socialUser->id)->orWhere('email', $socialUser->email)->first();
+            } elseif ($provider === 'facebookMobile') {
+                $customer = Customer::where('facebook_id', $socialUser->id)->orWhere('email', $socialUser->email)->first();
+            }
+
+            // Create new customer if not exists
+            if (!$customer) {
+                $customerData = [
+                    'name' => $socialUser->name,
+                    'email' => $socialUser->email,
+                    'avatar' => $socialUser->avatar,
+                ];
+
+                if ($provider === 'googleMobile') {
+                    $customerData['google_id'] = $socialUser->id;
+                } elseif ($provider === 'facebookMobile') {
+                    $customerData['facebook_id'] = $socialUser->id;
+                }
+
+                $customer = Customer::create($customerData);
+            } else {
+                 // Update provider ID if it was matched by email only
+                 if ($provider === 'googleMobile' && !$customer->google_id) {
+                     $customer->google_id = $socialUser->id;
+                     $customer->save();
+                 } elseif ($provider === 'facebookMobile' && !$customer->facebook_id) {
+                     $customer->facebook_id = $socialUser->id;
+                     $customer->save();
+                 }
+            }
+
+            $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OAuth login successful',
+                'customer' => $customer,
+                'token' => $token,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error($provider . ' Native Token OAuth Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'OAuth authentication failed. Invalid token.'
+            ], 401);
+        }
+    }
+
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
