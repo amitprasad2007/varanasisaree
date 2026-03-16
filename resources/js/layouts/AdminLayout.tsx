@@ -4,6 +4,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Head } from '@inertiajs/react';
 import AdminNav from '@/components/AdminNav';
+import BackendAiAssistant from '@/components/BackendAiAssistant';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             </div>
           </main>
         </div>
+        <BackendAiAssistant />
       </TooltipProvider>
     </>
   );

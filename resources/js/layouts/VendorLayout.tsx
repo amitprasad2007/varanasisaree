@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import VendorSidebar from "@/components/VendorSidebar";
 import { Head } from '@inertiajs/react';
 import React, { ReactNode } from 'react';
+import BackendAiAssistant from "@/components/BackendAiAssistant";
 
 interface VendorLayoutProps {
     children: ReactNode;
@@ -25,6 +26,7 @@ export default function VendorLayout({ children, title }: VendorLayoutProps) {
                         </div>
                     </main>
                 </div>
+                <BackendAiAssistant />
             </TooltipProvider>
         </>
     );

@@ -280,6 +280,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('api/image-optimizer/images', [\App\Http\Controllers\ImageOptimizerController::class, 'getImages'])->name('image-optimizer.get-images');
     Route::post('api/image-optimizer/optimize', [\App\Http\Controllers\ImageOptimizerController::class, 'optimize'])->name('image-optimizer.optimize');
 
+    // Backend AI Assistant
+    Route::post('/admin/ai/chat', [\App\Http\Controllers\Api\BackendAiAssistantController::class, 'chat'])->name('admin.ai.chat');
+
 });
 
 

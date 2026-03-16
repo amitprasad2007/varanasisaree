@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Sidebar from "@/components/Sidebar.js";
 import { Head } from '@inertiajs/react';
+import BackendAiAssistant from "@/components/BackendAiAssistant";
 
 export default function DashboardLayout({ children, title }) {
   return (
@@ -19,6 +20,7 @@ export default function DashboardLayout({ children, title }) {
             </div>
           </main>
         </div>
+        <BackendAiAssistant />
       </TooltipProvider>
     </>
   );

@@ -28,6 +28,8 @@ use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\PageController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\CompanyInfoController;
+use App\Http\Controllers\Api\AiAssistantController;
+
 
 // Blog APIs
 Route::get('/blogs', [BlogPostController::class, 'index']);
@@ -237,6 +239,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'ability:admin'])->group(fun
 //     Route::post('/customer/logout', [CustomerAuthController::class, 'logout']);
 // });
 
-
+// AI Assistant Routes
+Route::prefix('ai')->group(function () {
+    Route::post('/chat', [AiAssistantController::class, 'chat']);
+    Route::post('/recommendations', [AiAssistantController::class, 'recommendations']);
+    Route::post('/generate-description', [AiAssistantController::class, 'generateDescription']);
+    Route::post('/generate-image', [AiAssistantController::class, 'generateImage']);
+});
 
 
