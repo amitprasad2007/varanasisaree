@@ -284,6 +284,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Backend AI Assistant
     Route::post('admin/ai/chat', [BackendAiAssistantController::class, 'chat'])->name('admin.ai.chat');
+    Route::post('admin/ai/generate-image', [BackendAiAssistantController::class, 'generateImage'])->name('admin.ai.generate-image');
 
 });
 

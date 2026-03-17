@@ -46,4 +46,14 @@ return [
     | Default: gemini-1.5-flash
     */
     'model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Gemini Image Generation Model
+    |--------------------------------------------------------------------------
+    |
+    | The model used for image generation. Must support image output modality.
+    | Default: gemini-2.5-flash-image
+    */
+    'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
 ];

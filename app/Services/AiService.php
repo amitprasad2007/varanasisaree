@@ -6,9 +6,13 @@ use Gemini\Laravel\Facades\Gemini;
 use Gemini\Data\Content;
 use Gemini\Data\Blob;
 use Gemini\Data\Part;
+use Gemini\Data\GenerationConfig;
+use Gemini\Data\ImageConfig;
 use Gemini\Enums\MimeType;
+use Gemini\Enums\ResponseModality;
 use App\Models\Product;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AiService
 {
@@ -167,24 +171,74 @@ class AiService
     }
 
     /**
-     * Generate a product image based on description (Experimental/Placeholder).
+     * Generate a product image using Gemini's image generation capabilities.
      */
-    public function generateProductImage(string $prompt): array
+    public function generateProductImage(string $prompt, string $aspectRatio = '1:1'): array
     {
         try {
-            // Currently Gemini 1.5 doesn't support image generation directly in the stable SDK.
-            // This is a placeholder for when Imagen 3 or Gemini 2.0 is fully integrated.
+            $generationConfig = new GenerationConfig(
+                responseModalities: [ResponseModality::TEXT, ResponseModality::IMAGE],
+                imageConfig: new ImageConfig(aspectRatio: $aspectRatio),
+            );
+
+            $result = Gemini::generativeModel(config('gemini.image_model'))
+                ->withGenerationConfig($generationConfig)
+                ->generateContent($prompt);
+
+            $textContent = '';
+            $imageUrl = null;
+
+            foreach ($result->parts() as $part) {
+                if ($part->text !== null) {
+                    $textContent .= $part->text;
+                }
+
+                if ($part->inlineData !== null) {
+                    // Determine file extension from MIME type
+                    $mimeType = $part->inlineData->mimeType;
+                    $extension = match ($mimeType) {
+                        MimeType::IMAGE_PNG, 'image/png' => 'png',
+                        MimeType::IMAGE_WEBP, 'image/webp' => 'webp',
+                        default => 'jpg',
+                    };
+
+                    // Generate a unique filename and save the image
+                    $filename = 'ai_' . time() . '_' . uniqid() . '.' . $extension;
+                    $storagePath = 'public/ai-generated/' . $filename;
+
+                    // Ensure the directory exists
+                    $directory = storage_path('app/public/ai-generated');
+                    if (!is_dir($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+
+                    // Decode and save the base64 image data
+                    $imageData = base64_decode($part->inlineData->data);
+                    Storage::put($storagePath, $imageData);
+
+                    $imageUrl = asset('storage/ai-generated/' . $filename);
+                }
+            }
+
+            if ($imageUrl) {
+                return [
+                    'status' => 'success',
+                    'message' => $textContent ?: 'Image generated successfully.',
+                    'url' => $imageUrl,
+                ];
+            }
+
             return [
                 'status' => 'error',
-                'message' => 'Image generation via Gemini is currently in experimental preview and may require Vertex AI or Gemini 2.0. Please contact support for early access.',
-                'url' => null
+                'message' => $textContent ?: 'No image was generated. Try rephrasing your prompt.',
+                'url' => null,
             ];
         } catch (\Exception $e) {
             Log::error("Gemini Image Generation Error: " . $e->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'An error occurred during image generation.',
-                'url' => null
+                'message' => 'Image generation failed: ' . $e->getMessage(),
+                'url' => null,
             ];
         }
     }
