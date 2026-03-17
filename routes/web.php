@@ -34,6 +34,8 @@ use App\Http\Controllers\OrderManagementController;
 use App\Http\Controllers\UnifiedDashboardController;
 use App\Http\Controllers\SalesManagementController;
 use App\Http\Controllers\RefundManagementController;
+use App\Http\Controllers\ImageOptimizerController;
+use App\Http\Controllers\Api\BackendAiAssistantController;
 
 
 
@@ -276,12 +278,12 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Image Optimizer
-    Route::get('image-optimizer', [\App\Http\Controllers\ImageOptimizerController::class, 'index'])->name('image-optimizer.index');
-    Route::get('api/image-optimizer/images', [\App\Http\Controllers\ImageOptimizerController::class, 'getImages'])->name('image-optimizer.get-images');
-    Route::post('api/image-optimizer/optimize', [\App\Http\Controllers\ImageOptimizerController::class, 'optimize'])->name('image-optimizer.optimize');
+    Route::get('image-optimizer', [ImageOptimizerController::class, 'index'])->name('image-optimizer.index');
+    Route::get('image-optimizer/images', [ImageOptimizerController::class, 'getImages'])->name('image-optimizer.get-images');
+    Route::post('image-optimizer/optimize', [ImageOptimizerController::class, 'optimize'])->name('image-optimizer.optimize');
 
     // Backend AI Assistant
-    Route::post('/admin/ai/chat', [\App\Http\Controllers\Api\BackendAiAssistantController::class, 'chat'])->name('admin.ai.chat');
+    Route::post('admin/ai/chat', [BackendAiAssistantController::class, 'chat'])->name('admin.ai.chat');
 
 });
 
