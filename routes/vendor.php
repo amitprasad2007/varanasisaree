@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorController;
 use App\Http\Controllers\VendorAuthController;
-
+use App\Http\Controllers\VendorRefundController;
 
 Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
 
@@ -31,12 +31,12 @@ Route::prefix('vendor')->name('vendor.')->middleware(['auth'])->group(function (
     
     // Vendor Refund Management Routes
     Route::prefix('refunds')->name('refunds.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\VendorRefundController::class, 'index'])->name('index');
-        Route::get('/{refund}', [\App\Http\Controllers\VendorRefundController::class, 'show'])->name('show');
-        Route::post('/{refund}/approve', [\App\Http\Controllers\VendorRefundController::class, 'approve'])->name('approve');
-        Route::post('/{refund}/reject', [\App\Http\Controllers\VendorRefundController::class, 'reject'])->name('reject');
-        Route::get('/analytics/data', [\App\Http\Controllers\VendorRefundController::class, 'analytics'])->name('analytics');
-        Route::get('/export/csv', [\App\Http\Controllers\VendorRefundController::class, 'export'])->name('export');
+        Route::get('/', [VendorRefundController::class, 'index'])->name('index');
+        Route::get('/{refund}', [VendorRefundController::class, 'show'])->name('show');
+        Route::post('/{refund}/approve', [VendorRefundController::class, 'approve'])->name('approve');
+        Route::post('/{refund}/reject', [VendorRefundController::class, 'reject'])->name('reject');
+        Route::get('/analytics/data', [VendorRefundController::class, 'analytics'])->name('analytics');
+        Route::get('/export/csv', [VendorRefundController::class, 'export'])->name('export');
     });
 });
 
