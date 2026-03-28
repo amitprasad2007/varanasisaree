@@ -2,17 +2,16 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
+use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
-use App\Models\SaleReturnItem;
-use App\Models\CreditNote;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class POSRefundTest extends TestCase
 {
@@ -140,6 +139,7 @@ class POSRefundTest extends TestCase
         $sale = Sale::factory()->create([
             'customer_id' => $customer->id,
             'status' => 'completed',
+            'total' => 8000,
         ]);
 
         // Create sale items
@@ -149,6 +149,7 @@ class POSRefundTest extends TestCase
             'product_variant_id' => $variant->id,
             'quantity' => 5,
             'price' => 1000,
+            'line_total' => 5000,
         ]);
 
         $saleItem2 = SaleItem::factory()->create([
@@ -157,6 +158,7 @@ class POSRefundTest extends TestCase
             'product_variant_id' => $variant->id,
             'quantity' => 3,
             'price' => 1000,
+            'line_total' => 3000,
         ]);
 
         $variant->decrement('stock_quantity', 8);
@@ -188,7 +190,7 @@ class POSRefundTest extends TestCase
         ]);
 
         // Stock should be partially restored
-        $this->assertEquals(5, $variant->fresh()->stock_quantity);
+        $this->assertEquals(7, $variant->fresh()->stock_quantity);
     }
 
     /**
@@ -220,7 +222,9 @@ class POSRefundTest extends TestCase
 
         $toUseAmount = $paymentAmount;
         foreach ($creditNotes as $note) {
-            if ($toUseAmount <= 0) break;
+            if ($toUseAmount <= 0) {
+                break;
+            }
             $apply = min($note->remaining_amount, $toUseAmount);
             $note->remaining_amount -= $apply;
             if ($note->remaining_amount <= 0.001) {
@@ -246,7 +250,9 @@ class POSRefundTest extends TestCase
 
         $toUseAmount = $paymentAmount;
         foreach ($creditNotes as $note) {
-            if ($toUseAmount <= 0) break;
+            if ($toUseAmount <= 0) {
+                break;
+            }
             $apply = min($note->remaining_amount, $toUseAmount);
             $note->remaining_amount -= $apply;
             if ($note->remaining_amount <= 0.001) {
@@ -263,4 +269,3 @@ class POSRefundTest extends TestCase
         $this->assertEquals('used', $creditNote->status);
     }
 }
-

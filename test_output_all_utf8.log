@@ -1,0 +1,434 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_can_only_view_their_own_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_isolation_in_credit_notes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_cannot_create_refund_for_other_vendors_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_refund_authorization_policies(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_pos_refund_with_vendor_context(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_specific_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_high_value_refund_requires_additional_approval(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_validate_razorpay_refund_eligibility(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_non_captured_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_exceeding_remaining_amount(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_fully_refunded_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_create_refund_request_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_validates_razorpay_eligibility_before_creating_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_eligibility_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_razorpay_eligibility_for_non_razorpay_orders(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_customer_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_cancel_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_cannot_cancel_non_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_refund_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_process_razorpay_refund_with_mock(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_handles_razorpay_refund_failure(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_refund_status(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_test_razorpay_connection(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   PASS  Tests\Unit\ExampleTest
+  Ô£ô that true is true      4.77s  
+
+   PASS  Tests\Feature\AdminProductReviewTest
+  Ô£ô admin can view revieÔÇª 11.02s  
+  Ô£ô admin can approve revÔÇª 1.71s  
+  Ô£ô admin can reject reviÔÇª 0.40s  
+  Ô£ô admin can delete reviÔÇª 3.52s  
+
+   PASS  Tests\Feature\Auth\AuthenticationTest
+  Ô£ô login screen can beÔÇª  28.16s  
+  Ô£ô users can authenticatÔÇª 4.22s  
+  Ô£ô users can not authentÔÇª 2.31s  
+  Ô£ô users can logout       0.27s  
+
+   PASS  Tests\Feature\Auth\EmailVerificationTest
+  Ô£ô email verification scÔÇª 0.72s  
+  Ô£ô email can be verified  0.38s  
+  Ô£ô email is not verifiedÔÇª 4.33s  
+
+   PASS  Tests\Feature\Auth\PasswordConfirmationTest
+  Ô£ô confirm password screÔÇª 0.54s  
+  Ô£ô password can be confiÔÇª 0.21s  
+  Ô£ô password is not confiÔÇª 1.41s  
+
+   PASS  Tests\Feature\Auth\PasswordResetTest
+  Ô£ô reset password link sÔÇª 0.24s  
+  Ô£ô reset password link cÔÇª 0.48s  
+  Ô£ô reset password screenÔÇª 1.75s  
+  Ô£ô password can be resetÔÇª 1.57s  
+
+   PASS  Tests\Feature\Auth\RegistrationTest
+  Ô£ô registration screen cÔÇª 1.89s  
+  Ô£ô new users can registeÔÇª 0.59s  
+
+   PASS  Tests\Feature\DashboardTest
+  Ô£ô guests are redirectedÔÇª 0.17s  
+  Ô£ô authenticated users cÔÇª 0.26s  
+
+   PASS  Tests\Feature\ExampleTest
+  Ô£ô example                0.12s  
+
+   PASS  Tests\Feature\ImageOptimizerTest
+  Ô£ô can view image optimiÔÇª 0.24s  
+  Ô£ô can get images list    0.30s  
+  Ô£ô can optimize image toÔÇª 0.43s  
+
+   PASS  Tests\Feature\MultiVendorRefundTest
+  Ô£ô vendor can only viewÔÇª  0.49s  
+  Ô£ô vendor isolation in cÔÇª 0.36s  
+  Ô£ô vendor cannot createÔÇª  0.13s  
+  Ô£ô refund authorizationÔÇª  0.15s  
+  Ô£ô pos refund with vendoÔÇª 0.19s  
+  Ô£ô vendor specific statiÔÇª 0.25s  
+  Ô£ô high value refund reqÔÇª 0.14s  
+
+   PASS  Tests\Feature\POSRefundTest
+  Ô£ô pos refund creates crÔÇª 0.24s  
+  Ô£ô partial refund procesÔÇª 0.21s  
+  Ô£ô using credit note forÔÇª 0.18s  
+
+   FAIL  Tests\Feature\RazorpayRefundTest
+  Ô¿» it can validate razorpay refund eligibility
+  Ô¿» it rejects refund for non captured payment
+  Ô¿» it rejects refund exceeding remaining amount
+  Ô¿» it rejects refund for fully refunded payment
+  Ô¿» it can create refund request via api
+  Ô¿» it validates razorpay eligibility before creating refund
+  Ô¿» it can check razorpay eligibility via api
+  Ô¿» it rejects razorpay eligibility for non razorpay orders
+  Ô¿» it can get customer refunds
+  Ô¿» it can cancel pending refund
+  Ô¿» it cannot cancel non pending refund
+  Ô¿» it can get refund statistics
+  Ô¿» it can process razorpay refund with mock
+  Ô¿» it handles razorpay refund failure
+  Ô¿» it can check razorpay refund status
+  Ô¿» it can test razorpay connection
+
+   PASS  Tests\Feature\RoutingTest
+  Ô£ô root route works       0.15s  
+
+   PASS  Tests\Feature\Settings\PasswordUpdateTest
+  Ô£ô password can be updatÔÇª 0.18s  
+  Ô£ô correct password mustÔÇª 0.10s  
+
+   PASS  Tests\Feature\Settings\ProfileUpdateTest
+  Ô£ô profile page is displÔÇª 0.14s  
+  Ô£ô profile information cÔÇª 0.11s  
+  Ô£ô email verification stÔÇª 0.11s  
+  Ô£ô user can delete theirÔÇª 0.10s  
+  Ô£ô correct password mustÔÇª 0.10s  
+
+   PASS  Tests\Feature\VendorFactoryTest
+  Ô£ô vendor factory createÔÇª 0.11s  
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAIÔÇª  BadMethodCallException   
+  Call to undefined method App\Models\OrderItem::factory()
+
+  at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+     63Ôûò      * @throws \BadMethodCallException
+     64Ôûò      */
+     65Ôûò     protected static function throwBadMethodCallException($method)
+     66Ôûò     {
+  Ô×£  67Ôûò         throw new BadMethodCallException(sprintf(
+     68Ôûò             'Call to undefined method %s::%s()', static::class, $method
+     69Ôûò         ));
+     70Ôûò     }
+     71Ôûò }
+
+  1   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:67
+  2   vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:36
+
+
+  Tests:    16 failed, 46 passed (147 assertions)
+  Duration: 81.80s
+

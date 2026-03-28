@@ -244,7 +244,7 @@ class NotificationService
         $message = $eventMessages[$eventType] ?? ("Refund status updated to: {$eventType}");
 
         $notification = \App\Models\Notification::create([
-            'order_id' => $refund->order_id,
+            'order_id' => $refund->order ? $refund->order->id : $refund->order_id,
             'customer_id' => $customer->id,
             'type' => 'refund_status',
             'title' => $title,

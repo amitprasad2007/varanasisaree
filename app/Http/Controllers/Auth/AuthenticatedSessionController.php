@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\DashboardController;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,9 +25,10 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    public function dashboard():Response
+    public function dashboard(): Response
     {
-        $dashboardController = new \App\Http\Controllers\DashboardController();
+        $dashboardController = new DashboardController;
+
         return $dashboardController->index();
     }
 
@@ -47,7 +49,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        Auth::guard()->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

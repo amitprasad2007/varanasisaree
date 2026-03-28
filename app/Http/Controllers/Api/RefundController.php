@@ -121,6 +121,12 @@ class RefundController extends Controller
                 return $this->refundService->createRefundRequest($request->all());
             });
 
+            \Illuminate\Support\Facades\Log::info('Refund created response data', [
+                'id' => $refund->id,
+                'order_id' => $refund->order_id,
+                'data' => $refund->toArray()
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Refund request created successfully.',
@@ -352,11 +358,29 @@ class RefundController extends Controller
      */
     protected function validateRazorpayRefundEligibility(Order $order, float $refundAmount): void
     {
-        $payment = Payment::where('rzorder_id', $order->transaction_id)
+        $transactionId = $order->transaction_id;
+        
+        if (!$transactionId) {
+            // Fallback to searching payments by order_id business identifier
+            $payment = Payment::where('order_id', $order->order_id)
+                ->where('status', 'captured')
+                ->where('method', 'razorpay')
+                ->first();
+                
+            $transactionId = $payment ? $payment->rzorder_id : null;
+        }
+
+        $payment = Payment::where('rzorder_id', $transactionId)
             ->where('status', 'captured')
             ->first();
 
         if (!$payment) {
+            \Illuminate\Support\Facades\Log::error('Razorpay Payment NOT FOUND', [
+                'searched_rzorder_id' => $transactionId,
+                'order_internal_id' => $order->id,
+                'order_id' => $order->order_id,
+                'order_transaction_id' => $order->transaction_id
+            ]);
             throw new \Exception('Payment not found or not captured');
         }
 
@@ -415,17 +439,45 @@ class RefundController extends Controller
                 ], 400);
             }
 
-            $payment = Payment::where('rzorder_id', $order->transaction_id)
+            $transactionId = $order->transaction_id;
+            
+            if (!$transactionId) {
+                $payment = Payment::where('order_id', $order->order_id)
+                    ->where('status', 'captured')
+                    ->where('method', 'razorpay')
+                    ->first();
+                $transactionId = $payment ? $payment->rzorder_id : null;
+            }
+
+            $payment = Payment::where('rzorder_id', $transactionId)
                 ->where('status', 'captured')
                 ->where('customer_id', Auth::id())
                 ->first();
 
             if (!$payment) {
+                \Illuminate\Support\Facades\Log::info('Payment NOT FOUND debug:', [
+                    'transactionId' => $transactionId,
+                    'auth_id' => Auth::id(),
+                    'order_customer_id' => $order->customer_id,
+                    'all_payments_count' => Payment::count()
+                ]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Payment not found or not captured'
+                    'message' => 'Payment not found or not captured',
+                    'debug' => [
+                        'transaction_id' => $transactionId,
+                        'order_id' => $order->order_id
+                    ]
                 ], 400);
             }
+
+            \Illuminate\Support\Facades\Log::info('Payment FOUND debug:', [
+                'id' => $payment->id,
+                'method' => $payment->method,
+                'status' => $payment->status,
+                'customer_id' => $payment->customer_id,
+                'rzorder_id' => $payment->rzorder_id
+            ]);
 
             $razorpayService = app(RazorpayRefundService::class);
             $validation = $razorpayService->validateRefundEligibility($payment, 0);

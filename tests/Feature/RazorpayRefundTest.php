@@ -16,6 +16,7 @@ use App\Services\RefundService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Mockery;
+use Laravel\Sanctum\Sanctum;
 
 class RazorpayRefundTest extends TestCase
 {
@@ -66,9 +67,9 @@ class RazorpayRefundTest extends TestCase
         $this->payment = Payment::factory()->create([
             'customer_id' => $this->customer->id,
             'payment_id' => 'pay_test_' . time(),
-            'amount' => 100000, // Amount in paise
+            'amount' => 1000.00, // Amount in rupees (decimal)
             'status' => 'captured',
-            'method' => 'card',
+            'method' => 'razorpay',
             'order_id' => $this->order->order_id,
             'rzorder_id' => $this->order->transaction_id,
             'refunded_amount' => 0
@@ -123,10 +124,10 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_create_refund_request_via_api()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         $refundData = [
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
             'reason' => 'Product defect',
@@ -142,6 +143,7 @@ class RazorpayRefundTest extends TestCase
         ];
 
         $response = $this->postJson('/api/refunds', $refundData);
+        $response->dump();
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -159,24 +161,24 @@ class RazorpayRefundTest extends TestCase
             ]);
 
         $this->assertDatabaseHas('refunds', [
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'customer_id' => $this->customer->id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'pending'
+            'refund_status' => 'pending'
         ]);
     }
 
     /** @test */
     public function it_validates_razorpay_eligibility_before_creating_refund()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         // Make payment non-refundable
         $this->payment->update(['status' => 'authorized']);
 
         $refundData = [
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
             'reason' => 'Product defect'
@@ -194,11 +196,9 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_check_razorpay_eligibility_via_api()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
-        $response = $this->getJson('/api/refunds/check-razorpay-eligibility', [
-            'order_id' => $this->order->id
-        ]);
+        $response = $this->getJson('/api/refunds/check-razorpay-eligibility?order_id=' . $this->order->id);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -217,13 +217,11 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_rejects_razorpay_eligibility_for_non_razorpay_orders()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         $this->order->update(['payment_method' => 'cod']);
 
-        $response = $this->getJson('/api/refunds/check-razorpay-eligibility', [
-            'order_id' => $this->order->id
-        ]);
+        $response = $this->getJson('/api/refunds/check-razorpay-eligibility?order_id=' . $this->order->id);
 
         $response->assertStatus(400)
             ->assertJson([
@@ -235,15 +233,15 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_get_customer_refunds()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         // Create a refund
         Refund::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'pending'
+            'refund_status' => 'pending'
         ]);
 
         $response = $this->getJson('/api/refunds');
@@ -269,14 +267,14 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_cancel_pending_refund()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         $refund = Refund::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'pending'
+            'refund_status' => 'pending'
         ]);
 
         $response = $this->postJson("/api/refunds/{$refund->id}/cancel");
@@ -289,21 +287,21 @@ class RazorpayRefundTest extends TestCase
 
         $this->assertDatabaseHas('refunds', [
             'id' => $refund->id,
-            'status' => 'cancelled'
+            'refund_status' => 'cancelled'
         ]);
     }
 
     /** @test */
     public function it_cannot_cancel_non_pending_refund()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         $refund = Refund::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'approved'
+            'refund_status' => 'approved'
         ]);
 
         $response = $this->postJson("/api/refunds/{$refund->id}/cancel");
@@ -318,19 +316,19 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_get_refund_statistics()
     {
-        $this->actingAs($this->customer, 'sanctum');
+        Sanctum::actingAs($this->customer, ['customer']);
 
         // Create some refunds
         Refund::factory()->create([
             'customer_id' => $this->customer->id,
             'amount' => 500,
-            'status' => 'pending'
+            'refund_status' => 'pending'
         ]);
 
         Refund::factory()->create([
             'customer_id' => $this->customer->id,
             'amount' => 300,
-            'status' => 'completed'
+            'refund_status' => 'completed'
         ]);
 
         $response = $this->getJson('/api/refund-statistics');
@@ -358,21 +356,19 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_process_razorpay_refund_with_mock()
     {
-        // Mock Razorpay API
-        $mockRazorpayRefund = (object) [
-            'id' => 'ref_test_' . time(),
-            'status' => 'processed',
-            'amount' => 50000, // Amount in paise
-            'created_at' => time(),
-            'processed_at' => time(),
-            'toArray' => function() {
-                return [
-                    'id' => 'ref_test_' . time(),
-                    'status' => 'processed',
-                    'amount' => 50000
-                ];
-            }
-        ];
+        // Mock Razorpay Refund object
+        $refundId = 'ref_test_' . time();
+        $mockRazorpayRefund = Mockery::mock('Razorpay\Api\Refund');
+        $mockRazorpayRefund->shouldReceive('__isset')->with('id')->andReturn(true);
+        $mockRazorpayRefund->shouldReceive('__get')->with('id')->andReturn($refundId);
+        $mockRazorpayRefund->shouldReceive('__get')->with('status')->andReturn('processed');
+        $mockRazorpayRefund->shouldReceive('__get')->with('amount')->andReturn(50000);
+        $mockRazorpayRefund->shouldReceive('toArray')
+            ->andReturn([
+                'id' => $refundId,
+                'status' => 'processed',
+                'amount' => 50000
+            ]);
 
         $mockApi = Mockery::mock('Razorpay\Api\Api');
         $mockPayment = Mockery::mock('Razorpay\Api\Payment');
@@ -386,14 +382,15 @@ class RazorpayRefundTest extends TestCase
             ->andReturn($mockRazorpayRefund);
 
         $this->app->instance('Razorpay\Api\Api', $mockApi);
+        $this->razorpayService = new RazorpayRefundService($mockApi);
 
         // Create refund and transaction
         $refund = Refund::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'approved'
+            'refund_status' => 'approved'
         ]);
 
         $refundTransaction = RefundTransaction::factory()->create([
@@ -405,6 +402,8 @@ class RazorpayRefundTest extends TestCase
 
         // Process refund
         $result = $this->razorpayService->processRefund($refundTransaction, 500, 'Test refund');
+
+        dump('PROCESS REFUND RESULT:', $result);
 
         $this->assertTrue($result['success']);
         $this->assertEquals('processed', $result['status']);
@@ -427,14 +426,15 @@ class RazorpayRefundTest extends TestCase
             ->andThrow(new \Exception('Payment not found'));
 
         $this->app->instance('Razorpay\Api\Api', $mockApi);
+        $this->razorpayService = new RazorpayRefundService($mockApi);
 
         // Create refund and transaction
         $refund = Refund::factory()->create([
             'customer_id' => $this->customer->id,
-            'order_id' => $this->order->id,
+            'order_id' => $this->order->order_id,
             'amount' => 500,
             'method' => 'razorpay',
-            'status' => 'approved'
+            'refund_status' => 'approved'
         ]);
 
         $refundTransaction = RefundTransaction::factory()->create([
@@ -454,21 +454,21 @@ class RazorpayRefundTest extends TestCase
     /** @test */
     public function it_can_check_razorpay_refund_status()
     {
-        // Mock Razorpay API
-        $mockRefund = (object) [
-            'id' => 'ref_test_' . time(),
-            'status' => 'processed',
-            'amount' => 50000,
-            'created_at' => time(),
-            'processed_at' => time(),
-            'toArray' => function() {
-                return [
-                    'id' => 'ref_test_' . time(),
-                    'status' => 'processed',
-                    'amount' => 50000
-                ];
-            }
-        ];
+        // Mock Razorpay Refund object
+        $refundId = 'ref_test_' . time();
+        $mockRefund = Mockery::mock('Razorpay\Api\Refund');
+        $mockRefund->shouldReceive('__isset')->with('id')->andReturn(true);
+        $mockRefund->shouldReceive('__get')->with('id')->andReturn($refundId);
+        $mockRefund->shouldReceive('__get')->with('status')->andReturn('processed');
+        $mockRefund->shouldReceive('__get')->with('amount')->andReturn(50000);
+        $mockRefund->shouldReceive('__get')->with('created_at')->andReturn(time());
+        $mockRefund->shouldReceive('__get')->with('processed_at')->andReturn(time());
+        $mockRefund->shouldReceive('toArray')
+            ->andReturn([
+                'id' => $refundId,
+                'status' => 'processed',
+                'amount' => 50000
+            ]);
 
         $mockApi = Mockery::mock('Razorpay\Api\Api');
         $mockRefundApi = Mockery::mock('Razorpay\Api\Refund');
@@ -482,6 +482,7 @@ class RazorpayRefundTest extends TestCase
             ->andReturn($mockRefund);
 
         $this->app->instance('Razorpay\Api\Api', $mockApi);
+        $this->razorpayService = new RazorpayRefundService($mockApi);
 
         $result = $this->razorpayService->checkRefundStatus('ref_test_123');
 
@@ -506,6 +507,7 @@ class RazorpayRefundTest extends TestCase
             ->andThrow(new \Exception('Payment not found'));
 
         $this->app->instance('Razorpay\Api\Api', $mockApi);
+        $this->razorpayService = new RazorpayRefundService($mockApi);
 
         $result = $this->razorpayService->testConnection();
 

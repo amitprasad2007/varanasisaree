@@ -1,0 +1,39 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_can_only_view_their_own_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_isolation_in_credit_notes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_cannot_create_refund_for_other_vendors_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_refund_authorization_policies(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_pos_refund_with_vendor_context(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_specific_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_high_value_refund_requires_additional_approval(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   FAIL  Tests\Feature\MultiVendorRefundTest
+  Ô¿» vendor can only view their own rÔÇª 1.49s  
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\FeatureÔÇª  QueryException   
+  SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: orders.order_id (Connection: sqlite, Database: :memory:, SQL: insert into "orders" ("updated_at", "created_at") values (2026-03-27 15:10:10, 2026-03-27 15:10:10))
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:584
+    580Ôûò             $this->bindValues($statement, $this->prepareBindings($bindings));
+    581Ôûò 
+    582Ôûò             $this->recordsHaveBeenModified();
+    583Ôûò 
+  Ô×£ 584Ôûò             return $statement->execute();
+    585Ôûò         });
+    586Ôûò     }
+    587Ôûò 
+    588Ôûò     /**
+
+  1   vendor\laravel\framework\src\Illuminate\Database\Connection.php:584
+  2   vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+
+
+  Tests:    1 failed (0 assertions)
+  Duration: 2.06s
+

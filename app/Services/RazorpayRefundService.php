@@ -15,11 +15,11 @@ class RazorpayRefundService
     protected $keyId;
     protected $keySecret;
 
-    public function __construct()
+    public function __construct(?Api $api = null)
     {
-        $this->keyId = env('RAZOR_KEY_ID');
-        $this->keySecret = env('RAZOR_KEY_SECRET');
-        $this->api = new Api($this->keyId, $this->keySecret);
+        $this->keyId = config('services.razorpay.key_id') ?? env('RAZOR_KEY_ID');
+        $this->keySecret = config('services.razorpay.key_secret') ?? env('RAZOR_KEY_SECRET');
+        $this->api = $api ?? new Api($this->keyId, $this->keySecret);
     }
 
     /**
@@ -27,117 +27,121 @@ class RazorpayRefundService
      */
     public function processRefund(RefundTransaction $refundTransaction, float $amount, string $reason = null): array
     {
-        try {
-            DB::beginTransaction();
+        $process = function() use ($refundTransaction, $amount, $reason) {
+            try {
+                // Get the original payment
+                $transactionId = null;
+                
+                // Try to get transaction_id from order or sale
+                if ($refundTransaction->refund?->order?->transaction_id) {
+                    $transactionId = $refundTransaction->refund->order->transaction_id;
+                } elseif ($refundTransaction->refund?->sale?->transaction_id) {
+                    $transactionId = $refundTransaction->refund->sale->transaction_id;
+                }
+                
+                if (!$transactionId) {
+                    throw new \Exception('No transaction ID found for this refund');
+                }
+                
+                $payment = Payment::where('rzorder_id', $transactionId)
+                    ->where('status', 'captured')
+                    ->first();
 
-            // Get the original payment
-            $transactionId = null;
-            
-            // Try to get transaction_id from order or sale
-            if ($refundTransaction->refund->order && $refundTransaction->refund->order->transaction_id) {
-                $transactionId = $refundTransaction->refund->order->transaction_id;
-            } elseif ($refundTransaction->refund->sale && $refundTransaction->refund->sale->transaction_id) {
-                $transactionId = $refundTransaction->refund->sale->transaction_id;
-            }
-            
-            if (!$transactionId) {
-                throw new \Exception('No transaction ID found for this refund');
-            }
-            
-            $payment = Payment::where('rzorder_id', $transactionId)
-                ->where('status', 'captured')
-                ->first();
+                if (!$payment) {
+                    throw new \Exception('Original payment not found or not captured');
+                }
 
-            if (!$payment) {
-                throw new \Exception('Original payment not found or not captured');
-            }
+                // Convert amount to paise (Razorpay expects amount in smallest currency unit)
+                $amountInPaise = round($amount * 100);
 
-            // Convert amount to paise (Razorpay expects amount in smallest currency unit)
-            $amountInPaise = round($amount * 100);
+                // Create refund data
+                $refundData = [
+                    'amount' => $amountInPaise,
+                    'notes' => [
+                        'reason' => $reason ?? 'Customer refund request',
+                        'refund_reference' => $refundTransaction->refund?->reference,
+                        'order_id' => $refundTransaction->refund?->order?->order_id,
+                    ]
+                ];
 
-            // Create refund data
-            $refundData = [
-                'amount' => $amountInPaise,
-                'notes' => [
-                    'reason' => $reason ?? 'Customer refund request',
-                    'refund_reference' => $refundTransaction->refund->reference,
-                    'order_id' => $refundTransaction->refund->order->order_id,
-                ]
-            ];
+                Log::info('Creating Razorpay refund', [
+                    'payment_id' => $payment->payment_id,
+                    'amount' => $amountInPaise,
+                    'refund_data' => $refundData
+                ]);
 
-            Log::info('Creating Razorpay refund', [
-                'payment_id' => $payment->payment_id,
-                'amount' => $amountInPaise,
-                'refund_data' => $refundData
-            ]);
+                // Create refund with Razorpay
+                $razorpayRefund = $this->api->payment->fetch($payment->payment_id)->refund($refundData);
 
-            // Create refund with Razorpay
-            $razorpayRefund = $this->api->payment->refund($payment->payment_id, $refundData);
+                if (!$razorpayRefund || !isset($razorpayRefund->id)) {
+                    throw new \Exception('Failed to create Razorpay refund');
+                }
 
-            if (!$razorpayRefund || !isset($razorpayRefund->id)) {
-                throw new \Exception('Failed to create Razorpay refund');
-            }
+                // Update refund transaction with Razorpay details
+                $refundTransaction->update([
+                    'gateway_transaction_id' => $razorpayRefund->id,
+                    'gateway_refund_id' => $razorpayRefund->id,
+                    'status' => $razorpayRefund->status,
+                    'gateway_response' => json_encode($razorpayRefund->toArray()),
+                    'processed_at' => now(),
+                ]);
 
-            // Update refund transaction with Razorpay details
-            $refundTransaction->update([
-                'gateway_transaction_id' => $razorpayRefund->id,
-                'gateway_refund_id' => $razorpayRefund->id,
-                'status' => $razorpayRefund->status,
-                'gateway_response' => json_encode($razorpayRefund->toArray()),
-                'processed_at' => now(),
-            ]);
+                // Update payment record with refund information
+                $payment->update([
+                    'refunded_amount' => ($payment->refunded_amount ?? 0) + $amount,
+                    'refund_status' => $this->calculateRefundStatus($payment, $amount),
+                    'refund_details' => json_encode([
+                        'refund_id' => $razorpayRefund->id,
+                        'refund_amount' => $amount,
+                        'refund_status' => $razorpayRefund->status,
+                        'refunded_at' => now()->toISOString(),
+                    ])
+                ]);
 
-            // Update payment record with refund information
-            $payment->update([
-                'refunded_amount' => ($payment->refunded_amount ?? 0) + $amount,
-                'refund_status' => $this->calculateRefundStatus($payment, $amount),
-                'refund_details' => json_encode([
+                Log::info('Razorpay refund created successfully', [
                     'refund_id' => $razorpayRefund->id,
-                    'refund_amount' => $amount,
-                    'refund_status' => $razorpayRefund->status,
-                    'refunded_at' => now()->toISOString(),
-                ])
-            ]);
+                    'amount' => $amount,
+                    'status' => $razorpayRefund->status
+                ]);
 
-            DB::commit();
+                return [
+                    'success' => true,
+                    'refund_id' => $razorpayRefund->id,
+                    'status' => $razorpayRefund->status,
+                    'amount' => $amount,
+                    'processed_at' => now(),
+                    'gateway_response' => $razorpayRefund->toArray()
+                ];
 
-            Log::info('Razorpay refund created successfully', [
-                'refund_id' => $razorpayRefund->id,
-                'amount' => $amount,
-                'status' => $razorpayRefund->status
-            ]);
+            } catch (\Exception $e) {
+                Log::error('Razorpay refund failed', [
+                    'error' => $e->getMessage(),
+                    'refund_transaction_id' => $refundTransaction->id,
+                    'amount' => $amount
+                ]);
 
-            return [
-                'success' => true,
-                'refund_id' => $razorpayRefund->id,
-                'status' => $razorpayRefund->status,
-                'amount' => $amount,
-                'processed_at' => now(),
-                'gateway_response' => $razorpayRefund->toArray()
-            ];
+                // Update refund transaction with error
+                if ($refundTransaction->exists) {
+                    $refundTransaction->update([
+                        'status' => 'failed',
+                        'gateway_response' => json_encode(['error' => $e->getMessage()]),
+                        'processed_at' => now(),
+                    ]);
+                }
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            Log::error('Razorpay refund failed', [
-                'error' => $e->getMessage(),
-                'refund_transaction_id' => $refundTransaction->id,
-                'amount' => $amount
-            ]);
+                return [
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                    'refund_transaction_id' => $refundTransaction->id
+                ];
+            }
+        };
 
-            // Update refund transaction with error
-            $refundTransaction->update([
-                'status' => 'failed',
-                'gateway_response' => json_encode(['error' => $e->getMessage()]),
-                'processed_at' => now(),
-            ]);
-
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-                'refund_transaction_id' => $refundTransaction->id
-            ];
+        if (DB::transactionLevel() > 0) {
+            return $process();
         }
+
+        return DB::transaction($process);
     }
 
     /**
@@ -196,7 +200,7 @@ class RazorpayRefundService
     protected function calculateRefundStatus(Payment $payment, float $refundAmount): string
     {
         $totalRefunded = ($payment->refunded_amount ?? 0) + $refundAmount;
-        $originalAmount = $payment->amount / 100; // Convert from paise to rupees
+        $originalAmount = $payment->amount; // Already in rupees (decimal)
 
         if ($totalRefunded >= $originalAmount) {
             return 'fully_refunded';
@@ -223,7 +227,7 @@ class RazorpayRefundService
 
             // Check if payment is not already fully refunded
             $totalRefunded = $payment->refunded_amount ?? 0;
-            $originalAmount = $payment->amount / 100; // Convert from paise to rupees
+            $originalAmount = $payment->amount; // Already in rupees (decimal)
 
             if ($totalRefunded >= $originalAmount) {
                 return [
@@ -233,7 +237,7 @@ class RazorpayRefundService
             }
 
             // Check if refund amount is valid
-            if ($refundAmount <= 0) {
+            if ($refundAmount < 0) {
                 return [
                     'eligible' => false,
                     'reason' => 'Invalid refund amount'

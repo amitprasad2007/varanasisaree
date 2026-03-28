@@ -1,0 +1,97 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_can_only_view_their_own_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_isolation_in_credit_notes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_cannot_create_refund_for_other_vendors_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_refund_authorization_policies(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_pos_refund_with_vendor_context(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_specific_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_high_value_refund_requires_additional_approval(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   FAIL  Tests\Feature\MultiVendorRefundTest
+  Ô¿» vendor can only view their own refuÔÇª 1.38s  
+  Ô¿» vendor isolation in credit notes     0.12s  
+  Ô£ô vendor cannot create refund for othÔÇª 0.08s  
+  Ô£ô refund authorization policies        0.08s  
+  Ô¿» pos refund with vendor context       0.08s  
+  Ô¿» vendor specific statistics           0.11s  
+  Ô£ô high value refund requires additionÔÇª 0.09s  
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\MultiVendorRefundTeÔÇª   
+  Failed asserting that actual size 2 matches expected size 1.
+
+  at tests\Feature\MultiVendorRefundTest.php:105
+    101Ôûò         $response = $this->get(route('refunds.index'));
+    102Ôûò         $response->assertStatus(200);
+    103Ôûò         
+    104Ôûò         $refunds = $response->getOriginalContent()->getData()['page']['props']['refunds']['data'];
+  Ô×£ 105Ôûò         $this->assertCount(1, $refunds);
+    106Ôûò         $this->assertEquals($refund1->id, $refunds[0]['id']);
+    107Ôûò 
+    108Ôûò         // Test vendor 2 user can only see their refunds
+    109Ôûò         $this->actingAs($this->vendorUser2);
+
+  1   tests\Feature\MultiVendorRefundTest.php:105
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\FÔÇª  InvalidArgumentException   
+  No authenticated user found
+
+  at app\Services\RefundService.php:81
+     77Ôûò             throw new \InvalidArgumentException("Refund is not in pending status. Current status: {$refund->refund_status}");
+     78Ôûò         }
+     79Ôûò 
+     80Ôûò         if (!Auth::id()) {
+  Ô×£  81Ôûò             throw new \InvalidArgumentException('No authenticated user found');
+     82Ôûò         }
+     83Ôûò 
+     84Ôûò         // Additional business logic validation
+     85Ôûò         $sourceTransaction = $refund->sale ?? $refund->order;
+
+  1   app\Services\RefundService.php:81
+  2   tests\Feature\MultiVendorRefundTest.php:166
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\FeaÔÇª  RouteNotFoundException   
+  Route [pos.sales.return] not defined.
+
+  at vendor\laravel\framework\src\Illuminate\Routing\UrlGenerator.php:528
+    524Ôûò             ! is_null($url = call_user_func($this->missingNamedRouteResolver, $name, $parameters, $absolute))) {
+    525Ôûò             return $url;
+    526Ôûò         }
+    527Ôûò 
+  Ô×£ 528Ôûò         throw new RouteNotFoundException("Route [{$name}] not defined.");
+    529Ôûò     }
+    530Ôûò 
+    531Ôûò     /**
+    532Ôûò      * Get the URL for a given route instance.
+
+  1   vendor\laravel\framework\src\Illuminate\Routing\UrlGenerator.php:528
+  2   vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:870
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\MultiVendorRefundTeÔÇª   
+  Failed asserting that 0 matches expected 300.0.
+
+  at tests\Feature\MultiVendorRefundTest.php:331
+    327Ôûò         $vendor1Stats = $this->vendor1->getRefundStatistics();
+    328Ôûò         $vendor2Stats = $this->vendor2->getRefundStatistics();
+    329Ôûò 
+    330Ôûò         $this->assertEquals(3, $vendor1Stats['total_refunds']);
+  Ô×£ 331Ôûò         $this->assertEquals(300.00, $vendor1Stats['total_refunded_amount']);
+    332Ôûò 
+    333Ôûò         $this->assertEquals(2, $vendor2Stats['total_refunds']);
+    334Ôûò         $this->assertEquals(300.00, $vendor2Stats['total_refunded_amount']);
+    335Ôûò     }
+
+  1   tests\Feature\MultiVendorRefundTest.php:331
+
+
+  Tests:    4 failed, 3 passed (11 assertions)
+  Duration: 2.34s
+

@@ -1,0 +1,90 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_validate_razorpay_refund_eligibility(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_non_captured_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_exceeding_remaining_amount(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_fully_refunded_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_create_refund_request_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_validates_razorpay_eligibility_before_creating_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_eligibility_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_razorpay_eligibility_for_non_razorpay_orders(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_customer_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_cancel_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_cannot_cancel_non_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_refund_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_process_razorpay_refund_with_mock(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_handles_razorpay_refund_failure(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_refund_status(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_test_razorpay_connection(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+"PROCESS REFUND RESULT:" // tests\Feature\RazorpayRefundTest.php:406
+array:3 [
+  "success" => false
+  "error" => "Undefined array key "id""
+  "refund_transaction_id" => 1
+] // tests\Feature\RazorpayRefundTest.php:406
+
+   FAIL  Tests\Feature\RazorpayRefundTest
+  Ô¿» it can process razorpay refund with mock 1.96s  
+  Ô¿» it can check razorpay refund status
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorpayRefundTest > it can process razorpay refund with mock   
+  Failed asserting that false is true.
+
+  at tests\Feature\RazorpayRefundTest.php:408
+    404Ôûò         $result = $this->razorpayService->processRefund($refundTransaction, 500, 'Test refund');
+    405Ôûò 
+    406Ôûò         dump('PROCESS REFUND RESULT:', $result);
+    407Ôûò 
+  Ô×£ 408Ôûò         $this->assertTrue($result['success']);
+    409Ôûò         $this->assertEquals('processed', $result['status']);
+    410Ôûò         $this->assertEquals(500, $result['amount']);
+    411Ôûò     }
+    412Ôûò
+
+  1   tests\Feature\RazorpayRefundTest.php:408
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorpayRefundTest > it can check razorpay refund status  PDOException   
+  SQLSTATE[HY000]: General error: 1 cannot start a transaction within a transaction
+
+  at vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+     29Ôûò     {
+     30Ôûò         if (version_compare(PHP_VERSION, '8.4.0', '>=')) {
+     31Ôûò             $mode = $this->getConfig('transaction_mode') ?? 'DEFERRED';
+     32Ôûò 
+  Ô×£  33Ôûò             $this->getPdo()->exec("BEGIN {$mode} TRANSACTION");
+     34Ôûò 
+     35Ôûò             return;
+     36Ôûò         }
+     37Ôûò
+
+  1   vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+  2   vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:154
+  3   vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:130
+  4   vendor\laravel\framework\src\Illuminate\Foundation\Testing\RefreshDatabase.php:147
+  5   vendor\laravel\framework\src\Illuminate\Foundation\Testing\RefreshDatabase.php:93
+  6   vendor\laravel\framework\src\Illuminate\Foundation\Testing\RefreshDatabase.php:25
+  7   vendor\laravel\framework\src\Illuminate\Foundation\Testing\Concerns\InteractsWithTestCaseLifecycle.php:217
+  8   vendor\laravel\framework\src\Illuminate\Foundation\Testing\Concerns\InteractsWithTestCaseLifecycle.php:101
+  9   vendor\laravel\framework\src\Illuminate\Foundation\Testing\TestCase.php:63
+  10  tests\TestCase.php:13
+  11  tests\Feature\RazorpayRefundTest.php:32
+
+
+  Tests:    2 failed (1 assertions)
+  Duration: 2.76s
+

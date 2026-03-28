@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Refund;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RefundFactory extends Factory
 {
-    protected $model = \App\Models\Refund::class;
+    protected $model = Refund::class;
 
     public function definition()
     {
@@ -17,9 +18,9 @@ class RefundFactory extends Factory
             'order_id' => Order::factory(),
             'amount' => $this->faker->randomFloat(2, 100, 5000),
             'method' => $this->faker->randomElement(['razorpay', 'credit_note', 'bank_transfer', 'manual']),
-            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected', 'processing', 'completed', 'cancelled']),
+            'refund_status' => $this->faker->randomElement(['pending', 'approved', 'rejected', 'processing', 'completed', 'cancelled']),
             'reason' => $this->faker->sentence(),
-            'reference' => 'REF-' . $this->faker->date('Ymd') . '-' . strtoupper($this->faker->lexify('??????')),
+            'reference' => 'REF-'.$this->faker->date('Ymd').'-'.strtoupper($this->faker->lexify('??????')),
             'requested_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'approved_at' => $this->faker->optional(0.7)->dateTimeBetween('-20 days', 'now'),
             'processed_at' => $this->faker->optional(0.5)->dateTimeBetween('-15 days', 'now'),
@@ -32,7 +33,7 @@ class RefundFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'pending',
+                'refund_status' => 'pending',
                 'approved_at' => null,
                 'processed_at' => null,
                 'completed_at' => null,
@@ -45,7 +46,7 @@ class RefundFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'approved',
+                'refund_status' => 'approved',
                 'approved_at' => $this->faker->dateTimeBetween('-20 days', 'now'),
                 'processed_at' => null,
                 'completed_at' => null,
@@ -58,7 +59,7 @@ class RefundFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 'completed',
+                'refund_status' => 'completed',
                 'approved_at' => $this->faker->dateTimeBetween('-20 days', '-10 days'),
                 'processed_at' => $this->faker->dateTimeBetween('-15 days', '-5 days'),
                 'completed_at' => $this->faker->dateTimeBetween('-10 days', 'now'),

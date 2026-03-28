@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class Vendor extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'username',
@@ -46,12 +46,14 @@ class Vendor extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'password' => 'hashed',
-        'is_verified' => 'boolean',
-        'commission_rate' => 'decimal:2',
-        'status' => 'string',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+            'is_verified' => 'boolean',
+            'commission_rate' => 'decimal:2',
+        ];
+    }
 
     protected $appends = [
         'subdomain_url',
@@ -96,7 +98,8 @@ class Vendor extends Authenticatable
     public function getSubdomainUrlAttribute(): string
     {
         $baseUrl = config('app.url');
-        return str_replace('://', '://' . $this->subdomain . '.', $baseUrl);
+
+        return str_replace('://', '://'.$this->subdomain.'.', $baseUrl);
     }
 
     public function getFullBusinessNameAttribute(): string
@@ -132,15 +135,13 @@ class Vendor extends Authenticatable
      */
     public function getRefundStatistics(): array
     {
-        $refunds = $this->refunds();
-        
         return [
-            'total_refunds' => $refunds->count(),
-            'pending_refunds' => $refunds->where('refund_status', 'pending')->count(),
-            'completed_refunds' => $refunds->where('refund_status', 'completed')->count(),
-            'total_refunded_amount' => $refunds->where('refund_status', 'completed')->sum('amount'),
-            'credit_note_refunds' => $refunds->whereNotNull('credit_note_id')->count(),
-            'money_refunds' => $refunds->whereNull('credit_note_id')->count(),
+            'total_refunds' => $this->refunds()->count(),
+            'pending_refunds' => $this->refunds()->where('refund_status', 'pending')->count(),
+            'completed_refunds' => $this->refunds()->where('refund_status', 'completed')->count(),
+            'total_refunded_amount' => $this->refunds()->where('refund_status', 'completed')->sum('amount') ?? 0,
+            'credit_note_refunds' => $this->refunds()->whereNotNull('credit_note_id')->count(),
+            'money_refunds' => $this->refunds()->whereNull('credit_note_id')->count(),
         ];
     }
 

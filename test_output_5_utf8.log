@@ -1,0 +1,45 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_can_only_view_their_own_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_isolation_in_credit_notes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_cannot_create_refund_for_other_vendors_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_refund_authorization_policies(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_pos_refund_with_vendor_context(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_vendor_specific_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MultiVendorRefundTest::test_high_value_refund_requires_additional_approval(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   FAIL  Tests\Feature\MultiVendorRefundTest
+  Ô£ô vendor can only viewÔÇª  2.74s  
+  Ô¿» vendor isolation in cÔÇª 0.26s  
+  Ô£ô vendor cannot createÔÇª  0.18s  
+  Ô£ô refund authorizationÔÇª  0.15s  
+  Ô£ô pos refund with vendoÔÇª 0.32s  
+  Ô£ô vendor specific statiÔÇª 0.22s  
+  Ô£ô high value refund reqÔÇª 0.16s  
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FÔÇª  InvalidArgumentException   
+  No authenticated user found
+
+  at app\Services\RefundService.php:81
+     77Ôûò             throw new \InvalidArgumentException("Refund is not in pending status. Current status: {$refund->refund_status}");
+     78Ôûò         }
+     79Ôûò 
+     80Ôûò         if (!Auth::id()) {
+  Ô×£  81Ôûò             throw new \InvalidArgumentException('No authenticated user found');
+     82Ôûò         }
+     83Ôûò 
+     84Ôûò         // Additional business logic validation
+     85Ôûò         $sourceTransaction = $refund->sale ?? $refund->order;
+
+  1   app\Services\RefundService.php:81
+  2   tests\Feature\MultiVendorRefundTest.php:166
+
+
+  Tests:    1 failed, 6 passed (29 assertions)
+  Duration: 4.85s
+

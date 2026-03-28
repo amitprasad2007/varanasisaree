@@ -1,0 +1,1 @@
+﻿[2026-03-28 11:58:03] testing.INFO: Payment FOUND debug: {"id":1,"method":"razorpay","status":"captured","customer_id":1,"rzorder_id":"rzp_test_order_20260328115803-db2b3f7ee7"} 

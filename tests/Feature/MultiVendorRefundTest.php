@@ -2,37 +2,44 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Vendor;
+use App\Models\CreditNote;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Refund;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Refund;
-use App\Models\CreditNote;
+use App\Models\User;
+use App\Models\Vendor;
 use App\Services\RefundService;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class MultiVendorRefundTest extends TestCase
 {
     use RefreshDatabase;
 
     protected $vendor1;
+
     protected $vendor2;
+
     protected $customer;
+
     protected $adminUser;
+
     protected $vendorUser1;
+
     protected $vendorUser2;
+
     protected $refundService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Seed roles
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'vendor_manager']);
         // Create vendors
         $this->vendor1 = Vendor::factory()->create([
             'business_name' => 'Vendor One Store',
@@ -41,7 +48,7 @@ class MultiVendorRefundTest extends TestCase
         ]);
 
         $this->vendor2 = Vendor::factory()->create([
-            'business_name' => 'Vendor Two Store', 
+            'business_name' => 'Vendor Two Store',
             'status' => 'active',
             'is_verified' => true,
         ]);
@@ -97,7 +104,7 @@ class MultiVendorRefundTest extends TestCase
         $this->actingAs($this->vendorUser1);
         $response = $this->get(route('refunds.index'));
         $response->assertStatus(200);
-        
+
         $refunds = $response->getOriginalContent()->getData()['page']['props']['refunds']['data'];
         $this->assertCount(1, $refunds);
         $this->assertEquals($refund1->id, $refunds[0]['id']);
@@ -106,7 +113,7 @@ class MultiVendorRefundTest extends TestCase
         $this->actingAs($this->vendorUser2);
         $response = $this->get(route('refunds.index'));
         $response->assertStatus(200);
-        
+
         $refunds = $response->getOriginalContent()->getData()['page']['props']['refunds']['data'];
         $this->assertCount(1, $refunds);
         $this->assertEquals($refund2->id, $refunds[0]['id']);
@@ -115,7 +122,7 @@ class MultiVendorRefundTest extends TestCase
         $this->actingAs($this->adminUser);
         $response = $this->get(route('refunds.index'));
         $response->assertStatus(200);
-        
+
         $refunds = $response->getOriginalContent()->getData()['page']['props']['refunds']['data'];
         $this->assertCount(2, $refunds);
     }
@@ -158,6 +165,8 @@ class MultiVendorRefundTest extends TestCase
             'method' => 'credit_note',
             'reason' => 'Test refund vendor 2',
         ];
+
+        $this->actingAs($this->adminUser);
 
         $refund1 = $this->refundService->createRefundRequest($refundData1);
         $this->refundService->approveRefund($refund1);
@@ -208,6 +217,8 @@ class MultiVendorRefundTest extends TestCase
             'reason' => 'Test refund',
         ];
 
+        $this->actingAs($this->vendorUser2);
+
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Sale does not belong to the specified vendor');
 
@@ -233,10 +244,10 @@ class MultiVendorRefundTest extends TestCase
 
         // Vendor 1 user can manage their own refunds
         $this->assertTrue($refund->canBeManaged($this->vendorUser1));
-        
+
         // Vendor 2 user cannot manage vendor 1's refunds
         $this->assertFalse($refund->canBeManaged($this->vendorUser2));
-        
+
         // Admin can manage all refunds
         $this->assertTrue($refund->canBeManaged($this->adminUser));
     }
@@ -271,9 +282,9 @@ class MultiVendorRefundTest extends TestCase
                 [
                     'sale_item_id' => $saleItem->id,
                     'quantity' => 2, // Return 2 out of 4 items
-                ]
+                ],
             ],
-            'reason' => 'Customer return'
+            'reason' => 'Customer return',
         ];
 
         // Act as vendor user
@@ -281,10 +292,10 @@ class MultiVendorRefundTest extends TestCase
 
         // Process return via POS controller
         $response = $this->post(route('pos.sales.return', $sale->id), $returnData);
-        
+
         $response->assertStatus(200);
         $responseData = $response->json();
-        
+
         $this->assertArrayHasKey('returnId', $responseData);
         $this->assertEquals(50.00, $responseData['refundTotal']);
 

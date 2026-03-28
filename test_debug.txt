@@ -1,0 +1,74 @@
+﻿PHPUnit 11.5.50 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.16
+Configuration: C:\laragon\www\varanasisaree\phpunit.xml
+
+E                                                                   1 / 1 (100%)
+
+Time: 00:02.330, Memory: 52.00 MB
+
+There was 1 error:
+
+1) Tests\Feature\MultiVendorRefundTest::test_vendor_can_only_view_their_own_refunds
+Illuminate\Database\QueryException: SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: orders.order_id (Connection: sqlite, Database: :memory:, SQL: insert into "orders" ("updated_at", "created_at") values (2026-03-27 14:57:34, 2026-03-27 14:57:34))
+
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:838
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:573
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:537
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Query\Processors\Processor.php:32
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4170
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1436
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1401
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:370
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Traits\EnumeratesValues.php:275
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:365
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:321
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:583
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Arr.php:841
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Collection.php:829
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:575
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:529
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:513
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:157
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:512
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:429
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:318
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:315
+C:\laragon\www\varanasisaree\tests\Feature\MultiVendorRefundTest.php:85
+
+Caused by
+PDOException: SQLSTATE[23000]: Integrity constraint violation: 19 NOT NULL constraint failed: orders.order_id
+
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:584
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:573
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Connection.php:537
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Query\Processors\Processor.php:32
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4170
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1436
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1401
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:370
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Traits\EnumeratesValues.php:275
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:365
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:321
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:583
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Arr.php:841
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Collections\Collection.php:829
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:575
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:529
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:513
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:157
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:512
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:429
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:318
+C:\laragon\www\varanasisaree\vendor\laravel\framework\src\Illuminate\Database\Eloquent\Factories\Factory.php:315
+C:\laragon\www\varanasisaree\tests\Feature\MultiVendorRefundTest.php:85
+
+ERRORS!
+Tests: 1, Assertions: 0, Errors: 1, PHPUnit Deprecations: 7.

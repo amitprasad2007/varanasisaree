@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Refund extends Model
 {
     use HasFactory;
+    
+    protected $appends = ['status'];
 
     protected $fillable = [
         'sale_id',

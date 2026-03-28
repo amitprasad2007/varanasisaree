@@ -12,11 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('refunds', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-        });
+        if (DB::connection($this->getConnection())->getDriverName() !== 'sqlite') {
+            Schema::table('refunds', function (Blueprint $table) {
+                // $table->dropForeign(['order_id']);
+            });
 
-        DB::statement('ALTER TABLE refunds MODIFY order_id VARCHAR(255) NULL');
+            DB::statement('ALTER TABLE refunds MODIFY order_id VARCHAR(255) NULL');
+        } else {
+            Schema::table('refunds', function (Blueprint $table) {
+                $table->string('order_id')->nullable()->change();
+            });
+        }
     }
 
     /**
@@ -24,14 +30,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE refunds MODIFY order_id BIGINT UNSIGNED NULL');
+        if (DB::connection($this->getConnection())->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE refunds MODIFY order_id BIGINT UNSIGNED NULL');
 
-        Schema::table('refunds', function (Blueprint $table) {
-            $table->foreign('order_id')
-                ->references('id')
-                ->on('orders')
-                ->cascadeOnDelete();
-        });
+            Schema::table('refunds', function (Blueprint $table) {
+                $table->foreign('order_id')
+                    ->references('id')
+                    ->on('orders')
+                    ->cascadeOnDelete();
+            });
+        } else {
+            Schema::table('refunds', function (Blueprint $table) {
+                $table->unsignedBigInteger('order_id')->nullable()->change();
+            });
+        }
     }
 };
-

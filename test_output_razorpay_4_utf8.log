@@ -1,0 +1,254 @@
+﻿
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_validate_razorpay_refund_eligibility(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_non_captured_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_exceeding_remaining_amount(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_refund_for_fully_refunded_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_create_refund_request_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_validates_razorpay_eligibility_before_creating_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_eligibility_via_api(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_rejects_razorpay_eligibility_for_non_razorpay_orders(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_customer_refunds(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_cancel_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_cannot_cancel_non_pending_refund(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_get_refund_statistics(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_process_razorpay_refund_with_mock(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_handles_razorpay_refund_failure(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_check_razorpay_refund_status(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RazorpayRefundTest::it_can_test_razorpay_connection(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   FAIL  Tests\Feature\RazorpayRefundTest
+  Ô£ô it can validate razorÔÇª 2.06s  
+  Ô£ô it rejects refund forÔÇª 0.13s  
+  Ô£ô it rejects refund excÔÇª 0.07s  
+  Ô£ô it rejects refund forÔÇª 0.07s  
+  Ô¿» it can create refundÔÇª  0.10s  
+  Ô¿» it validates razorpayÔÇª 0.20s  
+  Ô¿» it can check razorpayÔÇª 0.07s  
+  Ô¿» it rejects razorpay eÔÇª 0.07s  
+  Ô¿» it can get customer rÔÇª 0.14s  
+  Ô¿» it can cancel pendingÔÇª 0.11s  
+  Ô¿» it cannot cancel nonÔÇª  0.12s  
+  Ô¿» it can get refund staÔÇª 0.08s  
+  Ô¿» it can process razorpÔÇª 0.14s  
+  Ô¿» it handles razorpay refund failure
+  Ô¿» it can check razorpay refund status
+  Ô¿» it can test razorpay connection
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\FeaturÔÇª  Error   
+  Call to a member function first() on null
+
+  at tests\Feature\RazorpayRefundTest.php:135
+    131Ôûò             'method' => 'razorpay',
+    132Ôûò             'reason' => 'Product defect',
+    133Ôûò             'items' => [
+    134Ôûò                 [
+  Ô×£ 135Ôûò                     'product_id' => $this->order->orderItems->first()->product_id,
+    136Ôûò                     'quantity' => 1,
+    137Ôûò                     'unit_price' => 1000,
+    138Ôûò                     'total_amount' => 500,
+    139Ôûò                     'reason' => 'Product defect'
+
+  1   tests\Feature\RazorpayRefundTest.php:135
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [400] but received 403.
+Failed asserting that 403 is identical to 400.
+
+  at tests\Feature\RazorpayRefundTest.php:187
+    183Ôûò         ];
+    184Ôûò 
+    185Ôûò         $response = $this->postJson('/api/refunds', $refundData);
+    186Ôûò 
+  Ô×£ 187Ôûò         $response->assertStatus(400)
+    188Ôûò             ->assertJson([
+    189Ôûò                 'success' => false,
+    190Ôûò                 'message' => 'Payment not found or not captured'
+    191Ôûò             ]);
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+  at tests\Feature\RazorpayRefundTest.php:203
+    199Ôûò         $response = $this->getJson('/api/refunds/check-razorpay-eligibility', [
+    200Ôûò             'order_id' => $this->order->id
+    201Ôûò         ]);
+    202Ôûò 
+  Ô×£ 203Ôûò         $response->assertStatus(200)
+    204Ôûò             ->assertJsonStructure([
+    205Ôûò                 'success',
+    206Ôûò                 'data' => [
+    207Ôûò                     'eligible',
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [400] but received 403.
+Failed asserting that 403 is identical to 400.
+
+  at tests\Feature\RazorpayRefundTest.php:228
+    224Ôûò         $response = $this->getJson('/api/refunds/check-razorpay-eligibility', [
+    225Ôûò             'order_id' => $this->order->id
+    226Ôûò         ]);
+    227Ôûò 
+  Ô×£ 228Ôûò         $response->assertStatus(400)
+    229Ôûò             ->assertJson([
+    230Ôûò                 'success' => false,
+    231Ôûò                 'message' => 'Order was not paid via Razorpay'
+    232Ôûò             ]);
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+  at tests\Feature\RazorpayRefundTest.php:251
+    247Ôûò         ]);
+    248Ôûò 
+    249Ôûò         $response = $this->getJson('/api/refunds');
+    250Ôûò 
+  Ô×£ 251Ôûò         $response->assertStatus(200)
+    252Ôûò             ->assertJsonStructure([
+    253Ôûò                 'success',
+    254Ôûò                 'data' => [
+    255Ôûò                     'data' => [
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+  at tests\Feature\RazorpayRefundTest.php:284
+    280Ôûò         ]);
+    281Ôûò 
+    282Ôûò         $response = $this->postJson("/api/refunds/{$refund->id}/cancel");
+    283Ôûò 
+  Ô×£ 284Ôûò         $response->assertStatus(200)
+    285Ôûò             ->assertJson([
+    286Ôûò                 'success' => true,
+    287Ôûò                 'message' => 'Refund request cancelled successfully.'
+    288Ôûò             ]);
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [400] but received 403.
+Failed asserting that 403 is identical to 400.
+
+  at tests\Feature\RazorpayRefundTest.php:311
+    307Ôûò         ]);
+    308Ôûò 
+    309Ôûò         $response = $this->postJson("/api/refunds/{$refund->id}/cancel");
+    310Ôûò 
+  Ô×£ 311Ôûò         $response->assertStatus(400)
+    312Ôûò             ->assertJson([
+    313Ôûò                 'success' => false,
+    314Ôûò                 'message' => 'Only pending refunds can be cancelled.'
+    315Ôûò             ]);
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.
+
+  at tests\Feature\RazorpayRefundTest.php:338
+    334Ôûò         ]);
+    335Ôûò 
+    336Ôûò         $response = $this->getJson('/api/refund-statistics');
+    337Ôûò 
+  Ô×£ 338Ôûò         $response->assertStatus(200)
+    339Ôûò             ->assertJsonStructure([
+    340Ôûò                 'success',
+    341Ôûò                 'data' => [
+    342Ôûò                     'total_refunds',
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  Tests\Feature\RazorÔÇª   
+  Failed asserting that false is true.
+
+  at tests\Feature\RazorpayRefundTest.php:409
+    405Ôûò 
+    406Ôûò         // Process refund
+    407Ôûò         $result = $this->razorpayService->processRefund($refundTransaction, 500, 'Test refund');
+    408Ôûò 
+  Ô×£ 409Ôûò         $this->assertTrue($result['success']);
+    410Ôûò         $this->assertEquals('processed', $result['status']);
+    411Ôûò         $this->assertEquals(500, $result['amount']);
+    412Ôûò     }
+    413Ôûò
+
+  1   tests\Feature\RazorpayRefundTest.php:409
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  TestsÔÇª  PDOException   
+  SQLSTATE[HY000]: General error: 1 cannot start a transaction within a transaction
+
+  at vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+     29Ôûò     {
+     30Ôûò         if (version_compare(PHP_VERSION, '8.4.0', '>=')) {
+     31Ôûò             $mode = $this->getConfig('transaction_mode') ?? 'DEFERRED';
+     32Ôûò 
+  Ô×£  33Ôûò             $this->getPdo()->exec("BEGIN {$mode} TRANSACTION");
+     34Ôûò 
+     35Ôûò             return;
+     36Ôûò         }
+     37Ôûò
+
+  1   vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+  2   vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:154
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  TestsÔÇª  PDOException   
+  SQLSTATE[HY000]: General error: 1 cannot start a transaction within a transaction
+
+  at vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+     29Ôûò     {
+     30Ôûò         if (version_compare(PHP_VERSION, '8.4.0', '>=')) {
+     31Ôûò             $mode = $this->getConfig('transaction_mode') ?? 'DEFERRED';
+     32Ôûò 
+  Ô×£  33Ôûò             $this->getPdo()->exec("BEGIN {$mode} TRANSACTION");
+     34Ôûò 
+     35Ôûò             return;
+     36Ôûò         }
+     37Ôûò
+
+  1   vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+  2   vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:154
+
+  ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ  
+   FAILED  TestsÔÇª  PDOException   
+  SQLSTATE[HY000]: General error: 1 cannot start a transaction within a transaction
+
+  at vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+     29Ôûò     {
+     30Ôûò         if (version_compare(PHP_VERSION, '8.4.0', '>=')) {
+     31Ôûò             $mode = $this->getConfig('transaction_mode') ?? 'DEFERRED';
+     32Ôûò 
+  Ô×£  33Ôûò             $this->getPdo()->exec("BEGIN {$mode} TRANSACTION");
+     34Ôûò 
+     35Ôûò             return;
+     36Ôûò         }
+     37Ôûò
+
+  1   vendor\laravel\framework\src\Illuminate\Database\SQLiteConnection.php:33
+  2   vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:154
+
+
+  Tests:    12 failed, 4 passed (19 assertions)
+  Duration: 4.10s
+

@@ -41,7 +41,8 @@ class Order extends Model
         'assigned_to',
         'tax',
         'discount',
-        'shipping_cost'
+        'shipping_cost',
+        'transaction_id'
     ];
 
     /**
@@ -74,6 +75,14 @@ class Order extends Model
     public function productItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Alias for productItems to match test expectations.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->productItems();
     }
 
     public function vendor(): BelongsTo

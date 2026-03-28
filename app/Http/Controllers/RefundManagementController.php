@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Refund;
 use App\Models\RefundItem;
 use App\Models\Sale;
-use App\Models\Order;
 use App\Services\RefundService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RefundManagementController extends Controller
 {
@@ -31,7 +30,7 @@ class RefundManagementController extends Controller
     public function index(Request $request): Response
     {
         $user = Auth::user();
-        
+
         $query = Refund::with([
             'sale.customer',
             'order.customer',
@@ -41,13 +40,13 @@ class RefundManagementController extends Controller
             'creditNote',
             'refundTransaction',
             'refundItems.product',
-            'refundItems.productVariant'
+            'refundItems.productVariant',
         ]);
 
-        // // Apply vendor isolation for non-admin users
-        // if ($user->vendor_id && !$user->hasRole('admin')) {
-        //     $query->where('vendor_id', $user->vendor_id);
-        // }
+        // Apply vendor isolation for non-admin users
+        if ($user->vendor_id && ! $user->hasRole('admin')) {
+            $query->where('vendor_id', $user->vendor_id);
+        }
 
         // Apply filters
         if ($request->filled('status')) {
@@ -71,15 +70,15 @@ class RefundManagementController extends Controller
         }
 
         if ($request->filled('customer_search')) {
-            $query->whereHas('customer', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('email', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->customer_search . '%');
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('email', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('phone', 'like', '%'.$request->customer_search.'%');
             });
         }
 
         if ($request->filled('reference')) {
-            $query->where('reference', 'like', '%' . $request->reference . '%');
+            $query->where('reference', 'like', '%'.$request->reference.'%');
         }
 
         // Sorting
@@ -92,7 +91,7 @@ class RefundManagementController extends Controller
         // Get filter options
         $statusOptions = ['pending', 'approved', 'rejected', 'processing', 'completed', 'failed'];
         $refundTypeOptions = ['credit_note', 'money'];
-        
+
         $vendors = [];
         // if ($user->hasRole('admin')) {
         //     $vendors = \App\Models\Vendor::active()->pluck('business_name', 'id');
@@ -103,7 +102,7 @@ class RefundManagementController extends Controller
             'vendors' => $vendors,
             'filters' => $request->only([
                 'status', 'refund_type', 'vendor_id', 'date_from', 'date_to',
-                'customer_search', 'reference', 'sort_by', 'sort_direction'
+                'customer_search', 'reference', 'sort_by', 'sort_direction',
             ]),
             'statusOptions' => $statusOptions,
             'refundTypeOptions' => $refundTypeOptions,
@@ -130,7 +129,7 @@ class RefundManagementController extends Controller
             'refundItems.product',
             'refundItems.productVariant',
             'refundItems.saleReturnItem',
-            'refundItems.orderItem'
+            'refundItems.orderItem',
         ]);
 
         return Inertia::render('Admin/Refunds/Show', [
@@ -166,7 +165,7 @@ class RefundManagementController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        
+
         $request->validate([
             'sale_id' => 'nullable|exists:sales,id',
             'order_id' => 'nullable|exists:orders,id',
@@ -192,7 +191,7 @@ class RefundManagementController extends Controller
 
         try {
             $refundData = $request->all();
-            if (!isset($refundData['vendor_id']) && $user->vendor_id) {
+            if (! isset($refundData['vendor_id']) && $user->vendor_id) {
                 $refundData['vendor_id'] = $user->vendor_id;
             }
 
@@ -222,7 +221,7 @@ class RefundManagementController extends Controller
 
         // Check permissions
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['error' => 'User not authenticated']);
         }
 
@@ -231,7 +230,7 @@ class RefundManagementController extends Controller
         if ($sourceTransaction) {
             $totalRefunded = $sourceTransaction->refunds()->where('refund_status', '!=', 'rejected')->sum('amount');
             $maxRefundable = $sourceTransaction->total ?? $sourceTransaction->total_amount ?? 0;
-            
+
             if ($totalRefunded > $maxRefundable) {
                 return back()->withErrors(['error' => 'Total refunds exceed transaction amount']);
             }
@@ -242,15 +241,15 @@ class RefundManagementController extends Controller
 
             return redirect()->back()->with('success', 'Refund approved successfully.');
         } catch (\InvalidArgumentException $e) {
-            return back()->withErrors(['error' => 'Validation Error: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Validation Error: '.$e->getMessage()]);
         } catch (\Exception $e) {
             Log::error('Refund approval failed', [
                 'refund_id' => $refund->id,
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return back()->withErrors(['error' => 'An unexpected error occurred. Please try again or contact support.']);
         }
     }
@@ -323,38 +322,38 @@ class RefundManagementController extends Controller
         $dateFrom = $request->get('date_from', now()->subDays(30)->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $exportType = $request->get('type', 'summary'); // 'summary' or 'detailed'
-        
+
         // Helper function to create fresh base query
-        $getBaseQuery = function() use ($dateFrom, $dateTo) {
-            return \App\Models\Refund::whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+        $getBaseQuery = function () use ($dateFrom, $dateTo) {
+            return Refund::whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
         };
-        
+
         $filename = "refund_report_{$dateFrom}_to_{$dateTo}.csv";
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
-        
-        $callback = function() use ($getBaseQuery, $exportType) {
+
+        $callback = function () use ($getBaseQuery, $exportType) {
             $file = fopen('php://output', 'w');
-            
+
             if ($exportType === 'detailed') {
                 // Detailed refund export
                 fputcsv($file, [
-                    'Reference', 'Customer Name', 'Customer Email', 'Amount', 'Method', 
+                    'Reference', 'Customer Name', 'Customer Email', 'Amount', 'Method',
                     'Status', 'Reason', 'Created Date', 'Approved Date', 'Completed Date',
-                    'Processing Days', 'Admin Notes'
+                    'Processing Days', 'Admin Notes',
                 ]);
-                
+
                 $getBaseQuery()->with(['customer', 'sale.customer', 'order.customer'])
-                    ->chunk(1000, function($refunds) use ($file) {
-                        foreach($refunds as $refund) {
+                    ->chunk(1000, function ($refunds) use ($file) {
+                        foreach ($refunds as $refund) {
                             $customer = $refund->customer ?? $refund->sale?->customer ?? $refund->order?->customer;
-                            $processingDays = $refund->completed_at && $refund->created_at 
+                            $processingDays = $refund->completed_at && $refund->created_at
                                 ? $refund->created_at->diffInDays($refund->completed_at)
                                 : 'N/A';
-                                
+
                             fputcsv($file, [
                                 $refund->reference,
                                 $customer?->name ?? 'Guest',
@@ -367,46 +366,46 @@ class RefundManagementController extends Controller
                                 $refund->approved_at?->format('Y-m-d H:i:s'),
                                 $refund->completed_at?->format('Y-m-d H:i:s'),
                                 $processingDays,
-                                $refund->admin_notes
+                                $refund->admin_notes,
                             ]);
                         }
                     });
             } else {
                 // Summary report export
-                fputcsv($file, ['Refund Report Summary', 'Generated on: ' . now()->format('Y-m-d H:i:s')]);
+                fputcsv($file, ['Refund Report Summary', 'Generated on: '.now()->format('Y-m-d H:i:s')]);
                 fputcsv($file, []);
-                
+
                 // Basic statistics
                 fputcsv($file, ['BASIC STATISTICS']);
                 fputcsv($file, ['Total Refunds', $getBaseQuery()->count()]);
-                fputcsv($file, ['Completed Amount', '₹' . number_format($getBaseQuery()->where('refund_status', 'completed')->sum('amount'), 2)]);
-                fputcsv($file, ['Pending Amount', '₹' . number_format($getBaseQuery()->where('refund_status', 'pending')->sum('amount'), 2)]);
-                fputcsv($file, ['Average Refund', '₹' . number_format($getBaseQuery()->avg('amount'), 2)]);
+                fputcsv($file, ['Completed Amount', '₹'.number_format($getBaseQuery()->where('refund_status', 'completed')->sum('amount'), 2)]);
+                fputcsv($file, ['Pending Amount', '₹'.number_format($getBaseQuery()->where('refund_status', 'pending')->sum('amount'), 2)]);
+                fputcsv($file, ['Average Refund', '₹'.number_format($getBaseQuery()->avg('amount'), 2)]);
                 fputcsv($file, []);
-                
+
                 // By Status
                 fputcsv($file, ['BREAKDOWN BY STATUS']);
                 fputcsv($file, ['Status', 'Count', 'Total Amount']);
                 $statusBreakdown = $getBaseQuery()->select('refund_status', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                     ->groupBy('refund_status')->get();
-                foreach($statusBreakdown as $status) {
-                    fputcsv($file, [ucfirst($status->refund_status), $status->count, '₹' . number_format($status->total, 2)]);
+                foreach ($statusBreakdown as $status) {
+                    fputcsv($file, [ucfirst($status->refund_status), $status->count, '₹'.number_format($status->total, 2)]);
                 }
                 fputcsv($file, []);
-                
+
                 // By Method
                 fputcsv($file, ['BREAKDOWN BY METHOD']);
                 fputcsv($file, ['Method', 'Count', 'Total Amount']);
                 $methodBreakdown = $getBaseQuery()->select('method', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                     ->groupBy('method')->get();
-                foreach($methodBreakdown as $method) {
-                    fputcsv($file, [ucfirst(str_replace('_', ' ', $method->method)), $method->count, '₹' . number_format($method->total, 2)]);
+                foreach ($methodBreakdown as $method) {
+                    fputcsv($file, [ucfirst(str_replace('_', ' ', $method->method)), $method->count, '₹'.number_format($method->total, 2)]);
                 }
             }
-            
+
             fclose($file);
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -418,12 +417,12 @@ class RefundManagementController extends Controller
         // Get date filters
         $dateFrom = $request->get('date_from', now()->subDays(30)->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
-        
+
         // Helper function to create fresh base query
-        $getBaseQuery = function() use ($dateFrom, $dateTo) {
-            return \App\Models\Refund::whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+        $getBaseQuery = function () use ($dateFrom, $dateTo) {
+            return Refund::whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
         };
-        
+
         $stats = [
             // Basic stats
             'total_refunds' => $getBaseQuery()->count(),
@@ -431,15 +430,15 @@ class RefundManagementController extends Controller
             'pending_amount' => $getBaseQuery()->where('refund_status', 'pending')->sum('amount'),
             'rejected_amount' => $getBaseQuery()->where('refund_status', 'rejected')->sum('amount'),
             'average_refund' => $getBaseQuery()->avg('amount'),
-            
+
             // Existing breakdowns
             'breakdown_by_method' => $getBaseQuery()->select('method', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                 ->groupBy('method')->get(),
             'breakdown_by_status' => $getBaseQuery()->select('refund_status as status', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                 ->groupBy('refund_status')->get(),
             'breakdown_by_day' => $getBaseQuery()->selectRaw('DATE(created_at) as day, COUNT(*) as count, SUM(amount) as total')
-                ->groupBy(DB::raw('DATE(created_at)'))->orderBy('day','desc')->limit(30)->get(),
-                
+                ->groupBy(DB::raw('DATE(created_at)'))->orderBy('day', 'desc')->limit(30)->get(),
+
             // New breakdowns
             'breakdown_by_customer' => $getBaseQuery()->with('customer')
                 ->select('customer_id', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
@@ -448,15 +447,15 @@ class RefundManagementController extends Controller
                 ->orderBy('total', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(function($item) {
+                ->map(function ($item) {
                     return [
                         'customer_name' => $item->customer ? $item->customer->name : 'Guest',
                         'customer_email' => $item->customer ? $item->customer->email : 'N/A',
                         'count' => $item->count,
-                        'total' => $item->total
+                        'total' => $item->total,
                     ];
                 }),
-                
+
             'breakdown_by_amount_range' => [
                 ['range' => '₹0 - ₹500', 'count' => $getBaseQuery()->whereBetween('amount', [0, 500])->count()],
                 ['range' => '₹501 - ₹1,000', 'count' => $getBaseQuery()->whereBetween('amount', [501, 1000])->count()],
@@ -464,12 +463,12 @@ class RefundManagementController extends Controller
                 ['range' => '₹5,001 - ₹10,000', 'count' => $getBaseQuery()->whereBetween('amount', [5001, 10000])->count()],
                 ['range' => '₹10,001+', 'count' => $getBaseQuery()->where('amount', '>', 10000)->count()],
             ],
-            
+
             'breakdown_by_source' => [
                 'pos_sales' => $getBaseQuery()->whereNotNull('sale_id')->count(),
                 'online_orders' => $getBaseQuery()->whereNotNull('order_id')->count(),
             ],
-            
+
             'processing_time_stats' => [
                 'avg_approval_time' => $getBaseQuery()->whereNotNull('approved_at')
                     ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, approved_at)) as avg_hours')
@@ -478,14 +477,14 @@ class RefundManagementController extends Controller
                     ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, approved_at, completed_at)) as avg_hours')
                     ->value('avg_hours'),
             ],
-            
+
             // Date filters for frontend
             'filters' => [
                 'date_from' => $dateFrom,
-                'date_to' => $dateTo
-            ]
+                'date_to' => $dateTo,
+            ],
         ];
-        
+
         return Inertia::render('Admin/Refunds/Report', [
             'stats' => $stats,
         ]);
