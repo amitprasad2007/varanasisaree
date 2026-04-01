@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Shipment extends Model
 {
@@ -39,23 +39,26 @@ class Shipment extends Model
         'metadata',
     ];
 
-    protected $casts = [
-        'picked_up_at' => 'datetime',
-        'in_transit_at' => 'datetime',
-        'out_for_delivery_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'failed_at' => 'datetime',
-        'returned_at' => 'datetime',
-        'tracking_events' => 'array',
-        'metadata' => 'array',
-        'signature_required' => 'boolean',
-        'weight' => 'decimal:2',
-        'dimensions_length' => 'decimal:2',
-        'dimensions_width' => 'decimal:2',
-        'dimensions_height' => 'decimal:2',
-        'shipping_cost' => 'decimal:2',
-        'delivery_attempts' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'picked_up_at' => 'datetime',
+            'in_transit_at' => 'datetime',
+            'out_for_delivery_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'failed_at' => 'datetime',
+            'returned_at' => 'datetime',
+            'tracking_events' => 'array',
+            'metadata' => 'array',
+            'signature_required' => 'boolean',
+            'weight' => 'decimal:2',
+            'dimensions_length' => 'decimal:2',
+            'dimensions_width' => 'decimal:2',
+            'dimensions_height' => 'decimal:2',
+            'shipping_cost' => 'decimal:2',
+            'delivery_attempts' => 'integer',
+        ];
+    }
 
     /**
      * Get the order that owns the shipment
@@ -89,7 +92,8 @@ class Shipment extends Model
         $prefix = 'AWB';
         $timestamp = now()->format('Ymd');
         $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        return $prefix . $timestamp . $random;
+
+        return $prefix.$timestamp.$random;
     }
 
     /**
@@ -98,11 +102,11 @@ class Shipment extends Model
     public function updateStatus(string $newStatus, ?string $notes = null): void
     {
         $oldStatus = $this->status;
-        
+
         $this->update(['status' => $newStatus]);
-        
+
         // Update timestamp based on status
-        $timestampField = match($newStatus) {
+        $timestampField = match ($newStatus) {
             'picked_up' => 'picked_up_at',
             'in_transit' => 'in_transit_at',
             'out_for_delivery' => 'out_for_delivery_at',
@@ -112,7 +116,7 @@ class Shipment extends Model
             default => null
         };
 
-        if ($timestampField && !$this->$timestampField) {
+        if ($timestampField && ! $this->$timestampField) {
             $this->update([$timestampField => now()]);
         }
 
@@ -130,11 +134,11 @@ class Shipment extends Model
      */
     public function getTrackingUrl(): ?string
     {
-        if (!$this->tracking_number || !$this->carrier) {
+        if (! $this->tracking_number || ! $this->carrier) {
             return null;
         }
 
-        return match($this->carrier) {
+        return match ($this->carrier) {
             'Blue Dart' => "https://www.bluedart.com/track/{$this->tracking_number}",
             'FedEx' => "https://www.fedex.com/fedextrack/?trknbr={$this->tracking_number}",
             'DHL' => "https://www.dhl.com/track/{$this->tracking_number}",

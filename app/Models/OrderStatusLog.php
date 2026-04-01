@@ -20,10 +20,13 @@ class OrderStatusLog extends Model
         'metadata',
     ];
 
-    protected $casts = [
-        'changed_at' => 'datetime',
-        'metadata' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'changed_at' => 'datetime',
+            'metadata' => 'array',
+        ];
+    }
 
     public function order(): BelongsTo
     {

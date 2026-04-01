@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductVariantImage;
 use App\Models\ProductVariant;
+use App\Models\ProductVariantImage;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ProductVariantImageController extends Controller
 {
@@ -18,25 +18,25 @@ class ProductVariantImageController extends Controller
 
         return Inertia::render('Admin/ProductVariantImages/Index', [
             'variant' => $variant->load(['product', 'color', 'size']),
-            'images' => $images
+            'images' => $images,
         ]);
     }
 
     public function create(ProductVariant $variant)
     {
         return Inertia::render('Admin/ProductVariantImages/Create', [
-            'variant' => $variant->load(['product', 'color', 'size'])
+            'variant' => $variant->load(['product', 'color', 'size']),
         ]);
     }
 
     public function store(Request $request, ProductVariant $variant)
     {
-        //dd($request->all());
+
         $request->validate([
             'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'alt_texts' => 'array',
             'alt_texts.*' => 'nullable|string',
-            'primary_image' => 'nullable|integer'
+            'primary_image' => 'nullable|integer',
         ]);
 
         $images = $request->file('images', []);
@@ -60,7 +60,7 @@ class ProductVariantImageController extends Controller
                 $existingPrimary = ProductVariantImage::where('product_variant_id', $variant->id)
                     ->where('is_primary', true)
                     ->exists();
-                if (!$existingPrimary) {
+                if (! $existingPrimary) {
                     $isPrimary = true;
                 }
             }
@@ -83,7 +83,7 @@ class ProductVariantImageController extends Controller
         $request->validate([
             'alt_text' => 'nullable|string',
             'is_primary' => 'boolean',
-            'display_order' => 'integer'
+            'display_order' => 'integer',
         ]);
 
         $data = $request->only(['alt_text', 'display_order']);
@@ -105,7 +105,7 @@ class ProductVariantImageController extends Controller
     public function destroy(ProductVariantImage $image)
     {
         // Delete the file from storage
-        //dd($image);
+
         if ($image->image_path) {
             Storage::disk('public')->delete($image->image_path);
         }
@@ -129,7 +129,7 @@ class ProductVariantImageController extends Controller
 
     public function setPrimary(ProductVariantImage $image)
     {
-      //  dd($image);
+
         // Set all other images to not be primary
         ProductVariantImage::where('product_variant_id', $image->product_variant_id)
             ->update(['is_primary' => false]);

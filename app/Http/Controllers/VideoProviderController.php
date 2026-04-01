@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\ProductVideo;
+use App\Http\Requests\StoreVideoProviderRequest;
 use App\Models\VideoProvider;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreVideoProviderRequest;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -20,7 +18,7 @@ class VideoProviderController extends Controller
         $providers = VideoProvider::orderBy('name')->get();
 
         return Inertia::render('Admin/VideoProviders/Index', [
-            'providers' => $providers
+            'providers' => $providers,
         ]);
     }
 
@@ -37,7 +35,7 @@ class VideoProviderController extends Controller
      */
     public function store(StoreVideoProviderRequest $request)
     {
-     //   dd($request);
+
         $validated = $request->validated();
 
         if ($request->hasFile('logo')) {
@@ -64,7 +62,7 @@ class VideoProviderController extends Controller
     public function edit(VideoProvider $videoProvider)
     {
         return Inertia::render('Admin/VideoProviders/Edit', [
-            'provider' => $videoProvider
+            'provider' => $videoProvider,
         ]);
     }
 
@@ -75,7 +73,7 @@ class VideoProviderController extends Controller
     {
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:video_providers,name,' . $video_provider->id,
+            'name' => 'required|string|max:255|unique:video_providers,name,'.$video_provider->id,
             'base_url' => 'required|string|max:255',
             'logo' => 'nullable|image|max:1024',
             'status' => 'required|in:active,inactive',

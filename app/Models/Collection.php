@@ -25,10 +25,13 @@ class Collection extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'meta' => 'array',
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'meta' => 'array',
+            'is_active' => 'boolean',
+        ];
+    }
 
     public function collectionType(): BelongsTo
     {
@@ -40,5 +43,3 @@ class Collection extends Model
         return $this->belongsToMany(Product::class)->withTimestamps()->withPivot('sort_order');
     }
 }
-
-

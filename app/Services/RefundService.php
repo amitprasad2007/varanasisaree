@@ -2,21 +2,22 @@
 
 namespace App\Services;
 
+use App\Models\CreditNote;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Refund;
 use App\Models\RefundItem;
 use App\Models\RefundTransaction;
-use App\Models\CreditNote;
 use App\Models\Sale;
-use App\Models\Order;
-use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\Vendor;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
 
 class RefundService
 {
@@ -25,18 +26,23 @@ class RefundService
      */
     public function createRefundRequest(array $data): Refund
     {
-        return DB::transaction(function () use ($data) {
+        $process = function () use ($data) {
             // Determine source transaction
             $sourceTransaction = $this->getSourceTransaction($data);
             $customer = $this->getCustomer($data, $sourceTransaction);
             $vendor = $this->getVendor($data, $sourceTransaction);
 
             // Validate refund eligibility
-            $this->validateRefundEligibility($sourceTransaction, $data['amount']);
-            
+            $this->validateRefundEligibility($sourceTransaction, (float) $data['amount']);
+
+            // Validate Razorpay eligibility if applicable
+            if (($sourceTransaction->payment_method ?? null) === 'razorpay' && ($data['method'] ?? null) === 'razorpay') {
+                $this->validateRazorpayRefundEligibility($sourceTransaction, (float) $data['amount']);
+            }
+
             // Validate vendor permissions
             $this->validateVendorPermissions($vendor, $sourceTransaction);
-        
+
             // Create refund record
             $refund = Refund::create([
                 'sale_id' => $data['sale_id'] ?? null,
@@ -59,12 +65,18 @@ class RefundService
             }
 
             // Notify customer: requested
-            if (class_exists(\App\Services\NotificationService::class)) {
-                app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'requested');
+            if (class_exists(NotificationService::class)) {
+                app(NotificationService::class)->sendRefundStatusNotification($refund, 'requested');
             }
-            
+
             return $refund;
-        });
+        };
+
+        if (DB::transactionLevel() > 0) {
+            return $process();
+        }
+
+        return DB::transaction($process);
     }
 
     /**
@@ -77,7 +89,7 @@ class RefundService
             throw new \InvalidArgumentException("Refund is not in pending status. Current status: {$refund->refund_status}");
         }
 
-        if (!Auth::id()) {
+        if (! Auth::id()) {
             throw new \InvalidArgumentException('No authenticated user found');
         }
 
@@ -88,15 +100,15 @@ class RefundService
                 ->where('id', '!=', $refund->id)
                 ->where('refund_status', '!=', 'rejected')
                 ->sum('amount');
-            
+
             $maxRefundable = $sourceTransaction->total ?? $sourceTransaction->total_amount ?? 0;
-            
+
             if (($totalRefunded + $refund->amount) > $maxRefundable) {
                 throw new \InvalidArgumentException('Refund amount would exceed the maximum refundable amount');
             }
         }
 
-        return DB::transaction(function () use ($refund, $data) {
+        $process = function () use ($refund, $data) {
             try {
                 $refund->update([
                     'refund_status' => 'approved',
@@ -106,8 +118,8 @@ class RefundService
                 ]);
 
                 // Notify customer: approved
-                if (class_exists(\App\Services\NotificationService::class)) {
-                    app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'approved');
+                if (class_exists(NotificationService::class)) {
+                    app(NotificationService::class)->sendRefundStatusNotification($refund, 'approved');
                 }
 
                 // Process refund based on method
@@ -119,11 +131,17 @@ class RefundService
                 \Log::error('Refund approval failed in service', [
                     'refund_id' => $refund->id,
                     'error' => $e->getMessage(),
-                    'data' => $data
+                    'data' => $data,
                 ]);
                 throw $e;
             }
-        });
+        };
+
+        if (DB::transactionLevel() > 0) {
+            return $process();
+        }
+
+        return DB::transaction($process);
     }
 
     /**
@@ -131,7 +149,7 @@ class RefundService
      */
     public function rejectRefund(Refund $refund, string $reason, array $data = []): Refund
     {
-        return DB::transaction(function () use ($refund, $reason, $data) {
+        $process = function () use ($refund, $reason, $data) {
             $refund->update([
                 'refund_status' => 'rejected',
                 'rejection_reason' => $reason,
@@ -140,10 +158,16 @@ class RefundService
             ]);
 
             // Notify customer: rejected
-            app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, 'rejected');
+            app(NotificationService::class)->sendRefundStatusNotification($refund, 'rejected');
 
             return $refund->fresh();
-        });
+        };
+
+        if (DB::transactionLevel() > 0) {
+            return $process();
+        }
+
+        return DB::transaction($process);
     }
 
     /**
@@ -151,7 +175,7 @@ class RefundService
      */
     public function processRefund(Refund $refund): Refund
     {
-        return DB::transaction(function () use ($refund) {
+        $process = function () use ($refund) {
             $refund->update(['refund_status' => 'processing', 'processed_at' => now()]);
 
             if ($refund->method === 'credit_note') {
@@ -168,13 +192,66 @@ class RefundService
 
             // Notify customer: completed (type-sensitive)
             $event = $refund->method === 'credit_note' ? 'completed_credit_note' : 'completed_money';
-            app(\App\Services\NotificationService::class)->sendRefundStatusNotification($refund, $event);
+            app(NotificationService::class)->sendRefundStatusNotification($refund, $event);
+
+            // Restore stock if this is a return
+            $this->restoreInventory($refund);
 
             // Update source transaction
             $this->updateSourceTransaction($refund);
 
             return $refund->fresh();
-        });
+        };
+
+        if (DB::transactionLevel() > 0) {
+            return $process();
+        }
+
+        return DB::transaction($process);
+    }
+
+    /**
+     * Restore inventory for returned items
+     */
+    protected function restoreInventory(Refund $refund): void
+    {
+        // Only restore if there's a linked return or return items
+        if (! $refund->sale_return_id && $refund->refundItems()->count() === 0) {
+            return;
+        }
+
+        // Use custom logic for sale items if available
+        if ($refund->sale_return_id) {
+            $returnItems = SaleReturnItem::where('sale_return_id', $refund->sale_return_id)->get();
+            foreach ($returnItems as $item) {
+                if ($item->product_variant_id) {
+                    $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                    if ($variant) {
+                        $variant->increment('stock_quantity', $item->quantity);
+                    }
+                } else {
+                    $product = Product::lockForUpdate()->find($item->product_id);
+                    if ($product) {
+                        $product->increment('stock_quantity', $item->quantity);
+                    }
+                }
+            }
+        } elseif ($refund->refundItems()->count() > 0) {
+            // Fallback to refundItems for general refunds with items
+            foreach ($refund->refundItems as $item) {
+                if ($item->product_variant_id) {
+                    $variant = ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                    if ($variant) {
+                        $variant->increment('stock_quantity', $item->quantity);
+                    }
+                } else {
+                    $product = Product::lockForUpdate()->find($item->product_id);
+                    if ($product) {
+                        $product->increment('stock_quantity', $item->quantity);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -197,7 +274,7 @@ class RefundService
             'status' => 'active',
             'issued_at' => now()->toDateString(),
             'expires_at' => now()->addYear()->toDateString(), // 1 year expiry
-            'notes' => 'Auto-generated from refund: ' . $refund->reference,
+            'notes' => 'Auto-generated from refund: '.$refund->reference,
         ]);
 
         $refund->update(['credit_note_id' => $creditNote->id]);
@@ -236,11 +313,11 @@ class RefundService
     protected function processRazorpayRefund(RefundTransaction $transaction): void
     {
         try {
-            $razorpayService = app(\App\Services\RazorpayRefundService::class);
+            $razorpayService = app(RazorpayRefundService::class);
 
             $result = $razorpayService->processRefund(
                 $transaction,
-                $transaction->amount,
+                (float) $transaction->amount,
                 $transaction->refund->reason
             );
 
@@ -275,8 +352,8 @@ class RefundService
     {
         $transaction->update([
             'status' => 'completed',
-            'gateway_transaction_id' => 'TXN_' . Str::random(10),
-            'gateway_refund_id' => 'REF_' . Str::random(10),
+            'gateway_transaction_id' => 'TXN_'.Str::random(10),
+            'gateway_refund_id' => 'REF_'.Str::random(10),
             'completed_at' => now(),
         ]);
     }
@@ -287,11 +364,11 @@ class RefundService
     protected function updateSourceTransaction(Refund $refund): void
     {
         if ($refund->sale) {
-            $this->updateSaleRefundStatus($refund->sale, $refund->amount);
+            $this->updateSaleRefundStatus($refund->sale, (float) $refund->amount);
         }
 
         if ($refund->order) {
-            $this->updateOrderRefundStatus($refund->order, $refund->amount);
+            $this->updateOrderRefundStatus($refund->order, (float) $refund->amount);
         }
     }
 
@@ -327,6 +404,35 @@ class RefundService
     protected function createRefundItems(Refund $refund, array $items, ?int $vendorId = null): void
     {
         foreach ($items as $item) {
+            $unitPrice = $item['unit_price'] ?? null;
+            $totalAmount = $item['total_amount'] ?? null;
+
+            // Derive price from the order/sale item when not explicitly provided
+            if ($unitPrice === null || $totalAmount === null) {
+                $orderItem = null;
+
+                if ($refund->order_id) {
+                    $order = Order::where('order_id', $refund->order_id)->first();
+                    if ($order) {
+                        $query = OrderItem::where('order_id', $order->id)
+                            ->where('product_id', $item['product_id']);
+                        if (! empty($item['product_variant_id'])) {
+                            $query->where('product_variant_id', $item['product_variant_id']);
+                        }
+                        $orderItem = $query->first();
+                    }
+                }
+
+                if ($orderItem) {
+                    $unitPrice = $unitPrice ?? $orderItem->price;
+                    $totalAmount = $totalAmount ?? ($unitPrice * ($item['quantity'] ?? 1));
+                } else {
+                    $product = Product::find($item['product_id']);
+                    $unitPrice = $unitPrice ?? ($product->price ?? 0);
+                    $totalAmount = $totalAmount ?? ($unitPrice * ($item['quantity'] ?? 1));
+                }
+            }
+
             RefundItem::create([
                 'refund_id' => $refund->id,
                 'vendor_id' => $vendorId,
@@ -335,8 +441,8 @@ class RefundService
                 'product_id' => $item['product_id'],
                 'product_variant_id' => $item['product_variant_id'] ?? null,
                 'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total_amount' => $item['total_amount'],
+                'unit_price' => $unitPrice,
+                'total_amount' => $totalAmount,
                 'reason' => $item['reason'] ?? null,
             ]);
         }
@@ -353,8 +459,9 @@ class RefundService
 
         if (isset($data['order_id'])) {
             return Order::where('order_id', $data['order_id'])
-            ->where('customer_id', Auth::id())
-            ->firstOrFail();
+                ->where('customer_id', Auth::id())
+                ->where('status', 'delivered')
+                ->firstOrFail();
         }
 
         throw new \InvalidArgumentException('Either sale_id or order_id must be provided');
@@ -366,7 +473,7 @@ class RefundService
     protected function getCustomer(array $data, $sourceTransaction)
     {
         if (isset($data['customer_id'])) {
-            return \App\Models\Customer::findOrFail($data['customer_id']);
+            return Customer::findOrFail($data['customer_id']);
         }
 
         if ($sourceTransaction instanceof Sale) {
@@ -402,7 +509,7 @@ class RefundService
      */
     protected function generateRefundReference(): string
     {
-        return 'REF-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        return 'REF-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
     }
 
     /**
@@ -410,7 +517,7 @@ class RefundService
      */
     protected function generateCreditNoteReference(): string
     {
-        return 'CN-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        return 'CN-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
     }
 
     /**
@@ -418,7 +525,7 @@ class RefundService
      */
     protected function generateTransactionId(): string
     {
-        return 'TXN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+        return 'TXN-'.now()->format('YmdHis').'-'.strtoupper(Str::random(4));
     }
 
     /**
@@ -429,7 +536,7 @@ class RefundService
         $prefix = 'CN';
         $dateCode = now()->format('Ymd');
         $sequence = str_pad((CreditNote::max('id') ?? 0) + 1, 4, '0', STR_PAD_LEFT);
-        
+
         return "{$prefix}-{$dateCode}-{$sequence}";
     }
 
@@ -470,12 +577,50 @@ class RefundService
         }
 
         // For multi-vendor systems, ensure we have vendor context
-        if ($sourceTransaction instanceof Sale && $sourceTransaction->vendor_id && !$vendor) {
+        if ($sourceTransaction instanceof Sale && $sourceTransaction->vendor_id && ! $vendor) {
             throw new \InvalidArgumentException('Vendor context required for this sale');
         }
 
-        if ($sourceTransaction instanceof Order && $sourceTransaction->vendor_id && !$vendor) {
+        if ($sourceTransaction instanceof Order && $sourceTransaction->vendor_id && ! $vendor) {
             throw new \InvalidArgumentException('Vendor context required for this order');
+        }
+    }
+
+    /**
+     * Validate Razorpay refund eligibility
+     */
+    protected function validateRazorpayRefundEligibility(Order|Sale $source, float $refundAmount): void
+    {
+        $transactionId = $source->transaction_id;
+
+        if (! $transactionId && $source instanceof Order) {
+            // Fallback to searching payments by order_id business identifier
+            $payment = Payment::where('order_id', $source->order_id)
+                ->where('status', 'captured')
+                ->where('method', 'razorpay')
+                ->first();
+
+            $transactionId = $payment ? $payment->rzorder_id : null;
+        }
+
+        $payment = Payment::where('rzorder_id', $transactionId)
+            ->where('status', 'captured')
+            ->first();
+
+        if (! $payment) {
+            \Illuminate\Support\Facades\Log::error('Razorpay Payment NOT FOUND', [
+                'searched_rzorder_id' => $transactionId,
+                'source_id' => $source->id,
+                'method' => 'razorpay',
+            ]);
+            throw new \Exception('Payment not found or not captured');
+        }
+
+        $razorpayService = app(RazorpayRefundService::class);
+        $validation = $razorpayService->validateRefundEligibility($payment, $refundAmount);
+
+        if (! $validation['eligible']) {
+            throw new \InvalidArgumentException($validation['reason'] ?? 'Payment is not eligible for Razorpay refund');
         }
     }
 

@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -34,13 +36,16 @@ class Product extends Model
         'status',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'discount' => 'decimal:2',
-        'stock_quantity' => 'integer',
-        'weight' => 'decimal:2',
-        'is_bestseller' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'stock_quantity' => 'integer',
+            'weight' => 'decimal:2',
+            'is_bestseller' => 'boolean',
+        ];
+    }
 
     public function category(): BelongsTo
     {
@@ -91,10 +96,12 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariant::class);
     }
+
     public function colors(): HasMany
     {
         return $this->hasMany(Color::class);
     }
+
     public function sizes(): HasMany
     {
         return $this->hasMany(Size::class);
@@ -104,6 +111,7 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
     /**
      * Resolve image paths for API consumers with fallback order:
      * 1) Product imageproducts
@@ -125,7 +133,7 @@ class Product extends Model
         }
 
         $variantImages = $variants->flatMap(function ($variant) {
-            return ($variant->images ?? collect());
+            return $variant->images ?? collect();
         });
 
         return $variantImages->pluck('image_path')->filter()->unique()->values();

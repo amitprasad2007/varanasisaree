@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\User;
-use App\Services\NotificationService;
 use App\Services\InventoryService;
-use Illuminate\Http\Request;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrderManagementController extends Controller
 {
     protected $notificationService;
+
     protected $inventoryService;
 
     public function __construct(NotificationService $notificationService, InventoryService $inventoryService)
@@ -38,9 +34,9 @@ class OrderManagementController extends Controller
             'productItems.product:id,name,slug',
             'productItems.variant:id,color,size',
             'assignedTo:id,name',
-            'statusLogs' => function($query) {
+            'statusLogs' => function ($query) {
                 $query->latest()->limit(1);
-            }
+            },
         ]);
 
         // Apply filters
@@ -61,16 +57,16 @@ class OrderManagementController extends Controller
         }
 
         if ($request->filled('customer_search')) {
-            $query->whereHas('customer', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('email', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('order_id', 'like', '%' . $request->customer_search . '%');
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('email', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('phone', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('order_id', 'like', '%'.$request->customer_search.'%');
             });
         }
 
         if ($request->filled('order_id')) {
-            $query->where('order_id', 'like', '%' . $request->order_id . '%');
+            $query->where('order_id', 'like', '%'.$request->order_id.'%');
         }
 
         if ($request->filled('priority')) {
@@ -99,7 +95,7 @@ class OrderManagementController extends Controller
             'filters' => $request->only([
                 'status', 'payment_status', 'date_from', 'date_to',
                 'customer_search', 'order_id', 'priority', 'assigned_to',
-                'sort_by', 'sort_direction'
+                'sort_by', 'sort_direction',
             ]),
             'statusOptions' => $statusOptions,
             'paymentStatusOptions' => $paymentStatusOptions,
@@ -123,11 +119,11 @@ class OrderManagementController extends Controller
             'assignedTo',
             'statusLogs.changedBy',
             'payment',
-            'notifications' => function($query) {
+            'notifications' => function ($query) {
                 $query->orderBy('created_at', 'desc');
-            }
+            },
         ]);
-        // dd($order->cartItems);
+
         return Inertia::render('Admin/Orders/Show', [
             'order' => $order,
         ]);
@@ -187,13 +183,13 @@ class OrderManagementController extends Controller
         $order->statusLogs()->create([
             'status_from' => $order->status,
             'status_to' => $order->status,
-            'notes' => "AWB assigned: {$awbNumber}" . ($request->shipping_notes ? " - {$request->shipping_notes}" : ''),
+            'notes' => "AWB assigned: {$awbNumber}".($request->shipping_notes ? " - {$request->shipping_notes}" : ''),
             'changed_by' => auth()->id(),
             'changed_at' => now(),
             'metadata' => [
                 'awb_number' => $awbNumber,
                 'tracking_number' => $request->tracking_number,
-            ]
+            ],
         ]);
 
         // Send notification to customer
@@ -223,7 +219,7 @@ class OrderManagementController extends Controller
             'metadata' => [
                 'assigned_to' => $request->assigned_to,
                 'assigned_to_name' => User::find($request->assigned_to)->name,
-            ]
+            ],
         ]);
 
         return redirect()->back()->with('success', 'Order assigned successfully');
@@ -259,6 +255,7 @@ class OrderManagementController extends Controller
         $updatedCount = 0;
 
         foreach ($orders as $order) {
+            /** @var Order $order */
             $oldStatus = $order->status;
             $order->updateStatus($request->status, $request->notes, auth()->id());
 

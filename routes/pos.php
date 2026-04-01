@@ -9,9 +9,7 @@ Route::prefix('pos')
     ->middleware(['auth'])
     ->group(function () {
         // Inertia view for POS UI
-        Route::get('/', function () {
-            return Inertia::render('POS/Index');
-        })->name('pos.index');
+        Route::inertia('/', 'POS/Index')->name('pos.index');
         Route::get('/products/search', [SaleController::class, 'searchProducts']);
         Route::get('/customers/search', [SaleController::class, 'searchCustomers']);
         Route::get('/scan', [SaleController::class, 'scan']);

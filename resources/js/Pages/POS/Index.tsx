@@ -4,7 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { Html5Qrcode } from 'html5-qrcode';
 import { format } from 'date-fns';
 import { Breadcrumbs } from '@/components/breadcrumbs';

@@ -24,7 +24,7 @@ import {
     Minimize,
     Trash2
 } from 'lucide-react';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { toast } from 'sonner';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 

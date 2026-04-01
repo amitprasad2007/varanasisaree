@@ -26,10 +26,13 @@ class RefundItem extends Model
         'qc_notes',
     ];
 
-    protected $casts = [
-        'unit_price' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'unit_price' => 'decimal:2',
+            'total_amount' => 'decimal:2',
+        ];
+    }
 
     public function refund(): BelongsTo
     {

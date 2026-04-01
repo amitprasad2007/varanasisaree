@@ -25,7 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from "sweetalert2";
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { toast } from 'sonner';
 import { Sparkles, Loader2 } from 'lucide-react';
 

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Vendor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,6 +22,7 @@ class OrderFactory extends Factory
         return [
             'order_id' => 'ORD-'.$this->faker->unique()->numberBetween(10000, 99999),
             'customer_id' => Customer::factory(),
+            'vendor_id' => Vendor::factory(),
             'sub_total' => $this->faker->randomFloat(2, 100, 5000),
             'quantity' => $this->faker->numberBetween(1, 5),
             'total_amount' => function (array $attributes) {

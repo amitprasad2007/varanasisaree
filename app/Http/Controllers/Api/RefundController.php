@@ -3,21 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\Sale;
-use App\Models\Order;
-use App\Models\Payment;
-use App\Models\OrderItem;
-use App\Services\RefundService;
 use App\Services\RazorpayRefundService;
-use Illuminate\Http\Request;
+use App\Services\RefundService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Customer;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class RefundController extends Controller
 {
@@ -42,7 +42,7 @@ class RefundController extends Controller
                 'creditNote',
                 'refundTransaction',
                 'refundItems.product',
-                'refundItems.productVariant'
+                'refundItems.productVariant',
             ]);
 
         // Apply filters
@@ -86,45 +86,19 @@ class RefundController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $customerId = Auth::id();
-        
+
         try {
-            // Use database transaction for data integrity
-            $refund = DB::transaction(function () use ($request, $customerId) {
-                // Verify customer owns the transaction
-                $sourceTransaction = null;
-                
-                if ($request->filled('sale_id')) {
-                    $sourceTransaction = Sale::where('invoice_number', $request->sale_id)
-                        ->where('customer_id', $customerId)
-                        ->firstOrFail();
-                } elseif ($request->filled('order_id')) {
-                    $sourceTransaction = Order::where('order_id', $request->order_id)
-                        ->where('customer_id', $customerId)
-                        ->where('status', 'delivered') // Only allow refunds for delivered orders
-                        ->firstOrFail();
-                        
-                    // Validate Razorpay eligibility if needed
-                    if ($sourceTransaction->payment_method === 'razorpay' && $request->method === 'razorpay') {
-                        $this->validateRazorpayRefundEligibility($sourceTransaction, (float) $request->amount);
-                    }
-                }
+            // Business logic is now fully encapsulated in RefundService
+            $refund = $this->refundService->createRefundRequest($request->all());
 
-                // Check refund eligibility (amount limits)
-                $this->validateRefundEligibility($sourceTransaction, (float) $request->amount);
-
-                // Create refund request
-                return $this->refundService->createRefundRequest($request->all());
-            });
-
-            \Illuminate\Support\Facades\Log::info('Refund created response data', [
+            Log::info('Refund created response data', [
                 'id' => $refund->id,
                 'order_id' => $refund->order_id,
-                'data' => $refund->toArray()
             ]);
 
             return response()->json([
@@ -134,21 +108,26 @@ class RefundController extends Controller
                     'sale',
                     'order',
                     'refundItems.product',
-                    'refundItems.productVariant'
+                    'refundItems.productVariant',
                 ]),
             ], 201);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Transaction not found or you do not have permission to access it.',
             ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Refund creation failed', [
                 'customer_id' => $customerId,
                 'request_data' => $request->all(),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
@@ -179,7 +158,7 @@ class RefundController extends Controller
             'refundItems.product',
             'refundItems.productVariant',
             'refundItems.saleReturnItem',
-            'refundItems.orderItem'
+            'refundItems.orderItem',
         ]);
 
         return response()->json([
@@ -221,7 +200,7 @@ class RefundController extends Controller
      */
     public function checkEligibility(Request $request): JsonResponse
     {
-       // dd($request);
+
         $request->validate([
             'sale_id' => 'nullable|exists:sales,invoice_number',
             'order_id' => 'nullable|exists:orders,order_id',
@@ -236,7 +215,7 @@ class RefundController extends Controller
             } elseif ($request->order_id) {
                 $sourceTransaction = Order::where('order_id', $request->order_id)
                     ->where('customer_id', Auth::id())
-                    ->where('status','delivered')
+                    ->where('status', 'delivered')
                     ->firstOrFail();
             } else {
                 return response()->json([
@@ -244,7 +223,7 @@ class RefundController extends Controller
                     'message' => 'Either sale_id or order_id must be provided.',
                 ], 400);
             }
-           // print_r($sourceTransaction);
+
             $totalRefunded = $sourceTransaction->refunds()->sum('amount');
             $maxRefundable = $sourceTransaction->total ?? $sourceTransaction->total_amount;
             $remainingRefundable = $maxRefundable - $totalRefunded;
@@ -275,11 +254,11 @@ class RefundController extends Controller
     {
         $customer = $request->user();
 
-        if (!$customer instanceof Customer) {
+        if (! $customer instanceof Customer) {
             $customer = Auth::guard('sanctum')->user();
         }
 
-        if (!$customer instanceof Customer) {
+        if (! $customer instanceof Customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Authenticated customer not found.',
@@ -309,11 +288,11 @@ class RefundController extends Controller
     {
         $customer = request()->user();
 
-        if (!$customer instanceof Customer) {
+        if (! $customer instanceof Customer) {
             $customer = Auth::guard('sanctum')->user();
         }
 
-        if (!$customer instanceof Customer) {
+        if (! $customer instanceof Customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Authenticated customer not found.',
@@ -359,14 +338,14 @@ class RefundController extends Controller
     protected function validateRazorpayRefundEligibility(Order $order, float $refundAmount): void
     {
         $transactionId = $order->transaction_id;
-        
-        if (!$transactionId) {
+
+        if (! $transactionId) {
             // Fallback to searching payments by order_id business identifier
             $payment = Payment::where('order_id', $order->order_id)
                 ->where('status', 'captured')
                 ->where('method', 'razorpay')
                 ->first();
-                
+
             $transactionId = $payment ? $payment->rzorder_id : null;
         }
 
@@ -374,12 +353,12 @@ class RefundController extends Controller
             ->where('status', 'captured')
             ->first();
 
-        if (!$payment) {
-            \Illuminate\Support\Facades\Log::error('Razorpay Payment NOT FOUND', [
+        if (! $payment) {
+            Log::error('Razorpay Payment NOT FOUND', [
                 'searched_rzorder_id' => $transactionId,
                 'order_internal_id' => $order->id,
                 'order_id' => $order->order_id,
-                'order_transaction_id' => $order->transaction_id
+                'order_transaction_id' => $order->transaction_id,
             ]);
             throw new \Exception('Payment not found or not captured');
         }
@@ -387,7 +366,7 @@ class RefundController extends Controller
         $razorpayService = app(RazorpayRefundService::class);
         $validation = $razorpayService->validateRefundEligibility($payment, $refundAmount);
 
-        if (!$validation['eligible']) {
+        if (! $validation['eligible']) {
             throw new \Exception($validation['reason']);
         }
     }
@@ -398,7 +377,7 @@ class RefundController extends Controller
     public function checkRazorpayRefundStatus(Request $request): JsonResponse
     {
         $request->validate([
-            'refund_id' => 'required|string'
+            'refund_id' => 'required|string',
         ]);
 
         try {
@@ -407,12 +386,12 @@ class RefundController extends Controller
 
             return response()->json([
                 'success' => $result['success'],
-                'data' => $result
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
@@ -423,25 +402,25 @@ class RefundController extends Controller
     public function checkRazorpayEligibility(Request $request): JsonResponse
     {
         $request->validate([
-            'order_id' => 'required|exists:orders,id'
+            'order_id' => 'required|exists:orders,id',
         ]);
 
         try {
             $order = Order::where('id', $request->order_id)
                 ->where('customer_id', Auth::id())
-                ->where ('status','delivered')
+                ->where('status', 'delivered')
                 ->firstOrFail();
 
             if ($order->payment_method !== 'razorpay') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Order was not paid via Razorpay'
+                    'message' => 'Order was not paid via Razorpay',
                 ], 400);
             }
 
             $transactionId = $order->transaction_id;
-            
-            if (!$transactionId) {
+
+            if (! $transactionId) {
                 $payment = Payment::where('order_id', $order->order_id)
                     ->where('status', 'captured')
                     ->where('method', 'razorpay')
@@ -454,95 +433,33 @@ class RefundController extends Controller
                 ->where('customer_id', Auth::id())
                 ->first();
 
-            if (!$payment) {
-                \Illuminate\Support\Facades\Log::info('Payment NOT FOUND debug:', [
-                    'transactionId' => $transactionId,
-                    'auth_id' => Auth::id(),
-                    'order_customer_id' => $order->customer_id,
-                    'all_payments_count' => Payment::count()
-                ]);
+            if (! $payment) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Payment not found or not captured',
-                    'debug' => [
-                        'transaction_id' => $transactionId,
-                        'order_id' => $order->order_id
-                    ]
                 ], 400);
             }
-
-            \Illuminate\Support\Facades\Log::info('Payment FOUND debug:', [
-                'id' => $payment->id,
-                'method' => $payment->method,
-                'status' => $payment->status,
-                'customer_id' => $payment->customer_id,
-                'rzorder_id' => $payment->rzorder_id
-            ]);
 
             $razorpayService = app(RazorpayRefundService::class);
             $validation = $razorpayService->validateRefundEligibility($payment, 0);
 
             return response()->json([
                 'success' => true,
-                'data' => $validation
+                'data' => $validation,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
+
     /**
      * Get detailed order information including refund status for each item
      */
     public function getOrderDetails(Request $request): JsonResponse
     {
-        // Add debugging information
-        $customerId = Auth::id();
-        $orderIdRequested = $request->order_id;
-        
-        // Debug: Log the request details
-        Log::info("RefundController@getOrderDetails Debug", [
-            'requested_order_id' => $orderIdRequested,
-            'authenticated_customer_id' => $customerId
-        ]);
-        
-        // First, let's check if the order exists at all
-        $orderExists = Order::where('order_id', $orderIdRequested)->first();
-        if (!$orderExists) {
-            Log::error("Order not found", ['order_id' => $orderIdRequested]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found',
-                'debug' => ['order_id' => $orderIdRequested]
-            ], 404);
-        }
-        
-        // Check if customer owns this order
-        if ($orderExists->customer_id != $customerId) {
-            Log::error("Customer mismatch", [
-                'order_customer_id' => $orderExists->customer_id,
-                'authenticated_customer_id' => $customerId
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access to order',
-                'debug' => [
-                    'order_customer_id' => $orderExists->customer_id,
-                    'your_customer_id' => $customerId
-                ]
-            ], 403);
-        }
-       // dd($orderExists->refunds->count());
-        // Debug: Check refunds count before eager loading
-        $refundsCount = $orderExists->refunds->count();
-        Log::info("Refunds found for order", [
-            'order_internal_id' => $orderExists->id,
-            'order_id' => $orderExists->order_id,
-            'refunds_count' => $refundsCount
-        ]);
-        
         $order = Order::where('order_id', $request->order_id)
             ->where('customer_id', Auth::id())
             ->with([
@@ -550,10 +467,10 @@ class RefundController extends Controller
                 'refunds.refundItems.product',
                 'refunds.refundItems.productVariant',
                 'refunds.refundTransaction',
-                'refunds.creditNote'
+                'refunds.creditNote',
             ])
-            ->get()->map(function ($order) use ($refundsCount) {
-                $statusColor = match($order->status) {
+            ->get()->map(function ($order) {
+                $statusColor = match ($order->status) {
                     'delivered' => 'bg-green-500',
                     'processing' => 'bg-amber-500',
                     'pending' => 'bg-blue-500',
@@ -562,28 +479,15 @@ class RefundController extends Controller
                     default => 'bg-gray-500'
                 };
 
-                // Debug: Log refund information for this specific order
-                Log::info("Processing order refunds", [
-                    'order_id' => $order->order_id,
-                    'order_internal_id' => $order->id,
-                    'loaded_refunds_count' => $order->refunds->count(),
-                    'refunds_data' => $order->refunds->pluck('id', 'amount')->toArray()
-                ]);
-
                 return [
                     'id' => $order->order_id,
                     'date' => $order->created_at->format('d M Y'),
                     'total' => $order->total_amount,
                     'status' => ucfirst($order->status),
                     'statusColor' => $statusColor,
-                    'debug_info' => [
-                        'expected_refunds_count' => $refundsCount,
-                        'loaded_refunds_count' => $order->refunds->count(),
-                        'refund_ids' => $order->refunds->pluck('id')->toArray()
-                    ],
-                    'refundamountstatus' => $order->refunds->map(function($refund) {
+                    'refundamountstatus' => $order->refunds->map(function ($refund) {
                         // Get refund items with their details
-                        $refundItems = $refund->refundItems->map(function($refundItem) {
+                        $refundItems = $refund->refundItems->map(function ($refundItem) {
                             return [
                                 'product_id' => $refundItem->product_id,
                                 'product_variant_id' => $refundItem->product_variant_id,
@@ -648,14 +552,14 @@ class RefundController extends Controller
                             if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                                 return $path;
                             }
-                            return asset('storage/' . ltrim($path, '/'));
+
+                            return asset('storage/'.ltrim($path, '/'));
                         })->values();
-            
+
                         // Skip products with no images
                         if ($images->isEmpty()) {
                             return null;
                         }
-
 
                         return [
                             'id' => $item->product_id,
@@ -664,17 +568,15 @@ class RefundController extends Controller
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
-                    })->toArray()
+                    })->toArray(),
                 ];
             });
 
-
-            return response()->json([
+        return response()->json([
             'success' => true,
-            'data' => $order
+            'data' => $order,
         ]);
     }
-
 
     /**
      * Check if a specific product item in an order is eligible for refund
@@ -685,14 +587,14 @@ class RefundController extends Controller
         $validator = Validator::make($request->all(), [
             'order_id' => 'required|string|exists:orders,order_id',
             'product_id' => 'required|integer|exists:products,id',
-            'product_variant_id' => 'nullable|integer|exists:product_variants,id'
+            'product_variant_id' => 'nullable|integer|exists:product_variants,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -708,7 +610,7 @@ class RefundController extends Controller
                 ->where('status', 'delivered')
                 ->first();
 
-            if (!$order) {
+            if (! $order) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Order not found, not delivered, or you do not have permission to access it.',
@@ -718,14 +620,14 @@ class RefundController extends Controller
             // Check if the product exists in this order
             $orderItemQuery = OrderItem::where('order_id', $order->id)
                 ->where('product_id', $productId);
-            
+
             if ($productVariantId) {
                 $orderItemQuery->where('product_variant_id', $productVariantId);
             }
-            
+
             $orderItem = $orderItemQuery->first();
 
-            if (!$orderItem) {
+            if (! $orderItem) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Product not found in this order.',
@@ -735,7 +637,7 @@ class RefundController extends Controller
             // Check if refund already exists for this specific product/variant
             $refundQuery = Refund::where('order_id', $orderId)
                 ->where('customer_id', $customerId)
-                ->whereHas('refundItems', function($query) use ($productId, $productVariantId) {
+                ->whereHas('refundItems', function ($query) use ($productId, $productVariantId) {
                     $query->where('product_id', $productId);
                     if ($productVariantId) {
                         $query->where('product_variant_id', $productVariantId);
@@ -755,26 +657,26 @@ class RefundController extends Controller
                             'status' => $existingRefund->refund_status,
                             'amount' => $existingRefund->amount,
                             'requested_at' => $existingRefund->requested_at,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
             }
 
             // Check refund time limit (example: 30 days from delivery)
-            $refundDeadline = $order->delivered_at ? 
-                $order->delivered_at->addDays(30) : 
+            $refundDeadline = $order->delivered_at ?
+                $order->delivered_at->addDays(30) :
                 $order->created_at->addDays(45);
 
             $isWithinTimeLimit = now()->lessThanOrEqualTo($refundDeadline);
 
-            if (!$isWithinTimeLimit) {
+            if (! $isWithinTimeLimit) {
                 return response()->json([
                     'success' => true,
                     'data' => [
                         'eligible' => false,
                         'reason' => 'Refund period has expired',
-                        'deadline' => $refundDeadline->format('Y-m-d H:i:s')
-                    ]
+                        'deadline' => $refundDeadline->format('Y-m-d H:i:s'),
+                    ],
                 ]);
             }
 
@@ -789,10 +691,10 @@ class RefundController extends Controller
                         'product_variant_id' => $orderItem->product_variant_id,
                         'quantity' => $orderItem->quantity,
                         'price' => $orderItem->price,
-                        'max_refundable_amount' => $orderItem->quantity * $orderItem->price
+                        'max_refundable_amount' => $orderItem->quantity * $orderItem->price,
                     ],
-                    'refund_deadline' => $refundDeadline->format('Y-m-d H:i:s')
-                ]
+                    'refund_deadline' => $refundDeadline->format('Y-m-d H:i:s'),
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -801,7 +703,7 @@ class RefundController extends Controller
                 'order_id' => $orderId,
                 'product_id' => $productId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
@@ -816,7 +718,7 @@ class RefundController extends Controller
      */
     private function transformOrderData(Order $order): array
     {
-        $statusColor = match($order->status) {
+        $statusColor = match ($order->status) {
             'delivered' => 'bg-green-500',
             'processing' => 'bg-amber-500',
             'pending' => 'bg-blue-500',
@@ -832,7 +734,7 @@ class RefundController extends Controller
             'status' => ucfirst($order->status),
             'statusColor' => $statusColor,
             'refundamountstatus' => $this->transformRefundData($order->refunds),
-            'items' => $this->transformOrderItems($order->productItems)
+            'items' => $this->transformOrderItems($order->productItems),
         ];
     }
 
@@ -841,8 +743,8 @@ class RefundController extends Controller
      */
     private function transformRefundData($refunds): array
     {
-        return $refunds->map(function($refund) {
-            $refundItems = $refund->refundItems->map(function($refundItem) {
+        return $refunds->map(function ($refund) {
+            $refundItems = $refund->refundItems->map(function ($refundItem) {
                 return [
                     'product_id' => $refundItem->product_id,
                     'product_variant_id' => $refundItem->product_variant_id,
@@ -908,19 +810,20 @@ class RefundController extends Controller
     {
         return $orderItems->map(function ($item) {
             $images = collect();
-            
+
             if ($item->product && method_exists($item->product, 'resolveImagePaths')) {
                 $images = $item->product->resolveImagePaths()->map(function ($path) {
                     $path = (string) $path;
                     if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                         return $path;
                     }
-                    return asset('storage/' . ltrim($path, '/'));
+
+                    return asset('storage/'.ltrim($path, '/'));
                 })->values();
             }
 
             // Skip products with no images or missing product data
-            if ($images->isEmpty() || !$item->product) {
+            if ($images->isEmpty() || ! $item->product) {
                 return null;
             }
 
@@ -941,14 +844,14 @@ class RefundController extends Controller
     public function getRefundableItems(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'order_id' => 'required|string|exists:orders,order_id'
+            'order_id' => 'required|string|exists:orders,order_id',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -962,7 +865,7 @@ class RefundController extends Controller
                 ->with(['productItems.product', 'refunds.refundItems'])
                 ->first();
 
-            if (!$order) {
+            if (! $order) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Order not found, not delivered, or you do not have permission to access it.',
@@ -970,8 +873,8 @@ class RefundController extends Controller
             }
 
             // Get refund deadline
-            $refundDeadline = $order->delivered_at ? 
-                $order->delivered_at->addDays(30) : 
+            $refundDeadline = $order->delivered_at ?
+                $order->delivered_at->addDays(30) :
                 $order->created_at->addDays(45);
 
             $isWithinTimeLimit = now()->lessThanOrEqualTo($refundDeadline);
@@ -980,16 +883,16 @@ class RefundController extends Controller
             $refundedItems = collect();
             foreach ($order->refunds as $refund) {
                 foreach ($refund->refundItems as $refundItem) {
-                    $key = $refundItem->product_id . '_' . ($refundItem->product_variant_id ?? '0');
+                    $key = $refundItem->product_id.'_'.($refundItem->product_variant_id ?? '0');
                     $refundedItems->put($key, [
                         'quantity' => $refundedItems->get($key, ['quantity' => 0])['quantity'] + $refundItem->quantity,
-                        'refund_status' => $refund->refund_status
+                        'refund_status' => $refund->refund_status,
                     ]);
                 }
             }
 
             $refundableItems = $order->productItems->map(function ($item) use ($refundedItems, $isWithinTimeLimit) {
-                $key = $item->product_id . '_' . ($item->product_variant_id ?? '0');
+                $key = $item->product_id.'_'.($item->product_variant_id ?? '0');
                 $refundedInfo = $refundedItems->get($key, ['quantity' => 0, 'refund_status' => null]);
                 $remainingQuantity = $item->quantity - $refundedInfo['quantity'];
 
@@ -1003,7 +906,7 @@ class RefundController extends Controller
                     'unit_price' => $item->price,
                     'total_refundable_amount' => $remainingQuantity * $item->price,
                     'is_eligible' => $remainingQuantity > 0 && $isWithinTimeLimit,
-                    'ineligible_reason' => $remainingQuantity <= 0 ? 'Already fully refunded' : (!$isWithinTimeLimit ? 'Refund period expired' : null)
+                    'ineligible_reason' => $remainingQuantity <= 0 ? 'Already fully refunded' : (! $isWithinTimeLimit ? 'Refund period expired' : null),
                 ];
             });
 
@@ -1013,8 +916,8 @@ class RefundController extends Controller
                     'order_id' => $order->order_id,
                     'refund_deadline' => $refundDeadline->format('Y-m-d H:i:s'),
                     'is_within_time_limit' => $isWithinTimeLimit,
-                    'items' => $refundableItems
-                ]
+                    'items' => $refundableItems,
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -1022,7 +925,7 @@ class RefundController extends Controller
                 'customer_id' => $customerId,
                 'order_id' => $orderId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([

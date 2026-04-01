@@ -166,7 +166,7 @@ class RefundManagementController extends Controller
     {
         $user = Auth::user();
 
-        $request->validate([
+        $validated = $request->validate([
             'sale_id' => 'nullable|exists:sales,id',
             'order_id' => 'nullable|exists:orders,id',
             'vendor_id' => 'nullable|exists:vendors,id',
@@ -190,7 +190,7 @@ class RefundManagementController extends Controller
         // }
 
         try {
-            $refundData = $request->all();
+            $refundData = $validated;
             if (! isset($refundData['vendor_id']) && $user->vendor_id) {
                 $refundData['vendor_id'] = $user->vendor_id;
             }

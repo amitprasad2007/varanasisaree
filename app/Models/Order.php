@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrderFactory> */
+    /** @use HasFactory<OrderFactory> */
     use HasFactory;
 
     /**
@@ -42,7 +43,7 @@ class Order extends Model
         'tax',
         'discount',
         'shipping_cost',
-        'transaction_id'
+        'transaction_id',
     ];
 
     /**
@@ -123,14 +124,17 @@ class Order extends Model
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(Refund::class, 'order_id','order_id');
+        return $this->hasMany(Refund::class, 'order_id', 'order_id');
     }
 
-    protected $casts = [
-        'shipped_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'tracking_events' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'shipped_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'tracking_events' => 'array',
+        ];
+    }
 
     /**
      * Update order status and log the change
@@ -151,9 +155,9 @@ class Order extends Model
         ]);
 
         // Update timestamps based on status
-        if ($newStatus === 'shipped' && !$this->shipped_at) {
+        if ($newStatus === 'shipped' && ! $this->shipped_at) {
             $this->update(['shipped_at' => now()]);
-        } elseif ($newStatus === 'delivered' && !$this->delivered_at) {
+        } elseif ($newStatus === 'delivered' && ! $this->delivered_at) {
             $this->update(['delivered_at' => now()]);
         }
     }
@@ -167,7 +171,7 @@ class Order extends Model
         $timestamp = now()->format('Ymd');
         $random = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        return $prefix . $timestamp . $random;
+        return $prefix.$timestamp.$random;
     }
 
     /**
@@ -177,6 +181,7 @@ class Order extends Model
     {
         $awbNumber = $this->generateAwbNumber();
         $this->update(['awb_number' => $awbNumber]);
+
         return $awbNumber;
     }
 }

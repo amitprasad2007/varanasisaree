@@ -19,11 +19,14 @@ class Page extends Model
         'last_updated_at',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-        'is_active' => 'boolean',
-        'last_updated_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+            'is_active' => 'boolean',
+            'last_updated_at' => 'datetime',
+        ];
+    }
 
     /**
      * Scope for active pages

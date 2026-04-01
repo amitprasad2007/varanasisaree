@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Aboutus;
 use App\Http\Requests\StoreAboutusRequest;
 use App\Http\Requests\UpdateAboutusRequest;
-use Illuminate\Http\Request;
+use App\Models\Aboutus;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -17,7 +16,7 @@ class AboutusController extends Controller
     public function index()
     {
         $aboutUs = Aboutus::with('sections')->orderBy('id', 'desc')->get();
-        //dd($aboutUs);
+
         return Inertia::render('Admin/Aboutus/Index', [
             'aboutus' => $aboutUs,
         ]);
@@ -47,6 +46,7 @@ class AboutusController extends Controller
             'image' => $imagePath,
             'status' => $validated['status'],
         ]);
+
         return redirect()->route('aboutus.index')->with('success', 'About Us created successfully.');
     }
 
@@ -88,6 +88,7 @@ class AboutusController extends Controller
             $data['image'] = $request->file('image')->store('aboutus', 'public');
         }
         $aboutus->update($data);
+
         return redirect()->route('aboutus.index')->with('success', 'About Us updated successfully.');
     }
 
@@ -96,11 +97,12 @@ class AboutusController extends Controller
      */
     public function destroy(Aboutus $aboutus)
     {
-       // dd($aboutus->page_title);
+
         if ($aboutus->image) {
             Storage::disk('public')->delete($aboutus->image);
         }
         $aboutus->delete();
+
         return redirect()->route('aboutus.index')->with('success', 'About Us deleted successfully.');
     }
 }

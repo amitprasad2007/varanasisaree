@@ -182,7 +182,7 @@ export default function Index({ faqs }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead width="50"></TableHead>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>Order</TableHead>
               <TableHead>Question</TableHead>
               <TableHead>Answer</TableHead>

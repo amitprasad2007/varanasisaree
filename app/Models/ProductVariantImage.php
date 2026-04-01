@@ -18,14 +18,16 @@ class ProductVariantImage extends Model
         'display_order',
     ];
 
-    protected $casts = [
-        'is_primary' => 'boolean',
-        'display_order' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+            'display_order' => 'integer',
+        ];
+    }
 
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class);
     }
-    
 }

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\AddressUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AddressUser extends Model
 {
-    /** @use HasFactory<\Database\Factories\AddressUserFactory> */
+    /** @use HasFactory<AddressUserFactory> */
     use HasFactory;
 
     /**
@@ -34,9 +35,12 @@ class AddressUser extends Model
      *
      * @var array<string, string>
      */
-    protected $casts = [
-        'is_default' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_default' => 'boolean',
+        ];
+    }
 
     /**
      * Get the user that owns the address.

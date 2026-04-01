@@ -2,21 +2,25 @@
 
 namespace App\Models;
 
+use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'payment_details' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'payment_details' => 'array',
+        ];
+    }
 
-
-    /** @use HasFactory<\Database\Factories\PaymentFactory> */
+    /** @use HasFactory<PaymentFactory> */
     use HasFactory;
-    protected $fillable = ['payment_id','amount','status','method','order_id','card_id','email','contact','customer_id','payment_details','rzorder_id', 'refunded_amount', 'refund_status', 'refund_details'];
+
+    protected $fillable = ['payment_id', 'amount', 'status', 'method', 'order_id', 'card_id', 'email', 'contact', 'customer_id', 'payment_details', 'rzorder_id', 'refunded_amount', 'refund_status', 'refund_details'];
 
     public function customer(): BelongsTo
     {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { Sparkles, Loader2 } from 'lucide-react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Label } from "@/components/ui/label";

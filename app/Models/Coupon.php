@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\CouponFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class Coupon extends Model
 {
-    /** @use HasFactory<\Database\Factories\CouponFactory> */
+    /** @use HasFactory<CouponFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -23,13 +24,16 @@ class Coupon extends Model
         'status',
     ];
 
-    protected $casts = [
-        'min_spend' => 'decimal:2',
-        'max_discount' => 'decimal:2',
-        'value' => 'decimal:2',
-        'status' => 'boolean',
-        'expires_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'min_spend' => 'decimal:2',
+            'max_discount' => 'decimal:2',
+            'value' => 'decimal:2',
+            'status' => 'boolean',
+            'expires_at' => 'datetime',
+        ];
+    }
 
     public function scopeActive($query): Builder
     {
@@ -38,7 +42,7 @@ class Coupon extends Model
 
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -47,7 +51,7 @@ class Coupon extends Model
 
     public function isUsageLimitReached(): bool
     {
-        if (!$this->usage_limit) {
+        if (! $this->usage_limit) {
             return false;
         }
 
@@ -56,6 +60,6 @@ class Coupon extends Model
 
     public function isValid(): bool
     {
-        return $this->status && !$this->isExpired() && !$this->isUsageLimitReached();
+        return $this->status && ! $this->isExpired() && ! $this->isUsageLimitReached();
     }
 }

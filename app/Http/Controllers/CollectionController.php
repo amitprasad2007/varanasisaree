@@ -6,9 +6,9 @@ use App\Models\Collection;
 use App\Models\CollectionType;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class CollectionController extends Controller
 {
@@ -29,7 +29,7 @@ class CollectionController extends Controller
     public function create()
     {
         $collectionTypes = CollectionType::where('is_active', true)->get();
-        //dd($collectionTypes);
+
         return Inertia::render('Admin/Collections/Create', [
             'collectionTypes' => $collectionTypes,
         ]);
@@ -89,7 +89,7 @@ class CollectionController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
         ]);
-        
+
         $validated['slug'] = Str::slug($validated['name']);
 
         // Handle image uploads
@@ -123,8 +123,9 @@ class CollectionController extends Controller
         if ($collection->thumbnail_image) {
             \Storage::disk('public')->delete($collection->thumbnail_image);
         }
-        
+
         $collection->delete();
+
         return redirect()->route('collections.index')->with('success', 'Collection deleted');
     }
 
@@ -141,9 +142,11 @@ class CollectionController extends Controller
         switch ($validated['action']) {
             case 'activate':
                 $collections->update(['is_active' => true]);
+
                 return back()->with('success', 'Collections activated successfully');
             case 'deactivate':
                 $collections->update(['is_active' => false]);
+
                 return back()->with('success', 'Collections deactivated successfully');
             case 'delete':
                 foreach ($collections->get() as $collection) {
@@ -155,6 +158,7 @@ class CollectionController extends Controller
                     }
                 }
                 $collections->delete();
+
                 return back()->with('success', 'Collections deleted successfully');
         }
     }
@@ -214,8 +218,4 @@ class CollectionController extends Controller
 
         return back()->with('success', 'Product order updated successfully.');
     }
-
-
 }
-
-

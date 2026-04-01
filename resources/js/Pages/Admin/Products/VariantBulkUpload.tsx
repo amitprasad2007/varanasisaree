@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Download, Upload, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 
 interface UploadResults {
     success: number;
@@ -57,7 +57,7 @@ export default function VariantBulkUpload() {
                     'Content-Type': 'multipart/form-data',
                 },
                 withCredentials: true,
-                onUploadProgress: (progressEvent) => {
+                onUploadProgress: (progressEvent: any) => {
                     if (progressEvent.total) {
                         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                         setProgress(Math.min(percentCompleted, 100));

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CreditNote extends Model
 {
@@ -30,11 +29,14 @@ class CreditNote extends Model
         'notes',
     ];
 
-    protected $casts = [
-        'issued_at' => 'date',
-        'expires_at' => 'date',
-        'expiry_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'issued_at' => 'date',
+            'expires_at' => 'date',
+            'expiry_date' => 'date',
+        ];
+    }
 
     public function sale(): BelongsTo
     {
@@ -73,7 +75,7 @@ class CreditNote extends Model
     {
         return $this->status === 'active' &&
                $this->remaining_amount > 0 &&
-               (!$this->expires_at || $this->expires_at->isFuture());
+               (! $this->expires_at || $this->expires_at->isFuture());
     }
 
     /**
@@ -90,17 +92,17 @@ class CreditNote extends Model
     public function applyCredit(float $amount): float
     {
         $appliedAmount = min($this->remaining_amount, $amount);
-        
+
         $this->used_amount = ($this->used_amount ?? 0) + $appliedAmount;
         $this->remaining_amount -= $appliedAmount;
-        
+
         if ($this->remaining_amount <= 0.001) {
             $this->status = 'used';
             $this->remaining_amount = 0;
         }
-        
+
         $this->save();
-        
+
         return $appliedAmount;
     }
 
@@ -134,10 +136,10 @@ class CreditNote extends Model
     public function scopeUsable($query)
     {
         return $query->where('status', 'active')
-                    ->where('remaining_amount', '>', 0)
-                    ->where(function ($q) {
-                        $q->whereNull('expires_at')
-                          ->orWhere('expires_at', '>', now());
-                    });
+            ->where('remaining_amount', '>', 0)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
     }
 }

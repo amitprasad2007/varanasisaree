@@ -11,13 +11,12 @@
     "require": {
         "php": "^8.4",
         "barryvdh/laravel-dompdf": "^3.1",
-        "google-gemini-php/laravel": "^2.0",
-        "inertiajs/inertia-laravel": "^2.0",
-        "laravel/framework": "^12.54.1",
+        "inertiajs/inertia-laravel": "3.0",
+        "laravel/framework": "^13.0",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.20",
-        "laravel/tinker": "^2.10.2",
+        "laravel/tinker": "^3.0",
         "phpoffice/phpspreadsheet": "^5.4",
         "picqer/php-barcode-generator": "*",
         "razorpay/razorpay": "^2.9",
@@ -33,8 +32,8 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^3.7",
-        "pestphp/pest-plugin-laravel": "^3.1"
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "*"
     },
     "autoload": {
         "psr-4": {

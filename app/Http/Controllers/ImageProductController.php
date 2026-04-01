@@ -2,47 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ImageProduct;
-use App\Models\Product;
 use App\Http\Requests\StoreImageProductRequest;
 use App\Http\Requests\UpdateImageProductRequest;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
+use App\Models\ImageProduct;
+use App\Models\Product;
 use App\Traits\CanHandleImageUploads;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ImageProductController extends Controller
 {
     use CanHandleImageUploads;
+
     /**
      * Display a listing of the resource.
-     */    
+     */
     public function index(Product $product)
     {
         $product->load('imageproducts');
-        
+
         return Inertia::render('Admin/Images/Index', [
             'product' => $product,
-            'images' => $product->imageproducts
+            'images' => $product->imageproducts,
         ]);
     }
+
     /**
      * Show the form for creating a new resource.
      */
     public function create(Product $product)
     {
         return Inertia::render('Admin/Images/Create', [
-            'product' => $product
+            'product' => $product,
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreImageProductRequest $request,Product $product)
+    public function store(StoreImageProductRequest $request, Product $product)
     {
-      //  dd($request);
 
         $images = $request->file('images');
         $altText = $request->input('alt_text', '');
@@ -66,13 +66,13 @@ class ImageProductController extends Controller
 
         foreach ($images as $image) {
             $path = $image->store('products', 'public');
-            
+
             $setAsPrimary = $isPrimary;
-            if (!$hasPrimary && $count === 0 && !$isPrimary) {
+            if (! $hasPrimary && $count === 0 && ! $isPrimary) {
                 $setAsPrimary = true;
                 $hasPrimary = true;
             }
-            
+
             ImageProduct::create([
                 'product_id' => $product->id,
                 'image_path' => $path,
@@ -80,7 +80,7 @@ class ImageProductController extends Controller
                 'is_primary' => $setAsPrimary,
                 'display_order' => $maxOrder + $count + 1,
             ]);
-            
+
             $count++;
         }
 
@@ -122,13 +122,15 @@ class ImageProductController extends Controller
         $urls = array_filter(explode('|', $imageUrls));
         foreach ($urls as $index => $imageUrl) {
             $imageUrl = trim($imageUrl);
-            if (empty($imageUrl)) continue;
+            if (empty($imageUrl)) {
+                continue;
+            }
 
             $filename = $this->downloadAndOptimizeImage($product, $imageUrl);
 
             if ($filename) {
                 $setAsPrimary = $isPrimary;
-                if (!$hasPrimary && $count === 0 && !$isPrimary) {
+                if (! $hasPrimary && $count === 0 && ! $isPrimary) {
                     $setAsPrimary = true;
                     $hasPrimary = true;
                 }
@@ -136,7 +138,7 @@ class ImageProductController extends Controller
                 ImageProduct::create([
                     'product_id' => $product->id,
                     'image_path' => $filename,
-                    'alt_text' => $altText ?: ($product->name . ' - ' . basename(explode('?', $imageUrl)[0])),
+                    'alt_text' => $altText ?: ($product->name.' - '.basename(explode('?', $imageUrl)[0])),
                     'is_primary' => $setAsPrimary,
                     'display_order' => $maxOrder + $count + 1,
                 ]);
@@ -145,7 +147,7 @@ class ImageProductController extends Controller
         }
 
         return redirect()->route('product-images.index', $product->id)
-            ->with('success', $count . ' images uploaded from URLs successfully.');
+            ->with('success', $count.' images uploaded from URLs successfully.');
     }
 
     /**
@@ -188,12 +190,12 @@ class ImageProductController extends Controller
      */
     public function destroy(ImageProduct $imageProduct)
     {
-       // dd($imageProduct);
+
         $productId = $imageProduct->product_id;
         $isPrimary = $imageProduct->is_primary;
 
         // Delete the file from storage
-        if (!empty($imageProduct->image_path) && Storage::disk('public')->exists($imageProduct->image_path)) {
+        if (! empty($imageProduct->image_path) && Storage::disk('public')->exists($imageProduct->image_path)) {
             Storage::disk('public')->delete($imageProduct->image_path);
         }
 
@@ -213,12 +215,12 @@ class ImageProductController extends Controller
 
     public function setPrimary(ImageProduct $imageProduct)
     {
-       // dd($imageProduct);  
+
         ImageProduct::where('product_id', $imageProduct->product_id)
             ->update(['is_primary' => false]);
-        
+
         $imageProduct->update(['is_primary' => true]);
-        
+
         return redirect()->route('product-images.index', $imageProduct->product_id)
             ->with('success', 'Primary image updated successfully.');
     }
@@ -230,7 +232,7 @@ class ImageProductController extends Controller
             'images.*.id' => 'required|exists:image_products,id',
             'images.*.display_order' => 'required|integer|min:0',
         ]);
-      //  dd($request);
+
         foreach ($request->input('images') as $image) {
             ImageProduct::where('id', $image['id'])
                 ->update(['display_order' => $image['display_order']]);

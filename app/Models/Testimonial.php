@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\TestimonialFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Testimonial extends Model
 {
-    /** @use HasFactory<\Database\Factories\TestimonialFactory> */
+    /** @use HasFactory<TestimonialFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -26,11 +26,14 @@ class Testimonial extends Model
         'approval_status',
     ];
 
-    protected $casts = [
-        'status' => 'string',
-        'approval_status' => 'string',
-        'rating' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => 'string',
+            'approval_status' => 'string',
+            'rating' => 'integer',
+        ];
+    }
 
     public function customer(): BelongsTo
     {
@@ -59,7 +62,7 @@ class Testimonial extends Model
 
     public function getTestimonialInLanguage($language = 'en')
     {
-        if ($language === 'hi' && !empty($this->content_hi)) {
+        if ($language === 'hi' && ! empty($this->content_hi)) {
             return $this->content_hi;
         }
 

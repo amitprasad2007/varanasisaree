@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Size;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SizeController extends Controller
 {
@@ -13,7 +13,7 @@ class SizeController extends Controller
         $sizes = Size::orderBy('created_at', 'desc')->get();
 
         return Inertia::render('Admin/Sizes/Index', [
-            'sizes' => $sizes
+            'sizes' => $sizes,
         ]);
     }
 
@@ -24,13 +24,13 @@ class SizeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:10',
             'status' => 'required|in:active,inactive',
         ]);
 
-        Size::create($request->all());
+        Size::create($validated);
 
         return redirect()->route('sizes.index')->with('success', 'Size created successfully.');
     }
@@ -38,19 +38,19 @@ class SizeController extends Controller
     public function edit(Size $size)
     {
         return Inertia::render('Admin/Sizes/Edit', [
-            'size' => $size
+            'size' => $size,
         ]);
     }
 
     public function update(Request $request, Size $size)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:10',
             'status' => 'required|in:active,inactive',
         ]);
 
-        $size->update($request->all());
+        $size->update($validated);
 
         return redirect()->route('sizes.index')->with('success', 'Size updated successfully.');
     }
@@ -58,6 +58,7 @@ class SizeController extends Controller
     public function destroy(Size $size)
     {
         $size->delete();
+
         return redirect()->route('sizes.index')->with('success', 'Size deleted successfully.');
     }
 

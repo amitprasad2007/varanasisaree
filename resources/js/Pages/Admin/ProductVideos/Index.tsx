@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Pencil, Plus, Trash2, Star } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Product, ProductVideo } from '@/types/product';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { type BreadcrumbItem } from '@/types';
 import Swal from 'sweetalert2';

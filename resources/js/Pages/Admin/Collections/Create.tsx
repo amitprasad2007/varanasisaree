@@ -243,7 +243,7 @@ export default function Create({ collectionTypes = [] }: Props) {
               <Checkbox
                 id="is_active"
                 checked={data.is_active}
-                onCheckedChange={(checked: boolean) => setData('is_active', checked)}
+                onCheckedChange={(checked: any) => setData('is_active', !!checked)}
               />
               <label
                 htmlFor="is_active"

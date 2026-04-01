@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductVariant extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductVariantFactory> */
+    /** @use HasFactory<ProductVariantFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,11 +26,14 @@ class ProductVariant extends Model
         'status',
     ];
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'discount' => 'decimal:2',
-        'stock_quantity' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'stock_quantity' => 'integer',
+        ];
+    }
 
     public function product(): BelongsTo
     {
@@ -50,7 +54,7 @@ class ProductVariant extends Model
     {
         return $this->hasMany(ProductVariantImage::class)->orderBy('display_order');
     }
-    
+
     public function primaryImage(): ?ProductVariantImage
     {
         return $this->images()

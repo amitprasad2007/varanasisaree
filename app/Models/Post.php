@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,8 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
-    /** @use HasFactory<\Database\Factories\PostFactory> */
+    /** @use HasFactory<PostFactory> */
     use HasFactory;
+
     protected $fillable = [
         'title',
         'slug',
@@ -25,14 +27,17 @@ class Post extends Model
         'status',
         'published_at',
         'is_featured',
-        'views_count'
+        'views_count',
     ];
 
-    protected $casts = [
-        'published_at' => 'datetime',
-        'is_featured' => 'boolean',
-        'views_count' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'published_at' => 'datetime',
+            'is_featured' => 'boolean',
+            'views_count' => 'integer',
+        ];
+    }
 
     public function category(): BelongsTo
     {

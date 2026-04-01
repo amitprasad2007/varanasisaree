@@ -1,43 +1,48 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AboutusController;
+use App\Http\Controllers\AboutusSectionController;
+use App\Http\Controllers\Api\BackendAiAssistantController;
+use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\ApiPlaygroundController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BarcodeController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CollectionController as AdminCollectionController;
+use App\Http\Controllers\CollectionTypeController as AdminCollectionTypeController;
+use App\Http\Controllers\ColorController;
+use App\Http\Controllers\CompanyInfoManagementController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\FaqManagementController;
+use App\Http\Controllers\ImageOptimizerController;
+use App\Http\Controllers\ImageProductController;
+use App\Http\Controllers\OrderManagementController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PermissionManagementController;
+use App\Http\Controllers\PostCategoryController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProductBulkUploadController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductReviewController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\ImageProductController;
 use App\Http\Controllers\ProductSpecificationController;
-use App\Http\Controllers\BannerController;
-use App\Http\Controllers\VideoProviderController;
-use App\Http\Controllers\ProductVideoController;
-use App\Http\Controllers\CouponController;
-use App\Http\Controllers\TestimonialController;
-use App\Http\Controllers\UserManagementController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ColorController;
-use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ProductVariantController;
-use App\Http\Controllers\ProductBulkUploadController;
-use App\Http\Controllers\VariantBulkUploadController;
-use App\Http\Controllers\ApiPlaygroundController;
-use App\Http\Controllers\RoleManagementController;
-use App\Http\Controllers\PermissionManagementController;
-use App\Http\Controllers\AboutusController ;
-use App\Http\Controllers\AboutusSectionController;
-use App\Http\Controllers\BarcodeController;
-use App\Http\Controllers\VendorController;
 use App\Http\Controllers\ProductVariantImageController;
-use App\Http\Controllers\CollectionTypeController as AdminCollectionTypeController;
-use App\Http\Controllers\CollectionController as AdminCollectionController;
-use App\Http\Controllers\Api\CustomerAuthController;
-use App\Http\Controllers\OrderManagementController;
-use App\Http\Controllers\UnifiedDashboardController;
-use App\Http\Controllers\SalesManagementController;
+use App\Http\Controllers\ProductVideoController;
 use App\Http\Controllers\RefundManagementController;
-use App\Http\Controllers\ImageOptimizerController;
-use App\Http\Controllers\Api\BackendAiAssistantController;
-
-
+use App\Http\Controllers\RoleManagementController;
+use App\Http\Controllers\SalesManagementController;
+use App\Http\Controllers\SizeController;
+use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\UnifiedDashboardController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\VariantBulkUploadController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorMenuController;
+use App\Http\Controllers\VendorPermissionController;
+use App\Http\Controllers\VideoProviderController;
+use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/vendor.php';
 
@@ -49,26 +54,25 @@ Route::get('/auth/{provider}/callback', [CustomerAuthController::class, 'handleG
 // Show login form at root, but avoid conflicting with auth 'login' route name
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('login.form');
 
-
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', [AuthenticatedSessionController::class, 'dashboard'] )->name('dashboard');
+    Route::get('dashboard', [AuthenticatedSessionController::class, 'dashboard'])->name('dashboard');
     // API Playground
     Route::get('api-playground', [ApiPlaygroundController::class, 'index'])->name('api.playground');
     // Categories
-    Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::post('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update.post');
     Route::resource('categories', CategoryController::class);
 
     // SubCategories
     Route::get('get-subcategories/{categoryId}', [CategoryController::class, 'getSubcategories'])->name('get.subcategories');
-    Route::get('subcategories', [CategoryController::class, 'subcatindex'] )->name('subcatindex');
-    Route::get('subcategoriescreate', [CategoryController::class, 'createsubcate'] )->name('subcategories.create');
-    Route::post('subcategoriesstore', [CategoryController::class, 'substore'] )->name('subcategories.store');
-    Route::get('/subcategories/{id}/edit', [CategoryController::class, 'subedit'] )->name('subcategories.edit');
+    Route::get('subcategories', [CategoryController::class, 'subcatindex'])->name('subcatindex');
+    Route::get('subcategoriescreate', [CategoryController::class, 'createsubcate'])->name('subcategories.create');
+    Route::post('subcategoriesstore', [CategoryController::class, 'substore'])->name('subcategories.store');
+    Route::get('/subcategories/{id}/edit', [CategoryController::class, 'subedit'])->name('subcategories.edit');
     Route::post('/subcategories/{subcategory}', [CategoryController::class, 'subupdate'])->name('subcategories.update');
     Route::delete('/subcategories/{subcategory}', [CategoryController::class, 'subdestroy'])->name('subcategories.destroy');
 
     // Brands
-    Route::post('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+    Route::post('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update.post');
     Route::resource('brands', BrandController::class);
 
     // Product Bulk Upload
@@ -125,7 +129,7 @@ Route::middleware(['auth'])->group(function () {
 
     // About Us (single or multiple records with sections)
     Route::resource('aboutus', AboutusController::class)->parameters([
-        'aboutus' => 'aboutus'
+        'aboutus' => 'aboutus',
     ]);
     Route::get('aboutus/{aboutus}/sections', [AboutusSectionController::class, 'index'])->name('aboutus.sections.index');
     Route::get('aboutus/{aboutus}/sections/create', [AboutusSectionController::class, 'create'])->name('aboutus.sections.create');
@@ -149,19 +153,19 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('sizes', SizeController::class);
 
     // Content Management - Blog
-    Route::resource('blogposts', \App\Http\Controllers\PostController::class);
-    Route::resource('blogpost-categories', \App\Http\Controllers\PostCategoryController::class);
+    Route::resource('blogposts', PostController::class);
+    Route::resource('blogpost-categories', PostCategoryController::class);
 
     // Content Management - Pages & Policies
-    Route::resource('pages', \App\Http\Controllers\PageController::class);
+    Route::resource('pages', PageController::class);
 
     // Content Management - FAQs
-    Route::resource('faqs', \App\Http\Controllers\FaqManagementController::class);
-    Route::post('faqs/{faq}/update-status', [\App\Http\Controllers\FaqManagementController::class, 'updateStatus'])->name('faqs.update-status');
-    Route::post('faqs/update-order', [\App\Http\Controllers\FaqManagementController::class, 'updateOrder'])->name('faqs.update-order');
+    Route::resource('faqs', FaqManagementController::class);
+    Route::post('faqs/{faq}/update-status', [FaqManagementController::class, 'updateStatus'])->name('faqs.update-status');
+    Route::post('faqs/update-order', [FaqManagementController::class, 'updateOrder'])->name('faqs.update-order');
 
     // Content Management - Company Information
-    Route::resource('company-info', \App\Http\Controllers\CompanyInfoManagementController::class);
+    Route::resource('company-info', CompanyInfoManagementController::class);
 
     // Product Variants
     Route::get('all-variants', [ProductVariantController::class, 'allIndex'])->name('product-variants.all');
@@ -194,10 +198,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('permissions', PermissionManagementController::class);
 
     // Admin controlle Vendors routes
-    Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');   
+    Route::get('admin/vendors', [VendorController::class, 'index'])->name('admin.vendors.index');
     Route::get('admin/vendors/create', [VendorController::class, 'create'])->name('admin.vendors.create');
     Route::post('admin/vendors', [VendorController::class, 'store'])->name('admin.vendors.store');
-    Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');   
+    Route::get('admin/vendors/{id}', [VendorController::class, 'show'])->name('admin.vendors.show');
     Route::get('admin/vendors/{id}/edit', [VendorController::class, 'edit'])->name('admin.vendors.edit');
     Route::post('admin/vendors/{id}/approve', [VendorController::class, 'approve'])->name('admin.vendors.approve');
     Route::post('admin/vendors/{id}/suspend', [VendorController::class, 'suspend'])->name('admin.vendors.suspend');
@@ -209,8 +213,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin/vendors/bulk-action', [VendorController::class, 'bulkAction'])->name('admin.vendors.bulk-action');
 
     // Vendor Permissions
-    Route::get('admin/vendors/{vendor}/permissions', [\App\Http\Controllers\VendorPermissionController::class, 'edit'])->name('admin.vendors.permissions');
-    Route::post('admin/vendors/{vendor}/permissions', [\App\Http\Controllers\VendorPermissionController::class, 'update'])->name('admin.vendors.permissions.update');
+    Route::get('admin/vendors/{vendor}/permissions', [VendorPermissionController::class, 'edit'])->name('admin.vendors.permissions');
+    Route::post('admin/vendors/{vendor}/permissions', [VendorPermissionController::class, 'update'])->name('admin.vendors.permissions.update');
 
     // Collection Types
     Route::resource('collection-types', AdminCollectionTypeController::class);
@@ -238,15 +242,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('unified-dashboard', [UnifiedDashboardController::class, 'index'])->name('unified-dashboard');
     Route::get('unified-statistics', [UnifiedDashboardController::class, 'getStatistics'])->name('unified-statistics');
 
-     //  Sales Management
-     Route::get('sales', [SalesManagementController::class, 'index'])->name('sales.index');
-     Route::get('sales/{sale}', [SalesManagementController::class, 'show'])->name('sales.show');
-     Route::put('sales/{sale}/status', [SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
-     Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.processReturn');
-     Route::post('sales/{sale}/attach-customer', [SalesManagementController::class, 'attachCustomer'])->name('sales.attachCustomer');
-     Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
-     Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
-     Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');
+    //  Sales Management
+    Route::get('sales', [SalesManagementController::class, 'index'])->name('sales.index');
+    Route::get('sales/{sale}', [SalesManagementController::class, 'show'])->name('sales.show');
+    Route::put('sales/{sale}/status', [SalesManagementController::class, 'updateStatus'])->name('sales.update-status');
+    Route::post('sales/{sale}/return', [SalesManagementController::class, 'processReturn'])->name('sales.processReturn');
+    Route::post('sales/{sale}/attach-customer', [SalesManagementController::class, 'attachCustomer'])->name('sales.attachCustomer');
+    Route::get('sales/{sale}/invoice', [SalesManagementController::class, 'generateInvoice'])->name('sales.invoice');
+    Route::get('sales-statistics', [SalesManagementController::class, 'getStatistics'])->name('sales.statistics');
+    Route::get('sales-export', [SalesManagementController::class, 'export'])->name('sales.export');
 
     // Refund Management
     Route::get('refunds/report', [RefundManagementController::class, 'report'])->name('refunds.report');
@@ -260,10 +264,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('refunds/{refund}/process', [RefundManagementController::class, 'process'])->name('refunds.process');
     Route::put('refund-items/{refundItem}/qc-status', [RefundManagementController::class, 'updateItemQcStatus'])->name('refund-items.update-qc-status');
     Route::get('refund-statistics', [RefundManagementController::class, 'getStatistics'])->name('refunds.statistics');
-    Route::get('refunds-export', [RefundManagementController::class, 'export'])->name('refunds.export');
+    Route::get('refunds-export', [RefundManagementController::class, 'export'])->name('refunds.export.alt');
 
     // Customer refunds UI removed: no customer login/portal flow
-    
+
     // Product Review Management
     Route::get('product-reviews', [ProductReviewController::class, 'index'])->name('product-reviews.index');
     Route::post('product-reviews/{id}/approve', [ProductReviewController::class, 'approve'])->name('product-reviews.approve');
@@ -271,11 +275,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('product-reviews/{id}', [ProductReviewController::class, 'destroy'])->name('product-reviews.destroy');
 
     // Vendor Menu Management
-    Route::resource('vendor-menus', \App\Http\Controllers\VendorMenuController::class)->parameters([
-        'vendor-menus' => 'vendorMenu'
+    Route::resource('vendor-menus', VendorMenuController::class)->parameters([
+        'vendor-menus' => 'vendorMenu',
     ]);
-
-
 
     // Image Optimizer
     Route::get('image-optimizer', [ImageOptimizerController::class, 'index'])->name('image-optimizer.index');
@@ -288,9 +290,5 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-
-
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-
-

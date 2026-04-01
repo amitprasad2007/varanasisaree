@@ -23,15 +23,16 @@ class CollectionType extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'meta' => 'array',
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'meta' => 'array',
+            'is_active' => 'boolean',
+        ];
+    }
 
     public function collections(): HasMany
     {
         return $this->hasMany(Collection::class);
     }
 }
-
-

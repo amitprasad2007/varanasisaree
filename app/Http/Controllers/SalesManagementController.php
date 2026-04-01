@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Sale;
-use App\Models\SaleItem;
-use App\Models\SalePayment;
-use App\Models\SaleReturn;
 use App\Models\Customer;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Inertia\Inertia;
-use Inertia\Response;
+use App\Models\Sale;
+use App\Models\SaleReturn;
+use App\Models\SaleReturnItem;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SalesManagementController extends Controller
 {
@@ -29,7 +27,7 @@ class SalesManagementController extends Controller
             'items.variant.color:id,name',
             'items.variant.size:id,name',
             'payments',
-            'returns'
+            'returns',
         ]);
 
         // Apply filters
@@ -46,16 +44,16 @@ class SalesManagementController extends Controller
         }
 
         if ($request->filled('customer_search')) {
-            $query->whereHas('customer', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('email', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->customer_search . '%')
-                  ->orWhere('invoice_number', 'like', '%' . $request->customer_search . '%');
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('email', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('phone', 'like', '%'.$request->customer_search.'%')
+                    ->orWhere('invoice_number', 'like', '%'.$request->customer_search.'%');
             });
         }
 
         if ($request->filled('invoice_number')) {
-            $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
+            $query->where('invoice_number', 'like', '%'.$request->invoice_number.'%');
         }
 
         // Sorting
@@ -73,7 +71,7 @@ class SalesManagementController extends Controller
             'sales' => $sales,
             'filters' => $request->only([
                 'status', 'date_from', 'date_to', 'customer_search', 'invoice_number',
-                'sort_by', 'sort_direction'
+                'sort_by', 'sort_direction',
             ]),
             'statusOptions' => $statusOptions,
             'customers' => $customers,
@@ -136,7 +134,7 @@ class SalesManagementController extends Controller
     public function processReturn(Request $request, Sale $sale)
     {
         // Ensure sale has a customer attached before processing return
-        if (!$sale->customer_id) {
+        if (! $sale->customer_id) {
             return redirect()->back()->with('error', 'Attach a customer to this invoice before processing return.');
         }
         $request->validate([
@@ -147,7 +145,7 @@ class SalesManagementController extends Controller
         ]);
 
         return DB::transaction(function () use ($sale, $request) {
-            $return = new SaleReturn();
+            $return = new SaleReturn;
             $return->sale_id = $sale->id;
             $return->reason = $request->reason;
             $return->refund_total = 0;
@@ -156,11 +154,13 @@ class SalesManagementController extends Controller
             $refundTotal = 0;
             foreach ($request->items as $ri) {
                 $saleItem = $sale->items->firstWhere('id', $ri['sale_item_id']);
-                if (!$saleItem) { continue; }
+                if (! $saleItem) {
+                    continue;
+                }
                 $qty = min((int) $ri['quantity'], (int) $saleItem->quantity);
                 $amount = $qty * (float) $saleItem->price;
 
-                \App\Models\SaleReturnItem::create([
+                SaleReturnItem::create([
                     'sale_return_id' => $return->id,
                     'sale_item_id' => $saleItem->id,
                     'product_id' => $saleItem->product_id,
@@ -169,15 +169,6 @@ class SalesManagementController extends Controller
                     'amount' => $amount,
                 ]);
 
-                // increment stock back
-                if ($saleItem->product_variant_id) {
-                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($saleItem->product_variant_id);
-                    if ($variant) { $variant->increment('stock_quantity', $qty); }
-                } else {
-                    $product = \App\Models\Product::lockForUpdate()->find($saleItem->product_id);
-                    if ($product) { $product->increment('stock_quantity', $qty); }
-                }
-
                 $refundTotal += $amount;
             }
 
@@ -185,7 +176,7 @@ class SalesManagementController extends Controller
             $return->save();
 
             // Mark sale as returned if full return
-            $soldAmount = $sale->items->sum(fn($i) => (float) $i->price * (int) $i->quantity);
+            $soldAmount = $sale->items->sum(fn ($i) => (float) $i->price * (int) $i->quantity);
             if ($refundTotal >= $soldAmount) {
                 $sale->status = 'returned';
                 $sale->save();
@@ -209,7 +200,7 @@ class SalesManagementController extends Controller
             'gstin' => 'nullable|string',
         ]);
 
-        if (!empty($data['customer_id'])) {
+        if (! empty($data['customer_id'])) {
             $customer = Customer::findOrFail($data['customer_id']);
         } else {
             $customer = Customer::create([
@@ -235,6 +226,7 @@ class SalesManagementController extends Controller
         $sale->load(['customer', 'items.product', 'items.variant', 'payments']);
 
         $pdf = Pdf::loadView('sales.invoice', compact('sale'));
+
         return $pdf->download('invoice-'.$sale->invoice_number.'.pdf');
     }
 

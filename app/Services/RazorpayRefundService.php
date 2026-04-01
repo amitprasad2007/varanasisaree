@@ -2,52 +2,54 @@
 
 namespace App\Services;
 
-use Razorpay\Api\Api;
-use App\Models\RefundTransaction;
-use App\Models\Payment;
 use App\Models\Order;
-use Illuminate\Support\Facades\Log;
+use App\Models\Payment;
+use App\Models\RefundTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Razorpay\Api\Api;
 
 class RazorpayRefundService
 {
     protected $api;
+
     protected $keyId;
+
     protected $keySecret;
 
     public function __construct(?Api $api = null)
     {
-        $this->keyId = config('services.razorpay.key_id') ?? env('RAZOR_KEY_ID');
-        $this->keySecret = config('services.razorpay.key_secret') ?? env('RAZOR_KEY_SECRET');
+        $this->keyId = config('services.razorpay.key');
+        $this->keySecret = config('services.razorpay.secret');
         $this->api = $api ?? new Api($this->keyId, $this->keySecret);
     }
 
     /**
      * Process Razorpay refund for an order
      */
-    public function processRefund(RefundTransaction $refundTransaction, float $amount, string $reason = null): array
+    public function processRefund(RefundTransaction $refundTransaction, float $amount, ?string $reason = null): array
     {
-        $process = function() use ($refundTransaction, $amount, $reason) {
+        $process = function () use ($refundTransaction, $amount, $reason) {
             try {
                 // Get the original payment
                 $transactionId = null;
-                
+
                 // Try to get transaction_id from order or sale
                 if ($refundTransaction->refund?->order?->transaction_id) {
                     $transactionId = $refundTransaction->refund->order->transaction_id;
                 } elseif ($refundTransaction->refund?->sale?->transaction_id) {
                     $transactionId = $refundTransaction->refund->sale->transaction_id;
                 }
-                
-                if (!$transactionId) {
+
+                if (! $transactionId) {
                     throw new \Exception('No transaction ID found for this refund');
                 }
-                
+
                 $payment = Payment::where('rzorder_id', $transactionId)
                     ->where('status', 'captured')
                     ->first();
 
-                if (!$payment) {
+                if (! $payment) {
                     throw new \Exception('Original payment not found or not captured');
                 }
 
@@ -61,28 +63,41 @@ class RazorpayRefundService
                         'reason' => $reason ?? 'Customer refund request',
                         'refund_reference' => $refundTransaction->refund?->reference,
                         'order_id' => $refundTransaction->refund?->order?->order_id,
-                    ]
+                    ],
                 ];
 
                 Log::info('Creating Razorpay refund', [
                     'payment_id' => $payment->payment_id,
                     'amount' => $amountInPaise,
-                    'refund_data' => $refundData
+                    'refund_data' => $refundData,
                 ]);
 
                 // Create refund with Razorpay
                 $razorpayRefund = $this->api->payment->fetch($payment->payment_id)->refund($refundData);
 
-                if (!$razorpayRefund || !isset($razorpayRefund->id)) {
-                    throw new \Exception('Failed to create Razorpay refund');
+                // Use data_get to safely access properties in a way that works for both objects (SDK) and arrays (Mocks/Results)
+                $rzpRefundId = data_get($razorpayRefund, 'id');
+                $rzpStatus = data_get($razorpayRefund, 'status');
+
+                if (! $rzpRefundId) {
+                    throw new \Exception('Failed to create Razorpay refund: No ID returned');
                 }
+
+                // Map Razorpay status to our internal status enum
+                $internalStatus = match ($rzpStatus) {
+                    'processed' => 'completed',
+                    'pending' => 'processing',
+                    'failed' => 'failed',
+                    'cancelled' => 'cancelled',
+                    default => 'processing',
+                };
 
                 // Update refund transaction with Razorpay details
                 $refundTransaction->update([
-                    'gateway_transaction_id' => $razorpayRefund->id,
-                    'gateway_refund_id' => $razorpayRefund->id,
-                    'status' => $razorpayRefund->status,
-                    'gateway_response' => json_encode($razorpayRefund->toArray()),
+                    'gateway_transaction_id' => $rzpRefundId,
+                    'gateway_refund_id' => $rzpRefundId,
+                    'status' => $internalStatus,
+                    'gateway_response' => json_encode(is_object($razorpayRefund) && method_exists($razorpayRefund, 'toArray') ? $razorpayRefund->toArray() : (array) $razorpayRefund),
                     'processed_at' => now(),
                 ]);
 
@@ -91,33 +106,33 @@ class RazorpayRefundService
                     'refunded_amount' => ($payment->refunded_amount ?? 0) + $amount,
                     'refund_status' => $this->calculateRefundStatus($payment, $amount),
                     'refund_details' => json_encode([
-                        'refund_id' => $razorpayRefund->id,
+                        'refund_id' => $rzpRefundId,
                         'refund_amount' => $amount,
-                        'refund_status' => $razorpayRefund->status,
+                        'refund_status' => $rzpStatus,
                         'refunded_at' => now()->toISOString(),
-                    ])
+                    ]),
                 ]);
 
                 Log::info('Razorpay refund created successfully', [
-                    'refund_id' => $razorpayRefund->id,
+                    'refund_id' => $rzpRefundId,
                     'amount' => $amount,
-                    'status' => $razorpayRefund->status
+                    'status' => $rzpStatus,
                 ]);
 
                 return [
                     'success' => true,
-                    'refund_id' => $razorpayRefund->id,
-                    'status' => $razorpayRefund->status,
+                    'refund_id' => $rzpRefundId,
+                    'status' => $rzpStatus,
                     'amount' => $amount,
                     'processed_at' => now(),
-                    'gateway_response' => $razorpayRefund->toArray()
+                    'gateway_response' => is_object($razorpayRefund) && method_exists($razorpayRefund, 'toArray') ? $razorpayRefund->toArray() : (array) $razorpayRefund,
                 ];
 
             } catch (\Exception $e) {
                 Log::error('Razorpay refund failed', [
                     'error' => $e->getMessage(),
                     'refund_transaction_id' => $refundTransaction->id,
-                    'amount' => $amount
+                    'amount' => $amount,
                 ]);
 
                 // Update refund transaction with error
@@ -132,7 +147,7 @@ class RazorpayRefundService
                 return [
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'refund_transaction_id' => $refundTransaction->id
+                    'refund_transaction_id' => $refundTransaction->id,
                 ];
             }
         };
@@ -151,7 +166,7 @@ class RazorpayRefundService
     {
         try {
             $refund = $this->api->refund->fetch($refundId);
-            
+
             return [
                 'success' => true,
                 'refund_id' => $refund->id,
@@ -159,17 +174,17 @@ class RazorpayRefundService
                 'amount' => $refund->amount / 100, // Convert from paise to rupees
                 'created_at' => $refund->created_at,
                 'processed_at' => $refund->processed_at ?? null,
-                'gateway_response' => $refund->toArray()
+                'gateway_response' => $refund->toArray(),
             ];
         } catch (\Exception $e) {
             Log::error('Failed to check Razorpay refund status', [
                 'refund_id' => $refundId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -181,15 +196,15 @@ class RazorpayRefundService
     {
         try {
             $refund = $this->api->refund->fetch($refundId);
-            
+
             return [
                 'success' => true,
-                'refund' => $refund->toArray()
+                'refund' => $refund->toArray(),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -221,7 +236,7 @@ class RazorpayRefundService
             if ($payment->status !== 'captured') {
                 return [
                     'eligible' => false,
-                    'reason' => 'Payment not captured'
+                    'reason' => 'Payment not captured',
                 ];
             }
 
@@ -232,7 +247,7 @@ class RazorpayRefundService
             if ($totalRefunded >= $originalAmount) {
                 return [
                     'eligible' => false,
-                    'reason' => 'Payment already fully refunded'
+                    'reason' => 'Payment already fully refunded',
                 ];
             }
 
@@ -240,7 +255,7 @@ class RazorpayRefundService
             if ($refundAmount < 0) {
                 return [
                     'eligible' => false,
-                    'reason' => 'Invalid refund amount'
+                    'reason' => 'Invalid refund amount',
                 ];
             }
 
@@ -248,7 +263,7 @@ class RazorpayRefundService
                 return [
                     'eligible' => false,
                     'reason' => 'Refund amount exceeds remaining refundable amount',
-                    'max_refundable' => $originalAmount - $totalRefunded
+                    'max_refundable' => $originalAmount - $totalRefunded,
                 ];
             }
 
@@ -257,13 +272,13 @@ class RazorpayRefundService
                 'original_amount' => $originalAmount,
                 'total_refunded' => $totalRefunded,
                 'remaining_refundable' => $originalAmount - $totalRefunded,
-                'max_refundable' => $originalAmount - $totalRefunded
+                'max_refundable' => $originalAmount - $totalRefunded,
             ];
 
         } catch (\Exception $e) {
             return [
                 'eligible' => false,
-                'reason' => 'Validation error: ' . $e->getMessage()
+                'reason' => 'Validation error: '.$e->getMessage(),
             ];
         }
     }
@@ -275,15 +290,15 @@ class RazorpayRefundService
     {
         try {
             $payment = $this->api->payment->fetch($paymentId);
-            
+
             return [
                 'success' => true,
-                'payment' => $payment->toArray()
+                'payment' => $payment->toArray(),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -296,23 +311,23 @@ class RazorpayRefundService
         try {
             // Try to fetch a test payment (this will fail but we can check the error)
             $this->api->payment->fetch('test_payment_id');
-            
+
             return [
                 'success' => false,
-                'error' => 'Test payment not found (expected)'
+                'error' => 'Test payment not found (expected)',
             ];
         } catch (\Exception $e) {
             // If we get a "not found" error, the connection is working
             if (strpos($e->getMessage(), 'not found') !== false) {
                 return [
                     'success' => true,
-                    'message' => 'Razorpay connection is working'
+                    'message' => 'Razorpay connection is working',
                 ];
             }
-            
+
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }

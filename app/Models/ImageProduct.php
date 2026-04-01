@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\ImageProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class ImageProduct extends Model
 {
-    /** @use HasFactory<\Database\Factories\ImageProductFactory> */
+    /** @use HasFactory<ImageProductFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -21,10 +21,13 @@ class ImageProduct extends Model
         'display_order',
     ];
 
-    protected $casts = [
-        'is_primary' => 'boolean',
-        'display_order' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+            'display_order' => 'integer',
+        ];
+    }
 
     public function product(): BelongsTo
     {

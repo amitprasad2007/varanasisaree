@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Notification extends Model
 {
@@ -23,13 +23,16 @@ class Notification extends Model
         'email_sent_at',
     ];
 
-    protected $casts = [
-        'data' => 'array',
-        'is_read' => 'boolean',
-        'email_sent' => 'boolean',
-        'read_at' => 'datetime',
-        'email_sent_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+            'is_read' => 'boolean',
+            'email_sent' => 'boolean',
+            'read_at' => 'datetime',
+            'email_sent_at' => 'datetime',
+        ];
+    }
 
     /**
      * Get the order that owns the notification

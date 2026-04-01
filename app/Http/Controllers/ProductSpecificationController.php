@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductSpecification;
-use App\Models\Product;
 use App\Http\Requests\StoreProductSpecificationRequest;
 use App\Http\Requests\UpdateProductSpecificationRequest;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
+use App\Models\Product;
+use App\Models\ProductSpecification;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ProductSpecificationController extends Controller
 {
@@ -18,10 +17,10 @@ class ProductSpecificationController extends Controller
     public function index(Product $product)
     {
         $product->load('specifications');
-        
+
         return Inertia::render('Admin/ProductSpecifications/Index', [
             'product' => $product,
-            'specifications' => $product->specifications
+            'specifications' => $product->specifications,
         ]);
     }
 
@@ -31,7 +30,7 @@ class ProductSpecificationController extends Controller
     public function create(Product $product)
     {
         return Inertia::render('Admin/ProductSpecifications/Create', [
-            'product' => $product
+            'product' => $product,
         ]);
     }
 
@@ -42,7 +41,6 @@ class ProductSpecificationController extends Controller
     {
         $validated = $request->validated();
         $validated['product_id'] = $product->id;
-      //  dd($validated);
 
         ProductSpecification::create($validated);
 
@@ -61,11 +59,11 @@ class ProductSpecificationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product,ProductSpecification $productSpecification,)
+    public function edit(Product $product, ProductSpecification $productSpecification)
     {
         return Inertia::render('Admin/ProductSpecifications/Edit', [
             'product' => $product,
-            'specification' => $productSpecification
+            'specification' => $productSpecification,
         ]);
     }
 
@@ -84,7 +82,7 @@ class ProductSpecificationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product,ProductSpecification $productSpecification)
+    public function destroy(Product $product, ProductSpecification $productSpecification)
     {
         $productSpecification->delete();
 

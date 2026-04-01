@@ -24,11 +24,14 @@ class RecentView extends Model
         'viewed_at',
     ];
 
-    protected $casts = [
-        'customer_id' => 'integer',
-        'product_id' => 'integer',
-        'viewed_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'customer_id' => 'integer',
+            'product_id' => 'integer',
+            'viewed_at' => 'datetime',
+        ];
+    }
 
     public function product(): BelongsTo
     {

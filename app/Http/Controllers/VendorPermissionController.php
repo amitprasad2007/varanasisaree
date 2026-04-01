@@ -11,13 +11,13 @@ class VendorPermissionController extends Controller
 {
     public function edit(Vendor $vendor)
     {
-        $sections = VendorMenuSection::with(['vendormenuitems' => function($q) {
-                $q->whereNull('parent_id')->with('children')->orderBy('order');
-            }])
+        $sections = VendorMenuSection::with(['vendormenuitems' => function ($q) {
+            $q->whereNull('parent_id')->with('children')->orderBy('order');
+        }])
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
-            //dd($sections[0]->vendormenuitems);
+
         $vendorPermissions = $vendor->accessibleMenuItems()->pluck('vendor_menu_items.id');
 
         return Inertia::render('Admin/Vendors/Permissions', [

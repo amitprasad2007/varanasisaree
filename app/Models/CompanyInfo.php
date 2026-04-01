@@ -33,7 +33,10 @@ class CompanyInfo extends Model
         'additional_data',
     ];
 
-    protected $casts = [
-        'additional_data' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'additional_data' => 'array',
+        ];
+    }
 }

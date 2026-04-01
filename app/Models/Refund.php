@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Refund extends Model
 {
     use HasFactory;
-    
+
     protected $appends = ['status'];
 
     protected $fillable = [
@@ -38,15 +38,18 @@ class Refund extends Model
         'completed_at',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'refund_details' => 'array',
-        'paid_at' => 'datetime',
-        'requested_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'processed_at' => 'datetime',
-        'completed_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'refund_details' => 'array',
+            'paid_at' => 'datetime',
+            'requested_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'processed_at' => 'datetime',
+            'completed_at' => 'datetime',
+        ];
+    }
 
     // Existing relationships
     public function sale(): BelongsTo
@@ -67,7 +70,7 @@ class Refund extends Model
     // New relationships for comprehensive refund system
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class ,'order_id','order_id');
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
     }
 
     public function customer(): BelongsTo
@@ -122,6 +125,7 @@ class Refund extends Model
         if ($this->order) {
             return $this->order->customer;
         }
+
         return $this->customer;
     }
 
@@ -131,7 +135,7 @@ class Refund extends Model
     public function isEligibleForProcessing(): bool
     {
         return in_array($this->refund_status, ['approved', 'processing']) &&
-               !$this->isFullyProcessed();
+               ! $this->isFullyProcessed();
     }
 
     /**
@@ -257,8 +261,8 @@ class Refund extends Model
     {
         // Large refunds or full refunds might require additional approval
         $threshold = config('refunds.approval_thresholds.vendor_approval_threshold', 1000);
-        
-        return $this->amount >= $threshold || 
+
+        return $this->amount >= $threshold ||
                ($this->sale && $this->amount >= $this->sale->total * 0.8) ||
                ($this->order && $this->amount >= $this->order->total_amount * 0.8);
     }

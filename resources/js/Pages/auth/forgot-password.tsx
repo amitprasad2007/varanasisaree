@@ -1,6 +1,6 @@
 // Components
 import { Head, useForm } from '@inertiajs/react';
-import axios from 'axios';
+import axios from '@/lib/fetchClient';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 

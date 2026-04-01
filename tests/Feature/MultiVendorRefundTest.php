@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Vendor;
 use App\Services\RefundService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -69,7 +70,7 @@ class MultiVendorRefundTest extends TestCase
         $this->refundService = app(RefundService::class);
     }
 
-    /** @test */
+    #[Test]
     public function test_vendor_can_only_view_their_own_refunds()
     {
         // Create sales for different vendors
@@ -127,7 +128,7 @@ class MultiVendorRefundTest extends TestCase
         $this->assertCount(2, $refunds);
     }
 
-    /** @test */
+    #[Test]
     public function test_vendor_isolation_in_credit_notes()
     {
         // Create products for each vendor
@@ -200,7 +201,7 @@ class MultiVendorRefundTest extends TestCase
         $this->assertEquals($this->vendor2->id, $vendor2CreditNotes->first()->vendor_id);
     }
 
-    /** @test */
+    #[Test]
     public function test_vendor_cannot_create_refund_for_other_vendors_sale()
     {
         $sale = Sale::factory()->create([
@@ -225,7 +226,7 @@ class MultiVendorRefundTest extends TestCase
         $this->refundService->createRefundRequest($refundData);
     }
 
-    /** @test */
+    #[Test]
     public function test_refund_authorization_policies()
     {
         $sale = Sale::factory()->create([
@@ -252,7 +253,7 @@ class MultiVendorRefundTest extends TestCase
         $this->assertTrue($refund->canBeManaged($this->adminUser));
     }
 
-    /** @test */
+    #[Test]
     public function test_pos_refund_with_vendor_context()
     {
         $product = Product::factory()->create([
@@ -313,7 +314,7 @@ class MultiVendorRefundTest extends TestCase
         $this->assertEquals(50.00, $creditNote->remaining_amount);
     }
 
-    /** @test */
+    #[Test]
     public function test_vendor_specific_statistics()
     {
         // Create refunds for vendor 1
@@ -342,7 +343,7 @@ class MultiVendorRefundTest extends TestCase
         $this->assertEquals(300.00, $vendor2Stats['total_refunded_amount']);
     }
 
-    /** @test */
+    #[Test]
     public function test_high_value_refund_requires_additional_approval()
     {
         $sale = Sale::factory()->create([

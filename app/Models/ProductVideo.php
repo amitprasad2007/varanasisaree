@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductVideoFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class ProductVideo extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductVideoFactory> */
+    /** @use HasFactory<ProductVideoFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,9 +25,12 @@ class ProductVideo extends Model
         'status',
     ];
 
-    protected $casts = [
-        'is_featured' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_featured' => 'boolean',
+        ];
+    }
 
     public function product(): BelongsTo
     {

@@ -1,21 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorController;
+use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\VendorAuthController;
 use App\Http\Controllers\VendorRefundController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
 
-Route::domain('{domain}.' . env('APP_URL'))->group(function () {
-    Route::get('/', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
-    Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.login');
-    Route::post('/vendor/login', [VendorAuthController::class, 'login'])->name('vendor.login.store');
-    Route::get('/dashboard',  [VendorDashboardController::class, 'dashboard'])->name('vendor.dashboard');
-    
+Route::domain('{domain}.'.env('APP_URL'))->group(function () {
+    Route::get('/', [VendorAuthController::class, 'showLoginForm'])->name('vendor.subdomain.index');
+    Route::get('/vendor/login', [VendorAuthController::class, 'showLoginForm'])->name('vendor.subdomain.login');
+    Route::post('/vendor/login', [VendorAuthController::class, 'login'])->name('vendor.subdomain.login.store');
+    Route::get('/dashboard', [VendorDashboardController::class, 'dashboard'])->name('vendor.subdomain.dashboard');
+
     // Vendor logout route
-    Route::post('/logout', [VendorAuthController::class, 'logout'])->name('vendor.logout');
+    Route::post('/logout', [VendorAuthController::class, 'logout'])->name('vendor.subdomain.logout');
 });
 
 Route::prefix('vendor')->group(function () {
@@ -28,7 +28,7 @@ Route::prefix('vendor')->group(function () {
 Route::prefix('vendor')->name('vendor.')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/home', [VendorController::class, 'home'])->name('home');
-    
+
     // Vendor Refund Management Routes
     Route::prefix('refunds')->name('refunds.')->group(function () {
         Route::get('/', [VendorRefundController::class, 'index'])->name('index');

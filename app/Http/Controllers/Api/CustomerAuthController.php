@@ -3,18 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ForgetPasswordSendEmail;
 use App\Models\Customer;
+use App\Services\CustomerService;
+use Carbon\Carbon;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use App\Services\CustomerService;
-use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Mail\ForgetPasswordSendEmail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 
 class CustomerAuthController extends Controller
 {
@@ -82,13 +85,15 @@ class CustomerAuthController extends Controller
 
     public function profile(Request $request)
     {
-        $customer = $request->user()->load(['orders.cartItems', 'wishlists.product', 'addresses', 'cartItems.product','cartItems.productVariant']);
+        $customer = $request->user()->load(['orders.cartItems', 'wishlists.product', 'addresses', 'cartItems.product', 'cartItems.productVariant']);
+
         return response()->json($this->customerService->formatCustomerData($customer));
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+
         return response()->json(['message' => 'Logged out successfully']);
     }
 
@@ -105,24 +110,24 @@ class CustomerAuthController extends Controller
             // Check if user exists by provider-specific ID
             $customer = null;
             if ($provider === 'google') {
-                $customer = Customer::where('google_id', $socialUser->id)->first();
+                $customer = Customer::where('google_id', $socialUser->getId())->first();
             } elseif ($provider === 'facebook') {
-                $customer = Customer::where('facebook_id', $socialUser->id)->first();
+                $customer = Customer::where('facebook_id', $socialUser->getId())->first();
             }
 
             // If customer doesn't exist, create new one
-            if (!$customer) {
+            if (! $customer) {
                 $customerData = [
-                    'name' => $socialUser->name,
-                    'email' => $socialUser->email,
-                    'avatar' => $socialUser->avatar,
+                    'name' => $socialUser->getName(),
+                    'email' => $socialUser->getEmail(),
+                    'avatar' => $socialUser->getAvatar(),
                 ];
 
                 // Add provider-specific ID
                 if ($provider === 'google') {
-                    $customerData['google_id'] = $socialUser->id;
+                    $customerData['google_id'] = $socialUser->getId();
                 } elseif ($provider === 'facebook') {
-                    $customerData['facebook_id'] = $socialUser->id;
+                    $customerData['facebook_id'] = $socialUser->getId();
                 }
 
                 $customer = Customer::create($customerData);
@@ -131,13 +136,15 @@ class CustomerAuthController extends Controller
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
             // Redirect to frontend with token
-            $frontendUrl = env('FRONTEND_URL');
-            return redirect($frontendUrl . 'oauth/callback?token=' . $token . '&provider=' . $provider);
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+
+            return redirect($frontendUrl.'oauth/callback?token='.$token.'&provider='.$provider);
 
         } catch (\Exception $e) {
-            Log::error($provider . ' OAuth Error: ' . $e->getMessage());
-            $frontendUrl = env('FRONTEND_URL');
-            return redirect($frontendUrl . 'oauth/callback?error=oauth_failed');
+            Log::error($provider.' OAuth Error: '.$e->getMessage());
+            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+
+            return redirect($frontendUrl.'oauth/callback?error=oauth_failed');
         }
     }
 
@@ -149,39 +156,41 @@ class CustomerAuthController extends Controller
             ]);
 
             // Retrieve user details from the provider using the token provided by React Native SDK
-            $socialUser = Socialite::driver($provider)->userFromToken($request->token);
+            /** @var AbstractProvider $driver */
+            $driver = Socialite::driver($provider);
+            $socialUser = $driver->userFromToken($request->token);
 
             $customer = null;
             if ($provider === 'googleMobile') {
-                $customer = Customer::where('google_id', $socialUser->id)->orWhere('email', $socialUser->email)->first();
+                $customer = Customer::where('google_id', $socialUser->getId())->orWhere('email', $socialUser->getEmail())->first();
             } elseif ($provider === 'facebookMobile') {
-                $customer = Customer::where('facebook_id', $socialUser->id)->orWhere('email', $socialUser->email)->first();
+                $customer = Customer::where('facebook_id', $socialUser->getId())->orWhere('email', $socialUser->getEmail())->first();
             }
 
             // Create new customer if not exists
-            if (!$customer) {
+            if (! $customer) {
                 $customerData = [
-                    'name' => $socialUser->name,
-                    'email' => $socialUser->email,
-                    'avatar' => $socialUser->avatar,
+                    'name' => $socialUser->getName(),
+                    'email' => $socialUser->getEmail(),
+                    'avatar' => $socialUser->getAvatar(),
                 ];
 
                 if ($provider === 'googleMobile') {
-                    $customerData['google_id'] = $socialUser->id;
+                    $customerData['google_id'] = $socialUser->getId();
                 } elseif ($provider === 'facebookMobile') {
-                    $customerData['facebook_id'] = $socialUser->id;
+                    $customerData['facebook_id'] = $socialUser->getId();
                 }
 
                 $customer = Customer::create($customerData);
             } else {
-                 // Update provider ID if it was matched by email only
-                 if ($provider === 'googleMobile' && !$customer->google_id) {
-                     $customer->google_id = $socialUser->id;
-                     $customer->save();
-                 } elseif ($provider === 'facebookMobile' && !$customer->facebook_id) {
-                     $customer->facebook_id = $socialUser->id;
-                     $customer->save();
-                 }
+                // Update provider ID if it was matched by email only
+                if ($provider === 'googleMobile' && ! $customer->google_id) {
+                    $customer->google_id = $socialUser->getId();
+                    $customer->save();
+                } elseif ($provider === 'facebookMobile' && ! $customer->facebook_id) {
+                    $customer->facebook_id = $socialUser->getId();
+                    $customer->save();
+                }
             }
 
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
@@ -194,10 +203,11 @@ class CustomerAuthController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error($provider . ' Native Token OAuth Error: ' . $e->getMessage());
+            Log::error($provider.' Native Token OAuth Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'OAuth authentication failed. Invalid token.'
+                'message' => 'OAuth authentication failed. Invalid token.',
             ], 401);
         }
     }
@@ -214,13 +224,15 @@ class CustomerAuthController extends Controller
 
         $customer = Customer::where('email', $request->email)->first();
 
-        if (!$customer) {
+        if (! $customer) {
             // Avoid leaking whether the email exists; return success message
             return response()->json(['status' => true]);
         }
 
         // Create a reset token using the customers broker
-        $token = Password::broker('customers')->getRepository()->create($customer);
+        /** @var PasswordBroker $broker */
+        $broker = Password::broker('customers');
+        $token = $broker->getRepository()->create($customer);
 
         // Send email with token and email for frontend to use
         Mail::to($customer->email)->send(new ForgetPasswordSendEmail([
@@ -235,7 +247,8 @@ class CustomerAuthController extends Controller
         return response()->json(['status' => true]);
     }
 
-    public function changetokencheck (Request $request){
+    public function changetokencheck(Request $request)
+    {
         // Require both email and token to validate
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
@@ -246,19 +259,20 @@ class CustomerAuthController extends Controller
         }
 
         $record = DB::table('customer_password_reset_tokens')->where('email', $request->email)->first();
-        if (!$record) {
+        if (! $record) {
             return response()->json(['status' => false]);
         }
-        $isValid = \Illuminate\Support\Facades\Hash::check($request->token, $record->token);
+        $isValid = Hash::check($request->token, $record->token);
 
         // Check expiry
         $expires = config('auth.passwords.customers.expire', 60);
-        $notExpired = $record->created_at && now()->diffInMinutes(\Carbon\Carbon::parse($record->created_at)) <= $expires;
+        $notExpired = $record->created_at && now()->diffInMinutes(Carbon::parse($record->created_at)) <= $expires;
 
         return response()->json(['status' => $isValid && $notExpired]);
     }
 
-    public function changepassword (Request $request){
+    public function changepassword(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'token' => 'required|string',
@@ -279,7 +293,4 @@ class CustomerAuthController extends Controller
 
         return response()->json(['status' => $status === Password::PASSWORD_RESET]);
     }
-
 }
-
-

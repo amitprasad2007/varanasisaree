@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Product;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use App\Models\Cart;
+use App\Models\Product;
 use App\Models\RecentView;
 use App\Models\Wishlist;
 use App\Services\ProductService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public $productService;
+
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
+
     public function getFeaturedProducts(Request $request)
     {
         $query = Product::with(['imageproducts', 'category', 'variants.images'])
@@ -26,127 +27,130 @@ class ProductController extends Controller
             ->where('stock_quantity', '>', 0)
             ->orderBy('created_at', 'desc')
             ->where('name', 'like', '%Saree%');
-         // Parse filters
-         $priceFilters = $request->query('price', []);
-         $colorFilters = $request->query('colors', []);
-         $materialFilters = $request->query('material', []);
-         $designFilters = $request->query('design', []);
- 
-         // Normalize filters to arrays
-         $toArray = function ($value) {
-             if (is_string($value)) {
-                 // support comma-separated
-                 return array_values(array_filter(array_map('trim', explode(',', $value))));
-             }
-             if (is_array($value)) {
-                 return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
-             }
-             return [];
-         };
- 
-         $priceFilters = $toArray($priceFilters);
-         $colorFilters = $toArray($colorFilters);
-         $materialFilters = $toArray($materialFilters);
-         $designFilters = $toArray($designFilters);
- 
-         // Apply price filters on final price (price - price * discount/100)
-         if (!empty($priceFilters)) {
-             $query->where(function ($q) use ($priceFilters) {
-                 foreach ($priceFilters as $filter) {
-                     switch ($filter) {
-                         case 'under-10000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
-                             break;
-                         case '10000-25000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
-                             break;
-                         case '25000-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
-                             break;
-                         case 'above-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
-                             break;
-                     }
-                 }
-             });
-         }
- 
-         // Apply color filter via variants/colors hex_code
-         if (!empty($colorFilters)) {
-             $query->whereExists(function ($sub) use ($colorFilters) {
-                 $sub->from('product_variants')
-                     ->join('colors', 'product_variants.color_id', '=', 'colors.id')
-                     ->whereColumn('product_variants.product_id', 'products.id')
-                     ->whereIn('colors.hex_code', $colorFilters);
-             });
-         }
- 
-         // Apply material filter to product.fabric (case-insensitive, supports slug or name)
-         if (!empty($materialFilters)) {
-             $normalized = array_map(function ($v) {
-                 // convert slug to words if needed
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $materialFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Apply design filter to product.work_type (case-insensitive)
-         if (!empty($designFilters)) {
-             $normalized = array_map(function ($v) {
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $designFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Sorting
-         $sort = (string) $request->query('sort', 'relevance');
-         switch ($sort) {
-             case 'price-low-to-high':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
-                 break;
-             case 'price-high-to-low':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
-                 break;
-             case 'newest':
-                 $query->orderByDesc('created_at');
-                 break;
-             case 'bestselling':
-                 // Prioritize products flagged as bestsellers; tie-breaker by recency
-                 $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
-                 break;
-             case 'relevance':
-             default:
-                 // Leave default order (could be customized later)
-                 break;
-         }
-         $query->limit(14);
-         // Fetch products after applying filters and sorting
-         $products = $query->get();
- 
-         if ($products->isEmpty()) {
-             return response()->json([]);
-         }
- 
-         $result = $this->productService->productdetails($products);
- 
-         // Apply collection-level sorting when needed (e.g., rating)
-         if ($sort === 'rating') {
-             $result = $result->sortByDesc(function ($item) {
-                 return (float) ($item['rating'] ?? 0);
-             })->values();
-         }
- 
-         return response()->json($result);    
+        // Parse filters
+        $priceFilters = $request->query('price', []);
+        $colorFilters = $request->query('colors', []);
+        $materialFilters = $request->query('material', []);
+        $designFilters = $request->query('design', []);
+
+        // Normalize filters to arrays
+        $toArray = function ($value) {
+            if (is_string($value)) {
+                // support comma-separated
+                return array_values(array_filter(array_map('trim', explode(',', $value))));
+            }
+            if (is_array($value)) {
+                return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
+            }
+
+            return [];
+        };
+
+        $priceFilters = $toArray($priceFilters);
+        $colorFilters = $toArray($colorFilters);
+        $materialFilters = $toArray($materialFilters);
+        $designFilters = $toArray($designFilters);
+
+        // Apply price filters on final price (price - price * discount/100)
+        if (! empty($priceFilters)) {
+            $query->where(function ($q) use ($priceFilters) {
+                foreach ($priceFilters as $filter) {
+                    switch ($filter) {
+                        case 'under-10000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
+                            break;
+                        case '10000-25000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
+                            break;
+                        case '25000-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
+                            break;
+                        case 'above-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Apply color filter via variants/colors hex_code
+        if (! empty($colorFilters)) {
+            $query->whereExists(function ($sub) use ($colorFilters) {
+                $sub->from('product_variants')
+                    ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->whereIn('colors.hex_code', $colorFilters);
+            });
+        }
+
+        // Apply material filter to product.fabric (case-insensitive, supports slug or name)
+        if (! empty($materialFilters)) {
+            $normalized = array_map(function ($v) {
+                // convert slug to words if needed
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $materialFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Apply design filter to product.work_type (case-insensitive)
+        if (! empty($designFilters)) {
+            $normalized = array_map(function ($v) {
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $designFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Sorting
+        $sort = (string) $request->query('sort', 'relevance');
+        switch ($sort) {
+            case 'price-low-to-high':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
+                break;
+            case 'price-high-to-low':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
+                break;
+            case 'newest':
+                $query->orderByDesc('created_at');
+                break;
+            case 'bestselling':
+                // Prioritize products flagged as bestsellers; tie-breaker by recency
+                $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
+                break;
+            case 'relevance':
+            default:
+                // Leave default order (could be customized later)
+                break;
+        }
+        $query->limit(14);
+        // Fetch products after applying filters and sorting
+        $products = $query->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $result = $this->productService->productdetails($products);
+
+        // Apply collection-level sorting when needed (e.g., rating)
+        if ($sort === 'rating') {
+            $result = $result->sortByDesc(function ($item) {
+                return (float) ($item['rating'] ?? 0);
+            })->values();
+        }
+
+        return response()->json($result);
     }
 
     /**
@@ -158,142 +162,144 @@ class ProductController extends Controller
             ->where('status', 'active')
             ->where('is_bestseller', true)
             ->where('stock_quantity', '>', 0);
-         // Parse filters
-         $priceFilters = $request->query('price', []);
-         $colorFilters = $request->query('colors', []);
-         $materialFilters = $request->query('material', []);
-         $designFilters = $request->query('design', []);
- 
-         // Normalize filters to arrays
-         $toArray = function ($value) {
-             if (is_string($value)) {
-                 // support comma-separated
-                 return array_values(array_filter(array_map('trim', explode(',', $value))));
-             }
-             if (is_array($value)) {
-                 return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
-             }
-             return [];
-         };
- 
-         $priceFilters = $toArray($priceFilters);
-         $colorFilters = $toArray($colorFilters);
-         $materialFilters = $toArray($materialFilters);
-         $designFilters = $toArray($designFilters);
- 
-         // Apply price filters on final price (price - price * discount/100)
-         if (!empty($priceFilters)) {
-             $query->where(function ($q) use ($priceFilters) {
-                 foreach ($priceFilters as $filter) {
-                     switch ($filter) {
-                         case 'under-10000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
-                             break;
-                         case '10000-25000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
-                             break;
-                         case '25000-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
-                             break;
-                         case 'above-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
-                             break;
-                     }
-                 }
-             });
-         }
- 
-         // Apply color filter via variants/colors hex_code
-         if (!empty($colorFilters)) {
-             $query->whereExists(function ($sub) use ($colorFilters) {
-                 $sub->from('product_variants')
-                     ->join('colors', 'product_variants.color_id', '=', 'colors.id')
-                     ->whereColumn('product_variants.product_id', 'products.id')
-                     ->whereIn('colors.hex_code', $colorFilters);
-             });
-         }
- 
-         // Apply material filter to product.fabric (case-insensitive, supports slug or name)
-         if (!empty($materialFilters)) {
-             $normalized = array_map(function ($v) {
-                 // convert slug to words if needed
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $materialFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Apply design filter to product.work_type (case-insensitive)
-         if (!empty($designFilters)) {
-             $normalized = array_map(function ($v) {
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $designFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Sorting
-         $sort = (string) $request->query('sort', 'relevance');
-         switch ($sort) {
-             case 'price-low-to-high':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
-                 break;
-             case 'price-high-to-low':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
-                 break;
-             case 'newest':
-                 $query->orderByDesc('created_at');
-                 break;
-             case 'bestselling':
-                 // Prioritize products flagged as bestsellers; tie-breaker by recency
-                 $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
-                 break;
-             case 'relevance':
-             default:
-                 // Leave default order (could be customized later)
-                 break;
-         }
- 
-         // Fetch products after applying filters and sorting
-         // LIMIT to 20 products to prevent JSON response truncation
-         $products = $query->take(20)->get();
- 
-         if ($products->isEmpty()) {
-             return response()->json([]);
-         }
- 
+        // Parse filters
+        $priceFilters = $request->query('price', []);
+        $colorFilters = $request->query('colors', []);
+        $materialFilters = $request->query('material', []);
+        $designFilters = $request->query('design', []);
+
+        // Normalize filters to arrays
+        $toArray = function ($value) {
+            if (is_string($value)) {
+                // support comma-separated
+                return array_values(array_filter(array_map('trim', explode(',', $value))));
+            }
+            if (is_array($value)) {
+                return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
+            }
+
+            return [];
+        };
+
+        $priceFilters = $toArray($priceFilters);
+        $colorFilters = $toArray($colorFilters);
+        $materialFilters = $toArray($materialFilters);
+        $designFilters = $toArray($designFilters);
+
+        // Apply price filters on final price (price - price * discount/100)
+        if (! empty($priceFilters)) {
+            $query->where(function ($q) use ($priceFilters) {
+                foreach ($priceFilters as $filter) {
+                    switch ($filter) {
+                        case 'under-10000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
+                            break;
+                        case '10000-25000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
+                            break;
+                        case '25000-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
+                            break;
+                        case 'above-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Apply color filter via variants/colors hex_code
+        if (! empty($colorFilters)) {
+            $query->whereExists(function ($sub) use ($colorFilters) {
+                $sub->from('product_variants')
+                    ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->whereIn('colors.hex_code', $colorFilters);
+            });
+        }
+
+        // Apply material filter to product.fabric (case-insensitive, supports slug or name)
+        if (! empty($materialFilters)) {
+            $normalized = array_map(function ($v) {
+                // convert slug to words if needed
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $materialFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Apply design filter to product.work_type (case-insensitive)
+        if (! empty($designFilters)) {
+            $normalized = array_map(function ($v) {
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $designFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Sorting
+        $sort = (string) $request->query('sort', 'relevance');
+        switch ($sort) {
+            case 'price-low-to-high':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
+                break;
+            case 'price-high-to-low':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
+                break;
+            case 'newest':
+                $query->orderByDesc('created_at');
+                break;
+            case 'bestselling':
+                // Prioritize products flagged as bestsellers; tie-breaker by recency
+                $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
+                break;
+            case 'relevance':
+            default:
+                // Leave default order (could be customized later)
+                break;
+        }
+
+        // Fetch products after applying filters and sorting
+        // LIMIT to 20 products to prevent JSON response truncation
+        $products = $query->take(20)->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+
         $result = $this->productService->productdetails($products);
- 
-         // Apply collection-level sorting when needed (e.g., rating)
-         if ($sort === 'rating') {
-             $result = $result->sortByDesc(function ($item) {
-                 return (float) ($item['rating'] ?? 0);
-             })->values();
-         }
- 
-         return response()->json($result);
+
+        // Apply collection-level sorting when needed (e.g., rating)
+        if ($sort === 'rating') {
+            $result = $result->sortByDesc(function ($item) {
+                return (float) ($item['rating'] ?? 0);
+            })->values();
+        }
+
+        return response()->json($result);
     }
 
-     /**
+    /**
      * Get product details for API
      */
-
-    public function getProductDetails($slug) {
+    public function getProductDetails($slug)
+    {
 
         $product = Product::where('slug', $slug)
-                ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'variants.color', 'videos', 'primaryImage', 'featuredVideo'])
-                ->first();
-               // dd($product);
+            ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'variants.color', 'videos', 'primaryImage', 'featuredVideo'])
+            ->first();
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -305,6 +311,7 @@ class ProductController extends Controller
             ->first(function ($variant) {
                 $status = $variant->status;
                 $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1' || $status === null);
+
                 return $isActive && (int) $variant->stock_quantity > 0;
             }) ?? $variantCollection->first();
 
@@ -312,7 +319,7 @@ class ProductController extends Controller
 
         // Build colors list based on variants' colors (attach a representative variantId)
         $colors = $variantCollection
-            ->filter(fn($variant) => $variant->color)
+            ->filter(fn ($variant) => $variant->color)
             ->groupBy('color_id')
             ->map(function ($variantsByColor) {
                 $variantSample = $variantsByColor->first();
@@ -320,8 +327,10 @@ class ProductController extends Controller
                 $available = $variantsByColor->contains(function ($variant) {
                     $status = $variant->status;
                     $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1');
+
                     return (int) $variant->stock_quantity > 0 && ($status === null ? true : $isActive);
                 });
+
                 return [
                     'name' => $color->name,
                     'value' => $color->hex_code,
@@ -333,7 +342,7 @@ class ProductController extends Controller
 
         // Build specifications as name/value pairs from ProductSpecification
         $specifications = collect($product->specifications)
-            ->map(fn($spec) => [
+            ->map(fn ($spec) => [
                 'name' => $spec->name,
                 'value' => $spec->value,
             ])
@@ -347,7 +356,7 @@ class ProductController extends Controller
             'occasion' => $product->occasion,
             'weight' => $product->weight,
         ])
-            ->filter(fn($value) => !is_null($value) && $value !== '')
+            ->filter(fn ($value) => ! is_null($value) && $value !== '')
             ->map(function ($value, $key) {
                 return [
                     'name' => ucwords(str_replace('_', ' ', $key)),
@@ -365,7 +374,7 @@ class ProductController extends Controller
                 ->pluck('image_path')
                 ->filter()
                 ->values();
-            if ($variantImages->isEmpty() && !empty($variant->image_path)) {
+            if ($variantImages->isEmpty() && ! empty($variant->image_path)) {
                 $variantImages = collect([$variant->image_path]);
             }
 
@@ -384,7 +393,7 @@ class ProductController extends Controller
                     'value' => $variant->color->hex_code,
                 ] : null,
                 'sku' => $variant->sku,
-                'images' => $variantImages->map(fn($path) => asset('storage/' . $path)),
+                'images' => $variantImages->map(fn ($path) => asset('storage/'.$path)),
                 'stock' => (int) $variant->stock_quantity,
                 'available' => $available,
                 'price' => $price,
@@ -393,15 +402,15 @@ class ProductController extends Controller
         })->values();
 
         // Top-level images and sku should match the default variant when present
-        $topImages = $product->resolveImagePaths()->map(fn($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/' . $path));
+        $topImages = $product->resolveImagePaths()->map(fn ($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/'.$path));
         $topSku = null;
         if ($defaultVariant) {
             $dvImages = collect($defaultVariant->images ?? [])->pluck('image_path')->filter()->values();
-            if ($dvImages->isEmpty() && !empty($defaultVariant->image_path)) {
+            if ($dvImages->isEmpty() && ! empty($defaultVariant->image_path)) {
                 $dvImages = collect([$defaultVariant->image_path]);
             }
             if ($dvImages->isNotEmpty()) {
-                $topImages = $dvImages->map(fn($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/' . $path));
+                $topImages = $dvImages->map(fn ($path) => Str::startsWith($path, ['http://', 'https://', '//']) ? $path : asset('storage/'.$path));
             }
             $topSku = $defaultVariant->sku;
         }
@@ -417,35 +426,37 @@ class ProductController extends Controller
             'id' => $product->id,
             'name' => $product->name,
             'slug' => $product->slug,
-            'brand'=> $product->brand ? [
+            'brand' => $product->brand ? [
                 'id' => $product->brand->id,
                 'name' => $product->brand->name,
                 'slug' => $product->brand->slug,
             ] : null,
-            'price'=> $basePrice,
-            'originalPrice'=> $baseOriginalPrice,
-            'discountPercentage'=> number_format($baseDiscount, 2, '.', ''),
-            'rating'=> $product->rating,
-            'reviewCount'=> $product->reviewCount,
-            'category'=> $product->category,
-            'subCategory'=> $product->subcategory,
+            'price' => $basePrice,
+            'originalPrice' => $baseOriginalPrice,
+            'discountPercentage' => number_format($baseDiscount, 2, '.', ''),
+            'rating' => $product->rating,
+            'reviewCount' => $product->reviewCount,
+            'category' => $product->category,
+            'subCategory' => $product->subcategory,
             'sku' => $topSku,
-            'images'=> $topImages,
+            'images' => $topImages,
             'colors' => $colors,
             'defaultVariantId' => $defaultVariantId,
             'variants' => $variants,
-            'sizes'=> $product->size,
-            'stock'=> $product->stock_quantity,
-            'description'=> $product->description,
-            'specifications'=> $specifications,
-            'isBestseller'=> $product->is_bestseller
+            'sizes' => $product->size,
+            'stock' => $product->stock_quantity,
+            'description' => $product->description,
+            'specifications' => $specifications,
+            'isBestseller' => $product->is_bestseller,
         ]);
     }
-    public function getRelatedProducts($slug) {
+
+    public function getRelatedProducts($slug)
+    {
         // Retrieve the current product
         $currentProduct = Product::where('slug', $slug)->first();
 
-        if (!$currentProduct) {
+        if (! $currentProduct) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -458,22 +469,23 @@ class ProductController extends Controller
             ->orWhere('brand_id', $currentProduct->brand_id)
             ->orWhereBetween('price', [
                 max(0, $currentProduct->price - 10), // Adjust the range as needed
-                $currentProduct->price + 10
+                $currentProduct->price + 10,
             ])
             ->where('status', 'active')
             ->take(10) // Limit the number of related products
             ->orderBy('created_at', 'asc')
             ->get();
-            if($products->isEmpty()){
-                return response()->json([]);
-            }
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
 
         $relatedProducts = $this->productService->productdetails($products);
 
         return response()->json($relatedProducts);
     }
 
-    public function getallproducts(){
+    public function getallproducts()
+    {
         $products = Product::with(['imageproducts', 'variants.images', 'category'])
             ->where('status', 'active')
             ->get();
@@ -487,16 +499,16 @@ class ProductController extends Controller
         return response()->json($result);
     }
 
-     /**
+    /**
      * Get recommended products for API
      */
     public function getRecommendedProducts(Request $request)
     {
         $customer = $request->user();
         $cartItems = Cart::where('customer_id', $customer->id)
-                ->whereNull('order_id')
-                ->with('product')
-                ->get();
+            ->whereNull('order_id')
+            ->with('product')
+            ->get();
         $cartproductIds = $cartItems->pluck('product_id')->toArray();
         $recentproducts = RecentView::where('customer_id', $customer->id)
             ->with(['product'])
@@ -513,23 +525,22 @@ class ProductController extends Controller
         $mergedProducts = $recentproducts->merge($whislistproducts);
         $onlyProducts = $mergedProducts->pluck(['product'])->filter();
 
-		$categoryIds = $cartItems->pluck('product.category_id')->unique()->filter();
-		$subcategoryIds = $cartItems->pluck('product.subcategory_id')->unique()->filter();
-		$additionalProducts = Product::where(function 
-			($query) use ($categoryIds, $subcategoryIds) {
-				if ($categoryIds->isNotEmpty()) {
-					$query->whereIn('category_id', $categoryIds);
-				}
-				if ($subcategoryIds->isNotEmpty()) {
-					$query->orWhereIn('subcategory_id', $subcategoryIds);
-				}
-			})
-			->where('status', 'active')
-			->whereNotIn('id', array_merge($cartproductIds, $onlyProducts->pluck('id')->toArray()))
-			->inRandomOrder()
-			->take(10 - count($onlyProducts))
-			->get();
-		
+        $categoryIds = $cartItems->pluck('product.category_id')->unique()->filter();
+        $subcategoryIds = $cartItems->pluck('product.subcategory_id')->unique()->filter();
+        $additionalProducts = Product::where(function ($query) use ($categoryIds, $subcategoryIds) {
+            if ($categoryIds->isNotEmpty()) {
+                $query->whereIn('category_id', $categoryIds);
+            }
+            if ($subcategoryIds->isNotEmpty()) {
+                $query->orWhereIn('subcategory_id', $subcategoryIds);
+            }
+        })
+            ->where('status', 'active')
+            ->whereNotIn('id', array_merge($cartproductIds, $onlyProducts->pluck('id')->toArray()))
+            ->inRandomOrder()
+            ->take(10 - count($onlyProducts))
+            ->get();
+
         // Combine product IDs (from wishlist/recent + additional)
         $allProductIds = $onlyProducts->pluck('id')
             ->merge($additionalProducts->pluck('id'))
@@ -539,128 +550,129 @@ class ProductController extends Controller
         // Start query builder for applying filters
         $query = Product::whereIn('id', $allProductIds);
 
+        // Parse filters
+        $priceFilters = $request->query('price', []);
+        $colorFilters = $request->query('colors', []);
+        $materialFilters = $request->query('material', []);
+        $designFilters = $request->query('design', []);
 
-         // Parse filters
-         $priceFilters = $request->query('price', []);
-         $colorFilters = $request->query('colors', []);
-         $materialFilters = $request->query('material', []);
-         $designFilters = $request->query('design', []);
- 
-         // Normalize filters to arrays
-         $toArray = function ($value) {
-             if (is_string($value)) {
-                 // support comma-separated
-                 return array_values(array_filter(array_map('trim', explode(',', $value))));
-             }
-             if (is_array($value)) {
-                 return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
-             }
-             return [];
-         };
- 
-         $priceFilters = $toArray($priceFilters);
-         $colorFilters = $toArray($colorFilters);
-         $materialFilters = $toArray($materialFilters);
-         $designFilters = $toArray($designFilters);
- 
-         // Apply price filters on final price (price - price * discount/100)
-         if (!empty($priceFilters)) {
-             $query->where(function ($q) use ($priceFilters) {
-                 foreach ($priceFilters as $filter) {
-                     switch ($filter) {
-                         case 'under-10000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
-                             break;
-                         case '10000-25000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
-                             break;
-                         case '25000-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
-                             break;
-                         case 'above-50000':
-                             $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
-                             break;
-                     }
-                 }
-             });
-         }
- 
-         // Apply color filter via variants/colors hex_code
-         if (!empty($colorFilters)) {
-             $query->whereExists(function ($sub) use ($colorFilters) {
-                 $sub->from('product_variants')
-                     ->join('colors', 'product_variants.color_id', '=', 'colors.id')
-                     ->whereColumn('product_variants.product_id', 'products.id')
-                     ->whereIn('colors.hex_code', $colorFilters);
-             });
-         }
- 
-         // Apply material filter to product.fabric (case-insensitive, supports slug or name)
-         if (!empty($materialFilters)) {
-             $normalized = array_map(function ($v) {
-                 // convert slug to words if needed
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $materialFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Apply design filter to product.work_type (case-insensitive)
-         if (!empty($designFilters)) {
-             $normalized = array_map(function ($v) {
-                 $v = str_replace('-', ' ', (string) $v);
-                 return strtolower($v);
-             }, $designFilters);
-             $query->where(function ($q) use ($normalized) {
-                 foreach ($normalized as $term) {
-                     $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%' . $term . '%']);
-                 }
-             });
-         }
- 
-         // Sorting
-         $sort = (string) $request->query('sort', 'relevance');
-         switch ($sort) {
-             case 'price-low-to-high':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
-                 break;
-             case 'price-high-to-low':
-                 $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
-                 break;
-             case 'newest':
-                 $query->orderByDesc('created_at');
-                 break;
-             case 'bestselling':
-                 // Prioritize products flagged as bestsellers; tie-breaker by recency
-                 $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
-                 break;
-             case 'relevance':
-             default:
-                 // Leave default order (could be customized later)
-                 break;
-         }
- 
-         // Fetch products after applying filters and sorting
-         $products = $query->get();
- 
-         if ($products->isEmpty()) {
-             return response()->json([]);
-         }
- 
-         $result = $this->productService->productdetails($products);
- 
-         // Apply collection-level sorting when needed (e.g., rating)
-         if ($sort === 'rating') {
-             $result = $result->sortByDesc(function ($item) {
-                 return (float) ($item['rating'] ?? 0);
-             })->values();
-         }
- 
-         return response()->json($result);
+        // Normalize filters to arrays
+        $toArray = function ($value) {
+            if (is_string($value)) {
+                // support comma-separated
+                return array_values(array_filter(array_map('trim', explode(',', $value))));
+            }
+            if (is_array($value)) {
+                return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
+            }
+
+            return [];
+        };
+
+        $priceFilters = $toArray($priceFilters);
+        $colorFilters = $toArray($colorFilters);
+        $materialFilters = $toArray($materialFilters);
+        $designFilters = $toArray($designFilters);
+
+        // Apply price filters on final price (price - price * discount/100)
+        if (! empty($priceFilters)) {
+            $query->where(function ($q) use ($priceFilters) {
+                foreach ($priceFilters as $filter) {
+                    switch ($filter) {
+                        case 'under-10000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) < ?', [10000]);
+                            break;
+                        case '10000-25000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [10000, 25000]);
+                            break;
+                        case '25000-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) BETWEEN ? AND ?', [25000, 50000]);
+                            break;
+                        case 'above-50000':
+                            $q->orWhereRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) > ?', [50000]);
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Apply color filter via variants/colors hex_code
+        if (! empty($colorFilters)) {
+            $query->whereExists(function ($sub) use ($colorFilters) {
+                $sub->from('product_variants')
+                    ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->whereIn('colors.hex_code', $colorFilters);
+            });
+        }
+
+        // Apply material filter to product.fabric (case-insensitive, supports slug or name)
+        if (! empty($materialFilters)) {
+            $normalized = array_map(function ($v) {
+                // convert slug to words if needed
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $materialFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Apply design filter to product.work_type (case-insensitive)
+        if (! empty($designFilters)) {
+            $normalized = array_map(function ($v) {
+                $v = str_replace('-', ' ', (string) $v);
+
+                return strtolower($v);
+            }, $designFilters);
+            $query->where(function ($q) use ($normalized) {
+                foreach ($normalized as $term) {
+                    $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%'.$term.'%']);
+                }
+            });
+        }
+
+        // Sorting
+        $sort = (string) $request->query('sort', 'relevance');
+        switch ($sort) {
+            case 'price-low-to-high':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) ASC');
+                break;
+            case 'price-high-to-low':
+                $query->orderByRaw('(price - (price * (COALESCE(discount,0)) / 100.0)) DESC');
+                break;
+            case 'newest':
+                $query->orderByDesc('created_at');
+                break;
+            case 'bestselling':
+                // Prioritize products flagged as bestsellers; tie-breaker by recency
+                $query->orderByDesc('is_bestseller')->orderByDesc('created_at');
+                break;
+            case 'relevance':
+            default:
+                // Leave default order (could be customized later)
+                break;
+        }
+
+        // Fetch products after applying filters and sorting
+        $products = $query->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $result = $this->productService->productdetails($products);
+
+        // Apply collection-level sorting when needed (e.g., rating)
+        if ($sort === 'rating') {
+            $result = $result->sortByDesc(function ($item) {
+                return (float) ($item['rating'] ?? 0);
+            })->values();
+        }
+
+        return response()->json($result);
     }
-
 }

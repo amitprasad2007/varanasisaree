@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\CollectionType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Inertia\Inertia;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class CollectionTypeController extends Controller
 {
@@ -17,7 +17,7 @@ class CollectionTypeController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(20);
-       // dd($collectionTypes);
+
         return Inertia::render('Admin/CollectionTypes/Index', [
             'collectionTypes' => $collectionTypes,
         ]);
@@ -115,7 +115,7 @@ class CollectionTypeController extends Controller
             $path = $request->file('thumbnail_image')->store('collection_types', 'public');
             $data['thumbnail_image'] = $path;
         }
-       // dd($data);
+
         $collection_type->update($data);
 
         return redirect()->route('collection-types.index')->with('success', 'Collection type updated');
@@ -124,8 +124,7 @@ class CollectionTypeController extends Controller
     public function destroy(CollectionType $collection_type)
     {
         $collection_type->delete();
+
         return redirect()->route('collection-types.index')->with('success', 'Collection type deleted');
     }
 }
-
-

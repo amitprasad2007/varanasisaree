@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -97,7 +97,7 @@ export default function VendorRefundsIndex({ refunds, statistics, filters, vendo
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout title="Refunds">
             <Head title={`Refunds - ${vendor.business_name}`} />
             
             <div className="space-y-6">

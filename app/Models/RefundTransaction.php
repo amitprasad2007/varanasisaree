@@ -26,12 +26,15 @@ class RefundTransaction extends Model
         'completed_at',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'gateway_response' => 'array',
-        'processed_at' => 'datetime',
-        'completed_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'gateway_response' => 'array',
+            'processed_at' => 'datetime',
+            'completed_at' => 'datetime',
+        ];
+    }
 
     public function refund(): BelongsTo
     {
