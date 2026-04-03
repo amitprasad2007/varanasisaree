@@ -1,30 +1,22 @@
 import './bootstrap';
 import '../css/app.css';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
 
-const pages = import.meta.glob('./Pages/**/*.tsx');
-
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) => {
-        const path = `./Pages/${name}.tsx`;
-        const importFn = pages[path];
-        if (!importFn) {
-            throw new Error(
-                `Page not found: ${name}. Tried: ${path}. Available: ${Object.keys(pages).slice(0, 10).join(', ')}...`,
-            );
-        }
-        return importFn();
-    },
+    resolve: (name) =>
+        resolvePageComponent<ResolvedComponent>(
+            `./Pages/${name}.tsx`,
+            import.meta.glob<ResolvedComponent>('./Pages/**/*.tsx'),
+        ),
     setup({ el, App, props }) {
-        if (!el) throw new Error('Missing Inertia mount element.');
-
-        if (el.hasChildNodes()) {
+        if (el?.hasChildNodes()) {
             hydrateRoot(el, <App {...props} />);
-        } else {
+        } else if (el) {
             createRoot(el).render(<App {...props} />);
         }
     },
