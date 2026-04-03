@@ -6,7 +6,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 
 // Very early diagnostic
-(function() {
+(function () {
     const el = document.getElementById('app');
     console.log('[DEBUG] Root element "app":', el ? 'Present' : 'MISSING');
     if (el) {
@@ -29,11 +29,12 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => {
         console.log(`[DEBUG] Resolving component: ${name}`);
-        return resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob<any>('./Pages/**/*.tsx')) as any;
+        return resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob<any>('./Pages/**/*.{tsx,jsx}')) as any;
+
     },
     setup({ el, App, props }) {
         console.log('[DEBUG] In setup function');
-        
+
         if (!props || !props.initialPage) {
             console.error('[DEBUG] NO INITIAL PAGE PROPS IN SETUP');
         }
