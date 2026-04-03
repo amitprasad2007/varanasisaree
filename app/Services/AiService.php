@@ -2,17 +2,14 @@
 
 namespace App\Services;
 
-use Gemini\Laravel\Facades\Gemini;
-use Gemini\Data\Content;
-use Gemini\Data\Blob;
-use Gemini\Data\Part;
-use Gemini\Data\GenerationConfig;
-use Gemini\Data\ImageConfig;
-use Gemini\Enums\MimeType;
-use Gemini\Enums\ResponseModality;
 use App\Models\Product;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Ai;
+use Laravel\Ai\Files\Base64Image;
+use Laravel\Ai\Messages\AssistantMessage;
+use Laravel\Ai\Messages\UserMessage;
+
+use function Laravel\Ai\agent;
 
 class AiService
 {
@@ -21,19 +18,22 @@ class AiService
      */
     public function generateProductDescription(string $productName, array $attributes): string
     {
-        $attributesStr = implode(', ', array_map(fn($k, $v) => "$k: $v", array_keys($attributes), $attributes));
-        
+        $attributesStr = implode(', ', array_map(fn ($k, $v) => "$k: $v", array_keys($attributes), $attributes));
+
         $prompt = "Generate a rich, elegant, and persuasive product description for a saree named '$productName'. 
         The description should highlight the craftmanship, fabric, and traditional value.
         Key attributes: $attributesStr.
         Make it suitable for a high-end Varanasi saree e-commerce website.";
 
         try {
-            $result = Gemini::generativeModel(config('gemini.model'))->generateContent($prompt);
-            return $result->text();
+            return agent()->prompt($prompt)->text;
+        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Description): ' . $e->getMessage());
+            return 'The AI service is currently busy. Please try again in a few moments.';
         } catch (\Exception $e) {
-            Log::error("Gemini Description Generation Error: " . $e->getMessage());
-            return "Unable to generate description at this time.";
+            Log::error('AI Description Generation Error: '.$e->getMessage());
+
+            return 'Unable to generate description at this time.';
         }
     }
 
@@ -59,25 +59,33 @@ class AiService
             INVENTORY CONTEXT:
             $inventoryContext";
 
-            $mappedHistory = array_map(fn($item) => Content::from($item), $history);
+            // Map history to Ai SDK format
+            $messages = collect($history)->map(function ($item) {
+                return match ($item['role']) {
+                    'user' => new UserMessage($item['parts'][0]['text']),
+                    'model', 'assistant' => new AssistantMessage($item['parts'][0]['text']),
+                    default => new UserMessage($item['parts'][0]['text']),
+                };
+            })->toArray();
 
-            $chat = Gemini::generativeModel(config('gemini.model'))
-                ->withSystemInstruction(Content::parse($systemInstruction))
-                ->startChat(
-                    history: $mappedHistory
-                );
+            $response = agent($systemInstruction, $messages)->prompt($userMessage);
 
-            $response = $chat->sendMessage($userMessage);
-            
             return [
-                'response' => $response->text(),
-                'history' => $chat->history
+                'response' => $response->text,
+                'history' => $this->mapResponseMessages($response->messages->all()),
+            ];
+        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Chat): ' . $e->getMessage());
+            return [
+                'response' => 'The AI assistant is currently receiving too much traffic. Please wait a minute and try again.',
+                'history' => $history,
             ];
         } catch (\Exception $e) {
-            Log::error("Gemini Chat Error: " . $e->getMessage());
+            Log::error('AI Chat Error: '.$e->getMessage());
+
             return [
-                'response' => "Error: " . $e->getMessage(),
-                'history' => $history
+                'response' => 'Error: '.$e->getMessage(),
+                'history' => $history,
             ];
         }
     }
@@ -105,44 +113,45 @@ class AiService
             
             Your response should be in clean Markdown format.";
 
-            $mappedHistory = array_map(fn($item) => Content::from($item), $history);
+            $messages = collect($history)->map(function ($item) {
+                return match ($item['role']) {
+                    'user' => new UserMessage($item['parts'][0]['text']),
+                    'model', 'assistant' => new AssistantMessage($item['parts'][0]['text']),
+                    default => new UserMessage($item['parts'][0]['text']),
+                };
+            })->toArray();
 
-            $chat = Gemini::generativeModel(config('gemini.model'))
-                ->withSystemInstruction(Content::parse($systemInstruction))
-                ->startChat(
-                    history: $mappedHistory
-                );
+            $attachments = [];
 
             if ($imageBase64) {
                 // Remove the data:image/...;base64, part if present
-                if (preg_match('/^data:image\/(\w+);base64,/', $imageBase64, $type)) {
-                    $mimeTypeStr = "image/" . strtolower($type[1]);
+                $mimeType = 'image/jpeg';
+                if (preg_match('/^data:(image\/\w+);base64,/', $imageBase64, $match)) {
+                    $mimeType = $match[1];
                     $imageBase64 = substr($imageBase64, strpos($imageBase64, ',') + 1);
-                    $mimeType = MimeType::from($mimeTypeStr);
-                } else {
-                    $mimeType = MimeType::IMAGE_JPEG; // Fallback
                 }
 
-                $response = $chat->sendMessage([
-                    $userMessage,
-                    new Blob(
-                        mimeType: $mimeType,
-                        data: $imageBase64
-                    )
-                ]);
-            } else {
-                $response = $chat->sendMessage($userMessage);
+                $attachments[] = new Base64Image($imageBase64, $mimeType);
             }
-            
+
+            $response = agent($systemInstruction, $messages)->prompt($userMessage, $attachments);
+
             return [
-                'response' => $response->text(),
-                'history' => $chat->history
+                'response' => $response->text,
+                'history' => $this->mapResponseMessages($response->messages->all()),
+            ];
+        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Backend): ' . $e->getMessage());
+            return [
+                'response' => 'Technical Error: The AI provider is currently overloaded. Please try again in 30-60 seconds.',
+                'history' => $history,
             ];
         } catch (\Exception $e) {
-            Log::error("Gemini Backend Chat Error: " . $e->getMessage());
+            Log::error('AI Backend Chat Error: '.$e->getMessage());
+
             return [
-                'response' => "Technical Error: " . $e->getMessage(),
-                'history' => $history
+                'response' => 'Technical Error: '.$e->getMessage(),
+                'history' => $history,
             ];
         }
     }
@@ -152,7 +161,7 @@ class AiService
      */
     public function getSareeRecommendations(string $preferences, array $products): string
     {
-        $productListStr = "";
+        $productListStr = '';
         foreach ($products as $product) {
             $productListStr .= "- {$product->name} (Category: {$product->category->name}, Price: {$product->price})\n";
         }
@@ -162,11 +171,11 @@ class AiService
         Provide a brief reason for each recommendation.";
 
         try {
-            $result = Gemini::generativeModel(config('gemini.model'))->generateContent($prompt);
-            return $result->text();
+            return agent()->prompt($prompt)->text;
         } catch (\Exception $e) {
-            Log::error("Gemini Recommendation Error: " . $e->getMessage());
-            return "We recommend checking our featured collection for the latest designs.";
+            Log::error('AI Recommendation Error: '.$e->getMessage());
+
+            return 'We recommend checking our featured collection for the latest designs.';
         }
     }
 
@@ -176,71 +185,52 @@ class AiService
     public function generateProductImage(string $prompt, string $aspectRatio = '1:1'): array
     {
         try {
-            $generationConfig = new GenerationConfig(
-                responseModalities: [ResponseModality::TEXT, ResponseModality::IMAGE],
-                imageConfig: new ImageConfig(aspectRatio: $aspectRatio),
-            );
+            $response = Ai::image($prompt, size: $aspectRatio);
 
-            $result = Gemini::generativeModel(config('gemini.image_model'))
-                ->withGenerationConfig($generationConfig)
-                ->generateContent($prompt);
+            // Store the first generated image
+            $path = $response->store('ai-generated', 'public');
 
-            $textContent = '';
-            $imageUrl = null;
-
-            foreach ($result->parts() as $part) {
-                if ($part->text !== null) {
-                    $textContent .= $part->text;
-                }
-
-                if ($part->inlineData !== null) {
-                    // Determine file extension from MIME type
-                    $mimeType = $part->inlineData->mimeType;
-                    $extension = match ($mimeType) {
-                        MimeType::IMAGE_PNG, 'image/png' => 'png',
-                        MimeType::IMAGE_WEBP, 'image/webp' => 'webp',
-                        default => 'jpg',
-                    };
-
-                    // Generate a unique filename and save the image
-                    $filename = 'ai_' . time() . '_' . uniqid() . '.' . $extension;
-                    $storagePath = 'public/ai-generated/' . $filename;
-
-                    // Ensure the directory exists
-                    $directory = storage_path('app/public/ai-generated');
-                    if (!is_dir($directory)) {
-                        mkdir($directory, 0755, true);
-                    }
-
-                    // Decode and save the base64 image data
-                    $imageData = base64_decode($part->inlineData->data);
-                    Storage::put($storagePath, $imageData);
-
-                    $imageUrl = asset('storage/ai-generated/' . $filename);
-                }
-            }
-
-            if ($imageUrl) {
+            if ($path) {
                 return [
                     'status' => 'success',
-                    'message' => $textContent ?: 'Image generated successfully.',
-                    'url' => $imageUrl,
+                    'message' => 'Image generated successfully.',
+                    'url' => asset('storage/'.$path),
                 ];
             }
 
             return [
                 'status' => 'error',
-                'message' => $textContent ?: 'No image was generated. Try rephrasing your prompt.',
+                'message' => 'No image was generated. Try rephrasing your prompt.',
                 'url' => null,
             ];
         } catch (\Exception $e) {
-            Log::error("Gemini Image Generation Error: " . $e->getMessage());
+            Log::error('AI Image Generation Error: '.$e->getMessage());
+
             return [
                 'status' => 'error',
-                'message' => 'Image generation failed: ' . $e->getMessage(),
+                'message' => 'Image generation failed: '.$e->getMessage(),
                 'url' => null,
             ];
         }
+    }
+
+    /**
+     * Map response messages back to the front-end format.
+     */
+    protected function mapResponseMessages(array $messages): array
+    {
+        return array_map(function ($msg) {
+            $role = match (true) {
+                $msg instanceof UserMessage => 'user',
+                $msg instanceof AssistantMessage => 'model',
+                default => 'model',
+            };
+
+            return [
+                'role' => $role,
+                'parts' => [['text' => $msg->content]],
+            ];
+        }, $messages);
     }
 
     /**
@@ -256,13 +246,13 @@ class AiService
 
             $context = "Available Products:\n";
             foreach ($products as $product) {
-                $primaryImage = $product->imageproducts->where('is_primary', true)->first() 
+                $primaryImage = $product->imageproducts->where('is_primary', true)->first()
                                 ?? $product->imageproducts->first();
-                $imageUrl = $primaryImage ? asset('storage/' . $primaryImage->image_path) : '';
-                
+                $imageUrl = $primaryImage ? asset('storage/'.$primaryImage->image_path) : '';
+
                 $context .= "- Name: {$product->name}\n";
                 $context .= "  Slug: {$product->slug}\n";
-                $context .= "  Category: " . ($product->category->title ?? 'N/A') . "\n";
+                $context .= '  Category: '.($product->category->title ?? 'N/A')."\n";
                 $context .= "  Price: ₹{$product->price}\n";
                 $context .= "  Fabric: {$product->fabric}\n";
                 $context .= "  Color: {$product->color}\n";
@@ -274,8 +264,9 @@ class AiService
 
             return $context;
         } catch (\Exception $e) {
-            Log::error("Error generating inventory context: " . $e->getMessage());
-            return "Inventory data currently unavailable.";
+            Log::error('Error generating inventory context: '.$e->getMessage());
+
+            return 'Inventory data currently unavailable.';
         }
     }
 }
