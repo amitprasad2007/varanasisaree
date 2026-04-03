@@ -88,7 +88,7 @@ return [
                     'smartest' => 'gemini-pro-latest',
                 ],
                 'image' => [
-                    'default' => 'imagen-3',
+                    'default' => 'imagen-4.0-generate-001',
                 ],
             ],
         ],
