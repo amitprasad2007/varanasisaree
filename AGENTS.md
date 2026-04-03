@@ -10,8 +10,8 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
 - php - 8.4
-- inertiajs/inertia-laravel (INERTIA_LARAVEL) - v2
-- laravel/framework (LARAVEL) - v12
+- inertiajs/inertia-laravel (INERTIA_LARAVEL) - v3
+- laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/reverb (REVERB) - v1
 - laravel/sanctum (SANCTUM) - v4
@@ -22,9 +22,9 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
-- pestphp/pest (PEST) - v3
+- pestphp/pest (PEST) - v4
 - phpunit/phpunit (PHPUNIT) - v11
-- @inertiajs/react (INERTIA_REACT) - v2
+- @inertiajs/react (INERTIA_REACT) - v3
 - react (REACT) - v19
 - eslint (ESLINT) - v9
 - laravel-echo (ECHO) - v2
@@ -37,8 +37,8 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - `socialite-development` — Manages OAuth social authentication with Laravel Socialite. Activate when adding social login providers; configuring OAuth redirect/callback flows; retrieving authenticated user details; customizing scopes or parameters; setting up community providers; testing with Socialite fakes; or when the user mentions social login, OAuth, Socialite, or third-party authentication.
 - `pest-testing` — Use this skill for Pest PHP testing in Laravel projects only. Trigger whenever any test is being written, edited, fixed, or refactored — including fixing tests that broke after a code change, adding assertions, converting PHPUnit to Pest, adding datasets, and TDD workflows. Always activate when the user asks how to write something in Pest, mentions test files or directories (tests/Feature, tests/Unit) or architecture tests. Covers: it()/expect() syntax, datasets, mocking, browser testing, arch(), Livewire component tests, RefreshDatabase, and all Pest 4 features. Do not use for editing factories, seeders, migrations, controllers, models, or non-test PHP code.
-- `inertia-react-development` — Develops Inertia.js v2 React client-side applications. Activates when creating React pages, forms, or navigation; using <Link>, <Form>, useForm, or router; working with deferred props, prefetching, or polling; or when user mentions React with Inertia, React pages, React forms, or React navigation.
-- `tailwindcss-development` — Always invoke when the user's message includes 'tailwind' in any form. Also invoke for: building responsive grid layouts (multi-column card grids, product grids), flex/grid page structures (dashboards with sidebars, fixed topbars, mobile-toggle navs), styling UI components (cards, tables, navbars, pricing sections, forms, inputs, badges), adding dark mode variants, fixing spacing or typography, and Tailwind v3/v4 work. The core use case: writing or fixing Tailwind utility classes in HTML templates (Blade, JSX, Vue). Skip for backend PHP logic, database queries, API routes, JavaScript with no HTML/CSS component, CSS file audits, build tool configuration, and vanilla CSS.
+- `inertia-react-development` — Develops Inertia.js v3 React client-side applications. Activates when creating React pages, forms, or navigation; using <Link>, <Form>, useHttp, or router; working with deferred props, prefetching, or polling; or when user mentions React with Inertia, React pages, React forms, or React navigation.
+- `tailwindcss-development` — Always invoke when the user's message includes 'tailwind' in any form. Also invoke for: building responsive grid layouts, flex/grid page structures, styling UI components (cards, tables, navbars), adding dark mode variants, and Tailwind v4 work. The core use case: writing or fixing Tailwind utility classes in HTML/JSX. Skip for backend PHP logic or CSS-only file audits.
 
 ## Conventions
 
@@ -164,10 +164,12 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - ALWAYS use `search-docs` tool for version-specific Inertia documentation and updated code examples.
 - IMPORTANT: Activate `inertia-react-development` when working with Inertia client-side patterns.
 
-# Inertia v2
+# Inertia v3
 
-- Use all Inertia features from v1 and v2. Check the documentation before making changes to ensure the correct approach.
-- New features: deferred props, infinite scroll, merging props, polling, prefetching, once props, flash data.
+- Use all Inertia features from v1, v2, and v3. Check the documentation before making changes to ensure the correct approach.
+- Inertia v3 removes the Axios requirement; use the built-in XHR client or the `useHttp` hook for API requests that don't trigger full navigations.
+- SSR now works automatically in Vite development mode without requiring a separate Node process.
+- Use `Inertia::optional()` instead of `Inertia::lazy()`.
 - When using deferred props, add an empty state with a pulsing or animated skeleton.
 
 === laravel/core rules ===
@@ -225,30 +227,26 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
-=== laravel/v12 rules ===
+=== laravel/v13 rules ===
 
-# Laravel 12
+# Laravel 13
 
 - CRITICAL: ALWAYS use `search-docs` tool for version-specific Laravel documentation and updated code examples.
 - Since Laravel 11, Laravel has a new streamlined file structure which this project uses.
 
-## Laravel 12 Structure
+## Laravel 13 Features
 
-- In Laravel 12, middleware are no longer registered in `app\Http/Kernel.php`.
-- Middleware are configured declaratively in `bootstrap/app.php` using `Application::configure()->withMiddleware()`.
-- `bootstrap/app.php` is the file to register middleware, exceptions, and routing files.
-- `bootstrap/providers.php` contains application specific service providers.
-- The `app\Console/Kernel.php` file no longer exists; use `bootstrap/app.php` or `routes/console.php` for console configuration.
-- Console commands in `app\Console/Commands/` are automatically available and do not require manual registration.
+- **Native PHP Attributes**: Use native attributes (e.g., `[#Authenticated]`, `[#Model]`) where applicable as an alternative to docblocks or traditional syntax in Models, Controllers, Jobs, and Mailables.
+- **AI SDK (Stable)**: Leverage the Laravel AI SDK for LLM interactions (chat, tool-calling agents, synthesis, embeddings) using a provider-agnostic interface.
+- **Native Vector Search**: Use the query builder's first-class support for vector similarity search (e.g., PostgreSQL with `pgvector`).
+- **PreventRequestForgery**: The CSRF middleware has been updated from `VerifyCsrfToken` to `PreventRequestForgery`.
+- **Cache::touch()**: Use `Cache::touch($key)` to extend the TTL of a cache item without fetching/recalculating data.
 
-## Database
+## Database & Models
 
-- When modifying a column, the migration must include all of the attributes that were previously defined on the column. Otherwise, they will be dropped and lost.
-- Laravel 12 allows limiting eagerly loaded records natively, without external packages: `$query->latest()->limit(10);`.
-
-### Models
-
-- Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
+- When modifying a column, the migration must include all attributes previously defined.
+- Laravel 13 allows limiting eagerly loaded records natively: `$query->latest()->limit(10);`.
+- Casts should be set in a `casts()` method on the model rather than the `$casts` property.
 
 === pint/core rules ===
 
@@ -270,5 +268,14 @@ protected function isAccessible(User $user, ?string $path = null): bool
 # Inertia + React
 
 - IMPORTANT: Activate `inertia-react-development` when working with Inertia React client-side patterns.
+
+=== tailwindcss/core rules ===
+
+# Tailwind CSS v4
+
+- Tailwind v4 uses a CSS-first configuration. Use the `@theme` directive in your CSS files to define design tokens (colors, spacing, fonts).
+- Avoid using `tailwind.config.js` as it is no longer the primary configuration method in v4.
+- Use `@plugin` to register Tailwind plugins directly within your CSS.
+- When adding new utility classes, ensure they follow the v4 design system defined in `resources/css/app.css`.
 
 </laravel-boost-guidelines>
