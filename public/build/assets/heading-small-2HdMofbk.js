@@ -1,0 +1,1 @@
+import{t as e}from"./app-CdykA309.js";var t=e();function n({title:e,description:n}){return(0,t.jsxs)(`header`,{children:[(0,t.jsx)(`h3`,{className:`mb-0.5 text-base font-medium`,children:e}),n&&(0,t.jsx)(`p`,{className:`text-muted-foreground text-sm`,children:n})]})}export{n as t};
