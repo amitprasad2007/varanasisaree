@@ -184,10 +184,10 @@ class AiService
 
         RULES:
         1. Extract keywords that could match product names, descriptions, fabrics (silk, cotton, banarasi, monga, etc.), colors, occasions, or work types.
-        2. If the customer mentions "budget" or "affordable" WITHOUT specifying a price, set budget_tier to "budget" (under ₹5000).
+        2. If the customer mentions "budget" or "affordable" WITHOUT specifying a price, set budget_tier to "budget" (under ₹5000) AND generate a follow_up_question asking for their specific range (e.g., "Under ₹2000" or "₹2000-₹5000").
         3. If the customer mentions "premium", "expensive", "high-end", or "luxury", set budget_tier to "premium" (₹5000 and above).
         4. If a specific price range is mentioned, set min_price and/or max_price.
-        5. If the request is too vague to give useful recommendations (e.g., just "saree" with no other context), generate a polite follow_up_question asking about their occasion, preferred fabric, color, or budget.
+        5. If the request is too vague to give useful recommendations (e.g., just "saree" or "show me something") or the budget is unclear, generate a polite follow_up_question asking about their occasion, preferred fabric, color, or specific budget range.
         6. Return ONLY valid JSON, no markdown, no explanation.
 
         RESPOND WITH THIS EXACT JSON FORMAT:
@@ -196,7 +196,7 @@ class AiService
             "min_price": null,
             "max_price": null,
             "budget_tier": null,
-            "follow_up_question": null
+            "follow_up_question": "Your question here if needed, otherwise null"
         }
         PROMPT;
 

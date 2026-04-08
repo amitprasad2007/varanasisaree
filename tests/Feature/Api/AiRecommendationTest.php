@@ -1,5 +1,7 @@
 <?php
 
+/** @var \Tests\TestCase $this */
+
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
@@ -38,8 +40,11 @@ it('returns follow-up question when AI detects vague input', function () {
     ]);
 
     $response->assertOk()
-        ->assertJsonStructure(['follow_up_question', 'recommendations'])
-        ->assertJson(['recommendations' => null]);
+        ->assertJsonStructure(['follow_up_question', 'recommendations', 'matched_count'])
+        ->assertJson(['matched_count' => 0]);
+
+    expect($response->json('recommendations'))->toBeString()
+        ->toContain("I'd love to help you find the perfect saree!");
 });
 
 it('builds dynamic query from AI-extracted criteria and returns matched products', function () {
