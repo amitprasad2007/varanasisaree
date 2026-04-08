@@ -159,11 +159,12 @@ class AiService
     /**
      * Get Saree recommendations based on user preferences.
      */
-    public function getSareeRecommendations(string $preferences, array $products): string
+    public function getSareeRecommendations(string $preferences, \Illuminate\Support\Collection|array $products): string
     {
         $productListStr = '';
         foreach ($products as $product) {
-            $productListStr .= "- {$product->name} (Category: {$product->category->name}, Price: {$product->price})\n";
+            $categoryName = $product->category->title ?? 'N/A';
+            $productListStr .= "- {$product->name} (Category: {$categoryName}, Price: {$product->price})\n";
         }
 
         $prompt = "Based on the user's preferences: '$preferences', recommend 3-5 sarees from the following list:
