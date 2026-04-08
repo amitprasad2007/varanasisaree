@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Product;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Laravel\Ai\Ai;
+use Laravel\Ai\Exceptions\ProviderOverloadedException;
 use Laravel\Ai\Files\Base64Image;
 use Laravel\Ai\Messages\AssistantMessage;
 use Laravel\Ai\Messages\UserMessage;
@@ -27,8 +29,9 @@ class AiService
 
         try {
             return agent()->prompt($prompt)->text;
-        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
-            Log::warning('AI Gemini Overloaded (Description): ' . $e->getMessage());
+        } catch (ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Description): '.$e->getMessage());
+
             return 'The AI service is currently busy. Please try again in a few moments.';
         } catch (\Exception $e) {
             Log::error('AI Description Generation Error: '.$e->getMessage());
@@ -74,8 +77,9 @@ class AiService
                 'response' => $response->text,
                 'history' => $this->mapResponseMessages($response->messages->all()),
             ];
-        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
-            Log::warning('AI Gemini Overloaded (Chat): ' . $e->getMessage());
+        } catch (ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Chat): '.$e->getMessage());
+
             return [
                 'response' => 'The AI assistant is currently receiving too much traffic. Please wait a minute and try again.',
                 'history' => $history,
@@ -140,8 +144,9 @@ class AiService
                 'response' => $response->text,
                 'history' => $this->mapResponseMessages($response->messages->all()),
             ];
-        } catch (\Laravel\Ai\Exceptions\ProviderOverloadedException $e) {
-            Log::warning('AI Gemini Overloaded (Backend): ' . $e->getMessage());
+        } catch (ProviderOverloadedException $e) {
+            Log::warning('AI Gemini Overloaded (Backend): '.$e->getMessage());
+
             return [
                 'response' => 'Technical Error: The AI provider is currently overloaded. Please try again in 30-60 seconds.',
                 'history' => $history,
@@ -157,19 +162,170 @@ class AiService
     }
 
     /**
+     * Extract structured search criteria from natural language preferences using AI.
+     *
+     * @return array{keywords: string[], min_price: ?float, max_price: ?float, budget_tier: ?string, follow_up_question: ?string}
+     */
+    public function extractSearchCriteria(string $preferences): array
+    {
+        $defaultCriteria = [
+            'keywords' => [],
+            'min_price' => null,
+            'max_price' => null,
+            'budget_tier' => null,
+            'follow_up_question' => null,
+        ];
+
+        $prompt = <<<PROMPT
+        You are a search-criteria extractor for a Varanasi Saree e-commerce store.
+        Analyze the customer's message and extract structured search filters.
+
+        CUSTOMER MESSAGE: "$preferences"
+
+        RULES:
+        1. Extract keywords that could match product names, descriptions, fabrics (silk, cotton, banarasi, monga, etc.), colors, occasions, or work types.
+        2. If the customer mentions "budget" or "affordable" WITHOUT specifying a price, set budget_tier to "budget" (under ₹5000).
+        3. If the customer mentions "premium", "expensive", "high-end", or "luxury", set budget_tier to "premium" (₹5000 and above).
+        4. If a specific price range is mentioned, set min_price and/or max_price.
+        5. If the request is too vague to give useful recommendations (e.g., just "saree" with no other context), generate a polite follow_up_question asking about their occasion, preferred fabric, color, or budget.
+        6. Return ONLY valid JSON, no markdown, no explanation.
+
+        RESPOND WITH THIS EXACT JSON FORMAT:
+        {
+            "keywords": ["keyword1", "keyword2"],
+            "min_price": null,
+            "max_price": null,
+            "budget_tier": null,
+            "follow_up_question": null
+        }
+        PROMPT;
+
+        try {
+            $responseText = agent()->prompt($prompt)->text;
+
+            // Extract JSON from potential markdown code blocks
+            $jsonText = $responseText;
+            if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $responseText, $matches)) {
+                $jsonText = $matches[1];
+            }
+
+            $criteria = json_decode(trim($jsonText), true);
+
+            if (! is_array($criteria)) {
+                return $defaultCriteria;
+            }
+
+            return array_merge($defaultCriteria, $criteria);
+        } catch (\Exception $e) {
+            Log::error('AI Criteria Extraction Error: '.$e->getMessage());
+
+            return $defaultCriteria;
+        }
+    }
+
+    /**
+     * Fetch fallback products: bestsellers first, then highest-rated, then newest.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Product>
+     */
+    public function buildFallbackProducts(int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    {
+        // Bestsellers first
+        $products = Product::with(['category', 'imageproducts'])
+            ->where('status', 'active')
+            ->where('is_bestseller', true)
+            ->limit($limit)
+            ->get();
+
+        if ($products->count() >= $limit) {
+            return $products;
+        }
+
+        // Fill remaining with top-rated products
+        $existingIds = $products->pluck('id')->toArray();
+        $remaining = $limit - $products->count();
+
+        $topRated = Product::with(['category', 'imageproducts'])
+            ->where('status', 'active')
+            ->whereNotIn('id', $existingIds)
+            ->withAvg('ratings', 'rating')
+            ->orderByDesc('ratings_avg_rating')
+            ->limit($remaining)
+            ->get();
+
+        $products = $products->merge($topRated);
+
+        if ($products->count() >= $limit) {
+            return $products;
+        }
+
+        // Fill remaining with newest products
+        $existingIds = $products->pluck('id')->toArray();
+        $remaining = $limit - $products->count();
+
+        $newest = Product::with(['category', 'imageproducts'])
+            ->where('status', 'active')
+            ->whereNotIn('id', $existingIds)
+            ->latest()
+            ->limit($remaining)
+            ->get();
+
+        return $products->merge($newest);
+    }
+
+    /**
      * Get Saree recommendations based on user preferences.
      */
-    public function getSareeRecommendations(string $preferences, \Illuminate\Support\Collection|array $products): string
-    {
+    public function getSareeRecommendations(
+        string $preferences,
+        Collection|array $products,
+        bool $isFallback = false
+    ): string {
         $productListStr = '';
         foreach ($products as $product) {
             $categoryName = $product->category->title ?? 'N/A';
-            $productListStr .= "- {$product->name} (Category: {$categoryName}, Price: {$product->price})\n";
+            $primaryImage = $product->imageproducts->where('is_primary', true)->first()
+                            ?? $product->imageproducts->first();
+            $imageUrl = $primaryImage ? asset('storage/'.$primaryImage->image_path) : '';
+
+            $productListStr .= "- **{$product->name}** (Slug: {$product->slug}, Category: {$categoryName}, Price: ₹{$product->price}";
+            if ($product->fabric) {
+                $productListStr .= ", Fabric: {$product->fabric}";
+            }
+            if ($product->color) {
+                $productListStr .= ", Color: {$product->color}";
+            }
+            if ($product->occasion) {
+                $productListStr .= ", Occasion: {$product->occasion}";
+            }
+            $productListStr .= ')';
+            if ($imageUrl) {
+                $productListStr .= " | Image: $imageUrl";
+            }
+            $productListStr .= "\n";
         }
 
-        $prompt = "Based on the user's preferences: '$preferences', recommend 3-5 sarees from the following list:
+        $fallbackContext = $isFallback
+            ? "\n\nNOTE: No exact matches were found for the customer's specific request. The products below are our bestsellers, highest-rated, and newest additions. Present them gracefully — mention that while you couldn't find an exact match, these are hand-picked popular choices they might love."
+            : '';
+
+        $prompt = <<<PROMPT
+        You are the Samar Silk Palace AI Shopping Assistant.
+        A customer asked: "$preferences"
+        $fallbackContext
+
+        Recommend 3-5 sarees from this inventory. For each recommendation:
+        1. Use a clickable link format: [Product Name](/product/slug)
+        2. If an image URL is available, display it: ![Product Name](image_url)
+        3. Explain WHY this product matches their needs (fabric, occasion, value, etc.)
+        4. If this is a budget inquiry, highlight the price-to-quality ratio.
+        5. If this is a premium inquiry, emphasize craftsmanship and exclusivity.
+
+        AVAILABLE PRODUCTS:
         $productListStr
-        Provide a brief reason for each recommendation.";
+
+        Format your response in beautiful Markdown.
+        PROMPT;
 
         try {
             return agent()->prompt($prompt)->text;

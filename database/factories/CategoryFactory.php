@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
+ * @extends Factory<Category>
  */
 class CategoryFactory extends Factory
 {
@@ -16,8 +18,12 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
+        $title = fake()->words(2, true);
+
         return [
-            //
+            'title' => $title,
+            'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(1, 10000),
+            'status' => 'active',
         ];
     }
 }

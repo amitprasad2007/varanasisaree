@@ -112,6 +112,16 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(ProductRating::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
     /**
      * Resolve image paths for API consumers with fallback order:
      * 1) Product imageproducts
