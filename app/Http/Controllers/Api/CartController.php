@@ -24,9 +24,25 @@ class CartController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $customer = $request->user();
-        $product = Product::findOrFail($request->product_id);
+        $product = Product::with('category')->findOrFail($request->product_id);
+        $categorySlug = strtolower($product->category->slug ?? '');
+        $productSlug = strtolower($product->slug ?? '');
+        
+        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
+                  str_contains($categorySlug, 'than') || 
+                  str_contains($categorySlug, 'fabric') ||
+                  str_starts_with($productSlug, 'than-') ||
+                  str_starts_with($productSlug, 'fabric-');
 
+        if ($isThan && $request->quantity < 15) {
+            return response()->json([
+                'errors' => [
+                    'quantity' => ['Minimum order quantity for Than items is 15 meters.'],
+                ],
+            ], 422);
+        }
+
+        $customer = $request->user();
         $variantId = $request->input('variant_id');
         $variant = null;
         if ($variantId) {
@@ -92,13 +108,12 @@ class CartController extends Controller
                 'name' => $cartItem->product->name ?? '',
                 'price' => $cartItem->price,
                 'image' => ($cartItem->product_variant_id ? ($cartItem->productVariant?->primaryImage()?->image_path ?? null) : null)
-                    ?? $cartItem->product->primaryImage->first()?->image_url
+                    ?? $cartItem->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
                 'color' => $cartItem->product->color ?? '',
                 'slug' => $cartItem->product->slug ?? '',
             ],
         ]);
-
     }
 
     public function updateCart(Request $request)
@@ -113,10 +128,32 @@ class CartController extends Controller
         }
 
         $customer = $request->user();
-        $cart = Cart::where('id', $request->cart_id)
+        $cart = Cart::with('product.category')
+            ->where('id', $request->cart_id)
             ->where('customer_id', $customer->id)
             ->whereNull('order_id')
             ->first();
+
+        if (! $cart) {
+            return response()->json(['message' => 'Cart item not found.'], 404);
+        }
+
+        $categorySlug = strtolower($cart->product->category->slug ?? '');
+        $productSlug = strtolower($cart->product->slug ?? '');
+        
+        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
+                  str_contains($categorySlug, 'than') || 
+                  str_contains($categorySlug, 'fabric') ||
+                  str_starts_with($productSlug, 'than-') ||
+                  str_starts_with($productSlug, 'fabric-');
+
+        if ($isThan && $request->quantity < 15) {
+            return response()->json([
+                'errors' => [
+                    'quantity' => ['Minimum order quantity for Than items is 15 meters.'],
+                ],
+            ], 422);
+        }
 
         $cart->quantity = $request->quantity;
         $cart->amount = $cart->price * $request->quantity;
@@ -243,7 +280,7 @@ class CartController extends Controller
                 'quantity' => (float) $item->quantity,
                 'category_slug' => $item->product->category->slug ?? '',
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path ?? null) : null)
-                ?? $item->product->primaryImage->first()?->image_path
+                ?? $item->product->resolveImagePaths()->first()
                 ?? 'https://via.placeholder.com/150',
                 'color' => ($item->product_variant_id ? ($item->productVariant->color->name ?? null) : null) ?? $item->product->color ?? '',
                 'slug' => $item->product->slug ?? '',
@@ -274,9 +311,25 @@ class CartController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $customer = $request->user();
-        $product = Product::findOrFail($request->product_id);
+        $product = Product::with('category')->findOrFail($request->product_id);
+        $categorySlug = strtolower($product->category->slug ?? '');
+        $productSlug = strtolower($product->slug ?? '');
+        
+        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
+                  str_contains($categorySlug, 'than') || 
+                  str_contains($categorySlug, 'fabric') ||
+                  str_starts_with($productSlug, 'than-') ||
+                  str_starts_with($productSlug, 'fabric-');
 
+        if ($isThan && $request->quantity < 15) {
+            return response()->json([
+                'errors' => [
+                    'quantity' => ['Minimum order quantity for Than items is 15 meters.'],
+                ],
+            ], 422);
+        }
+
+        $customer = $request->user();
         $wishlist = Wishlist::find($request->wishlistId);
         $variantId = $wishlist->product_variant_id;
 
@@ -344,12 +397,11 @@ class CartController extends Controller
                 'name' => $cartItem->product->name ?? '',
                 'price' => $cartItem->price,
                 'image' => ($cartItem->product_variant_id ? ($cartItem->productVariant?->primaryImage()?->image_path ?? null) : null)
-                    ?? $cartItem->product->primaryImage->first()?->image_url
+                    ?? $cartItem->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
                 'color' => $cartItem->product->color ?? '',
                 'slug' => $cartItem->product->slug ?? '',
             ],
         ]);
-
     }
 }

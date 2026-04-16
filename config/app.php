@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URLs
+    |--------------------------------------------------------------------------
+    |
+    | These URLs are used to redirect the user after a successful social
+    | authentication. The mobile frontend URL is used for the React
+    | Native application and supports custom deep link schemes.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    'mobile_frontend_url' => env('MOBILE_FRONTEND_URL', 'appfashion://oauth/callback'),
+
 ];

@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Order;
-use App\Models\Cart;
-use App\Models\Product;
 use App\Models\AddressUser;
+use App\Models\Cart;
 use App\Models\Coupon;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -19,7 +20,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|numeric|min:0.5',
             'variant_id' => 'nullable|exists:product_variants,id',
             'address_id' => 'required|exists:address_users,id',
             'payment_method' => 'required|in:cod,razorpay,paytm,others',
@@ -29,11 +30,29 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $product = Product::with('category')->findOrFail($request->product_id);
+        $categorySlug = strtolower($product->category->slug ?? '');
+        $productSlug = strtolower($product->slug ?? '');
+        
+        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
+                  str_contains($categorySlug, 'than') || 
+                  str_contains($categorySlug, 'fabric') ||
+                  str_starts_with($productSlug, 'than-') ||
+                  str_starts_with($productSlug, 'fabric-');
+
+        if ($isThan && $request->quantity < 15) {
+            return response()->json([
+                'errors' => [
+                    'quantity' => ['Minimum order quantity for Than items is 15 meters.'],
+                ],
+            ], 422);
+        }
+
         $customer = $request->user();
-        $product = Product::findOrFail($request->product_id);
+        // $product already fetched above
         $variant = null;
         if ($request->filled('variant_id')) {
-            $variant = \App\Models\ProductVariant::where('id', $request->variant_id)
+            $variant = ProductVariant::where('id', $request->variant_id)
                 ->where('product_id', $product->id)
                 ->firstOrFail();
         }
@@ -52,7 +71,7 @@ class OrderController extends Controller
                 'total_amount' => $unitPrice * $request->quantity,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
-                'status' => 'pending'
+                'status' => 'pending',
             ]);
 
             // Create cart item for the order
@@ -64,7 +83,7 @@ class OrderController extends Controller
                 'price' => $unitPrice,
                 'quantity' => $request->quantity,
                 'amount' => $unitPrice * $request->quantity,
-                'status' => 'new'
+                'status' => 'new',
             ]);
 
             DB::commit();
@@ -76,8 +95,8 @@ class OrderController extends Controller
                 $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
                     ?? $item->product->resolveImagePaths()->first();
 
-                $image = $rawPath 
-                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                $image = $rawPath
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/'.ltrim($rawPath, '/')))
                     : 'https://via.placeholder.com/150';
 
                 return [
@@ -89,17 +108,18 @@ class OrderController extends Controller
                     'price' => $item->price,
                     'amount' => $item->amount,
                     'image' => $image,
-                    'product' => $item->product
+                    'product' => $item->product,
                 ];
             });
 
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $orderArray
+                'order' => $orderArray,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Failed to place order', 'error' => $e->getMessage()], 500);
         }
     }
@@ -109,7 +129,7 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'address_id' => 'required|exists:address_users,id',
             'payment_method' => 'required|in:cod,razorpay,paytm,others',
-            'coupon_code' => 'nullable|exists:coupons,code'
+            'coupon_code' => 'nullable|exists:coupons,code',
         ]);
 
         if ($validator->fails()) {
@@ -125,6 +145,27 @@ class OrderController extends Controller
 
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 400);
+        }
+
+        // Final check for 15m minimum on Than items
+        foreach ($cartItems as $item) {
+            $categorySlug = strtolower($item->product->category->slug ?? '');
+            $productSlug = strtolower($item->product->slug ?? '');
+            
+            $isThan = in_array($categorySlug, ['than', 'thaan']) || 
+                      str_contains($categorySlug, 'than') || 
+                      str_contains($categorySlug, 'fabric') ||
+                      str_starts_with($productSlug, 'than-') ||
+                      str_starts_with($productSlug, 'fabric-');
+
+            if ($isThan && $item->quantity < 15) {
+                return response()->json([
+                    'message' => "Your cart contains '{$item->product->name}' which requires a minimum order of 15 meters. Please update your cart.",
+                    'errors' => [
+                        'quantity' => ['Minimum order quantity for Than items is 15 meters.'],
+                    ],
+                ], 422);
+            }
         }
 
         try {
@@ -151,7 +192,7 @@ class OrderController extends Controller
                 'sub_total' => $subTotal,
                 'shipping_id' => 1, // Assuming a fixed shipping ID for this example
                 'quantity' => $quantity,
-                'shipping_cost'=>$request->shippingcost,
+                'shipping_cost' => $request->shippingcost,
                 'tax' => $request->tax,
                 'discount' => $request->discount,
                 'total_amount' => $request->total,
@@ -160,7 +201,7 @@ class OrderController extends Controller
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
                 'status' => 'pending',
                 'transaction_id' => $request->payment_method === 'razorpay' ? $request->razorpay_payment_id : null,
-                'payment_details' => json_encode($request->all())
+                'payment_details' => json_encode($request->all()),
             ]);
 
             // Update cart items with order_id
@@ -177,8 +218,8 @@ class OrderController extends Controller
                 $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
                     ?? $item->product->resolveImagePaths()->first();
 
-                $image = $rawPath 
-                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                $image = $rawPath
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/'.ltrim($rawPath, '/')))
                     : 'https://via.placeholder.com/150';
 
                 return [
@@ -190,17 +231,18 @@ class OrderController extends Controller
                     'price' => $item->price,
                     'amount' => $item->amount,
                     'image' => $image,
-                    'product' => $item->product
+                    'product' => $item->product,
                 ];
             });
 
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $orderArray
+                'order' => $orderArray,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['message' => 'Failed to place order', 'error' => $e->getMessage()], 500);
         }
     }
@@ -228,7 +270,7 @@ class OrderController extends Controller
         $orders = $query->get();
 
         return response()->json([
-            'orders' => $orders
+            'orders' => $orders,
         ]);
     }
 
@@ -241,7 +283,7 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($order) {
-                $statusColor = match($order->status) {
+                $statusColor = match ($order->status) {
                     'delivered' => 'bg-green-500',
                     'processing' => 'bg-amber-500',
                     'pending' => 'bg-blue-500',
@@ -260,8 +302,8 @@ class OrderController extends Controller
                         $rawPath = ($item->product_variant_id ? ($item->variant?->primaryImage()?->image_path ?? $item->variant?->image_path) : null)
                             ?? $item->product->resolveImagePaths()->first();
 
-                        $image = $rawPath 
-                            ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                        $image = $rawPath
+                            ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/'.ltrim($rawPath, '/')))
                             : 'https://via.placeholder.com/150';
 
                         return [
@@ -271,17 +313,18 @@ class OrderController extends Controller
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
-                    })->toArray()
+                    })->toArray(),
                 ];
             });
 
         return response()->json($orders);
     }
 
-    public function orderdetails(Request $request,$orid){
-        $item = Order::where('order_id',$orid)->with(['address','productItems.product','productItems.variant','productItems.variant.images','payment'])->first();
+    public function orderdetails(Request $request, $orid)
+    {
+        $item = Order::where('order_id', $orid)->with(['address', 'productItems.product', 'productItems.variant', 'productItems.variant.images', 'payment'])->first();
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Order not found'], 404);
         }
 
@@ -290,27 +333,27 @@ class OrderController extends Controller
             'order_date' => $item->created_at,
             'order_status' => $item->status,
             'order_total' => $item->total_amount,
-            'order_address' => $item->address->address_line1 . ' ' . $item->address->address_line2,
+            'order_address' => $item->address->address_line1.' '.$item->address->address_line2,
             'order_city' => $item->address->city,
             'shippingcost' => $item->shippingcost,
             'sub_total' => $item->sub_total,
-            'name'=> $request->user()->name,
+            'name' => $request->user()->name,
             'order_state' => $item->address->state,
             'order_zip' => $item->address->postal_code,
             'order_country' => $item->address->country,
             'order_phone' => $request->user()->phone,
             'order_email' => $item->customer->email,
-            'payment_status'=> $item->payment_status,
-            'tax'=> $item->tax,
+            'payment_status' => $item->payment_status,
+            'tax' => $item->tax,
             'payment_method' => $item->payment_method,
             'payment_online_details' => $item->payment ? $item->payment->payment_details->toArray() : [],
             'invoice_download_url' => route('api.order.pdf', $item->order_id),
-            'order_items' => $item->productItems->map(function($subItem) {
+            'order_items' => $item->productItems->map(function ($subItem) {
                 $rawPath = ($subItem->product_variant_id ? ($subItem->variant?->primaryImage()?->image_path ?? $subItem->variant?->image_path) : null)
                     ?? $subItem->product->resolveImagePaths()->first();
 
-                $image = $rawPath 
-                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                $image = $rawPath
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/'.ltrim($rawPath, '/')))
                     : 'https://via.placeholder.com/150';
 
                 return [
@@ -322,8 +365,9 @@ class OrderController extends Controller
                     'product_price_after_discount' => $subItem->product->price - ($subItem->product->price * $subItem->product->discount) / 100,
                     'product_quantity' => $subItem->quantity,
                 ];
-            })
+            }),
         ];
+
         return response()->json(['order' => $formattedOrder]);
     }
 }

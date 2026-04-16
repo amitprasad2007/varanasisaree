@@ -135,16 +135,30 @@ class CustomerAuthController extends Controller
 
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
-            // Redirect to frontend with token
-            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+            // Determine redirect URL based on provider
+            if (str_ends_with($provider, 'Mobile')) {
+                $baseUrl = config('app.mobile_frontend_url', 'appfashion://oauth/callback');
+            } else {
+                $baseUrl = rtrim(config('app.frontend_url', 'http://localhost:3000'), '/').'/oauth/callback';
+            }
 
-            return redirect($frontendUrl.'oauth/callback?token='.$token.'&provider='.$provider);
+            // Construct full URL with query parameters
+            $redirectUrl = $baseUrl.(str_contains($baseUrl, '?') ? '&' : '?').'token='.$token.'&provider='.$provider;
+
+            return redirect($redirectUrl);
 
         } catch (\Exception $e) {
             Log::error($provider.' OAuth Error: '.$e->getMessage());
-            $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
 
-            return redirect($frontendUrl.'oauth/callback?error=oauth_failed');
+            if (str_ends_with($provider, 'Mobile')) {
+                $baseUrl = config('app.mobile_frontend_url', 'appfashion://oauth/callback');
+            } else {
+                $baseUrl = rtrim(config('app.frontend_url', 'http://localhost:3000'), '/').'/oauth/callback';
+            }
+
+            $redirectUrl = $baseUrl.(str_contains($baseUrl, '?') ? '&' : '?').'error=oauth_failed';
+
+            return redirect($redirectUrl);
         }
     }
 
