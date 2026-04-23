@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Mail\ForgetPasswordSendEmail;
 use App\Models\Customer;
 use App\Services\CustomerService;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -77,6 +78,108 @@ class CustomerAuthController extends Controller
         $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
 
         return response()->json([
+            'message' => 'Login successful',
+            'customer' => $customer,
+            'token' => $token,
+        ]);
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $phone = $request->phone;
+        
+        // For testing/development, use a static OTP or generate a random one and log it
+        $otp = '123456'; // In production: rand(100000, 999999)
+        
+        // Here you would integrate with an SMS Gateway (e.g., Twilio, MSG91) to actually send the SMS
+        Log::info("OTP for {$phone} is {$otp}");
+
+        // Store OTP in cache for 10 minutes
+        Cache::put('otp_' . $phone, $otp, now()->addMinutes(10));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent successfully',
+            // 'otp' => $otp // Optional: return OTP in response for easier testing
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|max:20',
+            'otp' => 'required|string',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $phone = $request->phone;
+        $otp = $request->otp;
+        $email = $request->email;
+
+        $cachedOtp = Cache::get('otp_' . $phone);
+
+        if (!$cachedOtp || $cachedOtp != $otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired OTP',
+            ], 401);
+        }
+
+        // OTP is valid, clear it
+        Cache::forget('otp_' . $phone);
+
+        // Find or create customer
+        $customer = Customer::where('phone', $phone)->first();
+
+        if (!$customer) {
+            // Check if email was provided and if it already exists
+            if ($email) {
+                $existingEmail = Customer::where('email', $email)->first();
+                if ($existingEmail) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Email is already registered with another account.',
+                    ], 400);
+                }
+            } else {
+                // Generate a dummy email if required by the database
+                $email = $phone . '@varanasisaree.placeholder.com';
+            }
+
+            $customer = Customer::create([
+                'name' => 'User ' . substr($phone, -4),
+                'phone' => $phone,
+                'email' => $email,
+                'password' => Hash::make(Str::random(16)), // Random password for OTP users
+            ]);
+        } else {
+            // If customer exists but didn't have email, and provided one now, we could update it
+            if ($email && !$customer->email && !str_contains($customer->email, '@varanasisaree.placeholder.com')) {
+                // Check if email already exists
+                $existingEmail = Customer::where('email', $email)->where('id', '!=', $customer->id)->first();
+                if (!$existingEmail) {
+                    $customer->email = $email;
+                    $customer->save();
+                }
+            }
+        }
+
+        $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
+
+        return response()->json([
+            'success' => true,
             'message' => 'Login successful',
             'customer' => $customer,
             'token' => $token,
@@ -280,7 +383,7 @@ class CustomerAuthController extends Controller
 
         // Check expiry
         $expires = config('auth.passwords.customers.expire', 60);
-        $notExpired = $record->created_at && now()->diffInMinutes(Carbon::parse($record->created_at)) <= $expires;
+        $notExpired = $record->created_at && now()->diffInMinutes($record->created_at) <= $expires;
 
         return response()->json(['status' => $isValid && $notExpired]);
     }
