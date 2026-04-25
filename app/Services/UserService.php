@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -14,7 +14,7 @@ class UserService
             'orders' => $this->formatOrders($user->orders),
             'wishlists' => $this->formatWishlists($user->wishlists),
             'addresses' => $this->formatAddresses($user->addresses),
-            'cart_items' => $this->formatCartItems($user->cartItems)
+            'cart_items' => $this->formatCartItems($user->cartItems),
         ];
     }
 
@@ -25,14 +25,14 @@ class UserService
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'created_at' => $user->created_at->format('Y-m-d H:i:s')
+            'created_at' => $user->created_at->format('Y-m-d H:i:s'),
         ];
     }
 
     private function formatOrders($orders)
     {
         return $orders->map(function ($order) {
-            $statusColor = match($order->status) {
+            $statusColor = match ($order->status) {
                 'delivered' => 'bg-green-500',
                 'processing' => 'bg-amber-500',
                 'pending' => 'bg-blue-500',
@@ -55,7 +55,7 @@ class UserService
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                     ];
-                })->toArray()
+                })->toArray(),
             ];
         });
     }
@@ -64,13 +64,17 @@ class UserService
     {
         return $wishlists->map(function ($wishlist) {
             $product = $wishlist->product;
+            $basePrice = (float) $product->price;
+            $discountPercent = (float) ($product->discount ?? 0);
+            $sellingPrice = $basePrice - ($basePrice * $discountPercent / 100);
+
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
                 'image' => $product->primaryImage->first()?->image_path ?? 'https://via.placeholder.com/150',
-                'price' => $product->price,
-                'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
+                'price' => (int) round($sellingPrice),
+                'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
                 'category' => $product->category->name ?? 'Uncategorized',
             ];
         });
@@ -81,7 +85,7 @@ class UserService
         return $addresses->map(function ($address) {
             $addressLine = $address->address_line1;
             if ($address->address_line2) {
-                $addressLine .= ', ' . $address->address_line2;
+                $addressLine .= ', '.$address->address_line2;
             }
 
             return [
@@ -93,7 +97,7 @@ class UserService
                 'state' => $address->state,
                 'postal' => $address->postal_code,
                 'phone' => $address->phone,
-                'isDefault' => $address->is_default
+                'isDefault' => $address->is_default,
             ];
         });
     }
@@ -108,7 +112,7 @@ class UserService
                 'discount' => 0,
                 'shipping' => 0,
                 'tax' => 0,
-                'total' => 0
+                'total' => 0,
             ];
         }
 
@@ -128,11 +132,13 @@ class UserService
                     if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                         return $path;
                     }
-                    return asset('storage/' . ltrim($path, '/'));
+
+                    return asset('storage/'.ltrim($path, '/'));
                 })->values();
+
                 return [
                     'id' => $item->product_id,
-                    'cart_id' =>$item->id,
+                    'cart_id' => $item->id,
                     'name' => $item->product->name,
                     'price' => $item->price,
                     'quantity' => $item->quantity,
@@ -143,7 +149,7 @@ class UserService
             'discount' => $discount,
             'shipping' => $shipping,
             'tax' => $tax,
-            'total' => $total
+            'total' => $total,
         ];
     }
 }

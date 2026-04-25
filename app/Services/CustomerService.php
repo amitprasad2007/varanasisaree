@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\Customer;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class CustomerService
 {
@@ -16,7 +15,7 @@ class CustomerService
             'orders' => $this->formatOrders($customer->orders),
             'wishlists' => $this->formatWishlists($customer->wishlists),
             'addresses' => $this->formatAddresses($customer->addresses),
-            'cart_items' => $this->formatCartItems($customer->cartItems)
+            'cart_items' => $this->formatCartItems($customer->cartItems),
         ];
     }
 
@@ -29,29 +28,31 @@ class CustomerService
             'phone' => $customer->phone,
             'avatar' => $this->processAvatarUrl($customer->avatar),
             'google_id' => $customer->google_id,
-            'created_at' => $customer->created_at->format('Y-m-d H:i:s')
+            'created_at' => $customer->created_at->format('Y-m-d H:i:s'),
         ];
     }
 
     private function processAvatarUrl($avatar)
     {
-        if (!$avatar) {
+        if (! $avatar) {
             return null;
         }
 
         // Log the original avatar URL for debugging
-        Log::info('Processing avatar URL: ' . $avatar);
+        Log::info('Processing avatar URL: '.$avatar);
 
         // If it's already a full URL, return as is
         if (filter_var($avatar, FILTER_VALIDATE_URL)) {
-            Log::info('Avatar URL is valid: ' . $avatar);
+            Log::info('Avatar URL is valid: '.$avatar);
+
             return $avatar;
         }
 
         // If it's a relative path, make it absolute
         if (str_starts_with($avatar, 'storage/') || str_starts_with($avatar, 'public/')) {
             $processedUrl = asset($avatar);
-            Log::info('Processed relative path to: ' . $processedUrl);
+            Log::info('Processed relative path to: '.$processedUrl);
+
             return $processedUrl;
         }
 
@@ -59,20 +60,22 @@ class CustomerService
         if (str_contains($avatar, 'googleusercontent.com')) {
             // Remove existing size parameters and add our preferred size
             $avatar = preg_replace('/[?&]sz=\d+/', '', $avatar);
-            $processedUrl = $avatar . (str_contains($avatar, '?') ? '&' : '?') . 'sz=150';
-            Log::info('Processed Google avatar to: ' . $processedUrl);
+            $processedUrl = $avatar.(str_contains($avatar, '?') ? '&' : '?').'sz=150';
+            Log::info('Processed Google avatar to: '.$processedUrl);
+
             return $processedUrl;
         }
 
-        Log::info('Returning original avatar URL: ' . $avatar);
+        Log::info('Returning original avatar URL: '.$avatar);
+
         return $avatar;
     }
 
     private function formatOrders($orders)
     {
-        //dd($orders);
+        // dd($orders);
         return $orders->map(function ($order) {
-            $statusColor = match($order->status) {
+            $statusColor = match ($order->status) {
                 'delivered' => 'bg-green-500',
                 'processing' => 'bg-amber-500',
                 'pending' => 'bg-blue-500',
@@ -94,9 +97,11 @@ class CustomerService
                         if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                             return $path;
                         }
-                        return asset('storage/' . ltrim($path, '/'));
+
+                        return asset('storage/'.ltrim($path, '/'));
                     })->values()
                     ?? 'https://via.placeholder.com/150';
+
                     return [
                         'id' => $item->product_id,
                         'name' => $item->product->name,
@@ -111,7 +116,7 @@ class CustomerService
                         'amount' => $refund->amount,
                         'status' => $refund->status,
                     ];
-                })->toArray()
+                })->toArray(),
             ];
         });
     }
@@ -126,21 +131,27 @@ class CustomerService
                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                     return $path;
                 }
-                return asset('storage/' . ltrim($path, '/'));
+
+                return asset('storage/'.ltrim($path, '/'));
             })->values();
 
             // Skip products with no images
             if ($images->isEmpty()) {
                 return null;
             }
+
+            $basePrice = (float) $product->price;
+            $discountPercent = (float) ($product->discount ?? 0);
+            $sellingPrice = $basePrice - ($basePrice * $discountPercent / 100);
+
             return [
-                'wish_id'=>$wishlist->id,
+                'wish_id' => $wishlist->id,
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
                 'image' => $images,
-                'price' => $product->price,
-                'originalPrice' => $product->discount > 0 ? $product->price + $product->discount : null,
+                'price' => (int) round($sellingPrice),
+                'originalPrice' => $discountPercent > 0 ? (int) round($basePrice) : null,
                 'category' => $product->category->name ?? 'Uncategorized',
             ];
         });
@@ -151,7 +162,7 @@ class CustomerService
         return $addresses->map(function ($address) {
             $addressLine = $address->address_line1;
             if ($address->address_line2) {
-                $addressLine .= ', ' . $address->address_line2;
+                $addressLine .= ', '.$address->address_line2;
             }
 
             return [
@@ -163,7 +174,7 @@ class CustomerService
                 'state' => $address->state,
                 'postal' => $address->postal_code,
                 'phone' => $address->phone,
-                'isDefault' => $address->is_default
+                'isDefault' => $address->is_default,
             ];
         });
     }
@@ -177,7 +188,7 @@ class CustomerService
                 'discount' => 0,
                 'shipping' => 0,
                 'tax' => 0,
-                'total' => 0
+                'total' => 0,
             ];
         }
 
@@ -195,12 +206,13 @@ class CustomerService
                 $rawPath = ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant?->image_path) : null)
                     ?? $item->product->resolveImagePaths()->first();
 
-                $image = $rawPath 
-                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/' . ltrim($rawPath, '/')))
+                $image = $rawPath
+                    ? (Str::startsWith($rawPath, ['http://', 'https://', '//']) ? $rawPath : asset('storage/'.ltrim($rawPath, '/')))
                     : 'https://via.placeholder.com/150';
+
                 return [
                     'id' => $item->product_id,
-                    'cart_id' =>$item->id,
+                    'cart_id' => $item->id,
                     'variant_id' => $item->product_variant_id,
                     'name' => $item->product->name,
                     'price' => $item->price,
@@ -213,7 +225,7 @@ class CustomerService
             'shipping' => $shipping,
             'quantity' => $cartItems->sum('quantity'),
             'tax' => $tax,
-            'total' => $total
+            'total' => $total,
         ];
     }
 }

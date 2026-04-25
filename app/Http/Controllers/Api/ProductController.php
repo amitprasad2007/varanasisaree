@@ -382,9 +382,10 @@ class ProductController extends Controller
             $isActive = ($status === 'active' || $status === 1 || $status === true || $status === '1' || $status === null);
             $available = $isActive && (int) $variant->stock_quantity > 0;
 
-            $price = (float) ($variant->price ?? $product->price);
-            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
-            $originalPrice = (float) ($price + ($price * $discount / 100));
+            $baseOriginalPrice = (float) ($variant->price ?? $product->price);
+            $discountPercent = (float) ($variant->discount ?? $product->discount ?? 0);
+
+            $sellingPrice = (float) ($baseOriginalPrice - ($baseOriginalPrice * $discountPercent / 100));
 
             return [
                 'id' => $variant->id,
@@ -396,8 +397,8 @@ class ProductController extends Controller
                 'images' => $variantImages->map(fn ($path) => asset('storage/'.$path)),
                 'stock' => (int) $variant->stock_quantity,
                 'available' => $available,
-                'price' => $price,
-                'originalPrice' => $originalPrice,
+                'price' => (int) round($sellingPrice),
+                'originalPrice' => $discountPercent > 0 ? (int) round($baseOriginalPrice) : null,
             ];
         })->values();
 
@@ -439,7 +440,7 @@ class ProductController extends Controller
             ] : null,
             'price' => $displayPrice,
             'originalPrice' => $baseDiscount > 0 ? $displayOriginalPrice : null,
-            'discountPercentage' => number_format($baseDiscount, 2, '.', ''),
+            'discountPercentage' => number_format($baseDiscount, 0, '.', ''),
             'rating' => $product->rating,
             'reviewCount' => $product->reviewCount,
             'category' => $product->category,

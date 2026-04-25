@@ -27,9 +27,9 @@ class CartController extends Controller
         $product = Product::with('category')->findOrFail($request->product_id);
         $categorySlug = strtolower($product->category->slug ?? '');
         $productSlug = strtolower($product->slug ?? '');
-        
-        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
-                  str_contains($categorySlug, 'than') || 
+
+        $isThan = in_array($categorySlug, ['than', 'thaan']) ||
+                  str_contains($categorySlug, 'than') ||
                   str_contains($categorySlug, 'fabric') ||
                   str_starts_with($productSlug, 'than-') ||
                   str_starts_with($productSlug, 'fabric-');
@@ -68,12 +68,19 @@ class CartController extends Controller
 
         if ($existingCart) {
             $existingCart->quantity += $request->quantity;
-            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+
+            $basePrice = (float) ($variant->price ?? $product->price);
+            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $unitPrice = $basePrice - ($basePrice * $discount / 100);
+
             $existingCart->price = $unitPrice;
             $existingCart->amount = $existingCart->quantity * $unitPrice;
             $existingCart->save();
         } else {
-            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+            $basePrice = (float) ($variant->price ?? $product->price);
+            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $unitPrice = $basePrice - ($basePrice * $discount / 100);
+
             Cart::create([
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
@@ -140,9 +147,9 @@ class CartController extends Controller
 
         $categorySlug = strtolower($cart->product->category->slug ?? '');
         $productSlug = strtolower($cart->product->slug ?? '');
-        
-        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
-                  str_contains($categorySlug, 'than') || 
+
+        $isThan = in_array($categorySlug, ['than', 'thaan']) ||
+                  str_contains($categorySlug, 'than') ||
                   str_contains($categorySlug, 'fabric') ||
                   str_starts_with($productSlug, 'than-') ||
                   str_starts_with($productSlug, 'fabric-');
@@ -216,8 +223,8 @@ class CartController extends Controller
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path ?? null) : null)
                     ?? $item->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
-                'price' => $item->price,
-                'originalPrice' => $item->product->original_price ?? $item->price, // fallback if not available
+                'price' => (int) round($item->price),
+                'originalPrice' => (int) round($item->product->price),
                 'quantity' => (float) $item->quantity,
                 'color' => ($item->product_variant_id ? ($item->productVariant->color->name ?? null) : null) ?? $item->product->color ?? '',
                 'maxQuantity' => $item->product->max_quantity ?? 10, // fallback if not available
@@ -277,6 +284,7 @@ class CartController extends Controller
                 'variant_id' => $item->product_variant_id,
                 'name' => $item->product->name,
                 'price' => $item->price,
+                'originalPrice' => (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0)),
                 'quantity' => (float) $item->quantity,
                 'category_slug' => $item->product->category->slug ?? '',
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path ?? null) : null)
@@ -314,9 +322,9 @@ class CartController extends Controller
         $product = Product::with('category')->findOrFail($request->product_id);
         $categorySlug = strtolower($product->category->slug ?? '');
         $productSlug = strtolower($product->slug ?? '');
-        
-        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
-                  str_contains($categorySlug, 'than') || 
+
+        $isThan = in_array($categorySlug, ['than', 'thaan']) ||
+                  str_contains($categorySlug, 'than') ||
                   str_contains($categorySlug, 'fabric') ||
                   str_starts_with($productSlug, 'than-') ||
                   str_starts_with($productSlug, 'fabric-');
@@ -357,12 +365,19 @@ class CartController extends Controller
 
         if ($existingCart) {
             $existingCart->quantity += $request->quantity;
-            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+
+            $basePrice = (float) ($variant->price ?? $product->price);
+            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $unitPrice = $basePrice - ($basePrice * $discount / 100);
+
             $existingCart->price = $unitPrice;
             $existingCart->amount = $existingCart->quantity * $unitPrice;
             $existingCart->save();
         } else {
-            $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+            $basePrice = (float) ($variant->price ?? $product->price);
+            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $unitPrice = $basePrice - ($basePrice * $discount / 100);
+
             Cart::create([
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
