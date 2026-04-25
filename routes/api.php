@@ -1,35 +1,31 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\BannerController;
-use App\Http\Controllers\Api\BrandController;
-use App\Http\Controllers\Api\CouponController;
-use App\Http\Controllers\Api\TestimonialController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\CustomerAuthController;
-use App\Http\Controllers\Api\WishlistController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\AddressController;
-use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\AboutusController as ApiAboutusController;
-use App\Http\Controllers\Api\SearchController as ApiSearchController;
+use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\AdminRefundController;
+use App\Http\Controllers\Api\AiAssistantController;
+use App\Http\Controllers\Api\BannerController;
+use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CollectionController;
+use App\Http\Controllers\Api\CompanyInfoController;
+use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\GuestDataController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PageController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\RecentlyViewedController;
-use App\Http\Controllers\Api\UserLogController;
-use App\Http\Controllers\Api\GuestDataController;
 use App\Http\Controllers\Api\RefundController;
-use App\Http\Controllers\Api\AdminRefundController;
-use App\Http\Controllers\Api\BlogPostController;
-use App\Http\Controllers\Api\PageController;
-use App\Http\Controllers\Api\FaqController;
-use App\Http\Controllers\Api\CompanyInfoController;
-use App\Http\Controllers\Api\AiAssistantController;
-
+use App\Http\Controllers\Api\SearchController as ApiSearchController;
+use App\Http\Controllers\Api\TestimonialController;
+use App\Http\Controllers\Api\UserLogController;
+use App\Http\Controllers\Api\WishlistController;
+use Illuminate\Support\Facades\Route;
 
 // Blog APIs
 Route::get('/blogs', [BlogPostController::class, 'index']);
@@ -63,7 +59,6 @@ Route::get('/categories', [CategoryController::class, 'apiIndex']);
 // About Us API
 Route::get('/aboutus', [ApiAboutusController::class, 'show']);
 
-
 // Category APIs - products and details
 Route::get('/products/{categories}', [CategoryController::class, 'catproducts']);
 Route::get('/categories/{categories}/details', [CategoryController::class, 'catdetails']);
@@ -75,11 +70,9 @@ Route::get('/featured-products', [ProductController::class, 'getFeaturedProducts
 Route::get('/bestseller-products', [ProductController::class, 'getBestsellerProducts']);
 Route::get('/featured-collections', [CollectionController::class, 'featured']);
 
-
-Route::get('/getProductDetails/{slug}',[ProductController::class, 'getProductDetails']);
-Route::get('/getRelatedProducts/{slug}',[ProductController::class, 'getRelatedProducts']);
+Route::get('/getProductDetails/{slug}', [ProductController::class, 'getProductDetails']);
+Route::get('/getRelatedProducts/{slug}', [ProductController::class, 'getRelatedProducts']);
 Route::get('/getallproducts', [ProductController::class, 'getallproducts']);
-
 
 // Banner APIs
 Route::get('/getBanners', [BannerController::class, 'apiGetBanners']);
@@ -107,22 +100,27 @@ Route::get('/collections/featured', [CollectionController::class, 'featured']);
 Route::get('/collections/search', [CollectionController::class, 'search']);
 Route::get('/collections/{slug}', [CollectionController::class, 'show']);
 
-
-//customer forgot password
-Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
-Route::post('/change-token-check',[CustomerAuthController::class, 'changetokencheck']);
-Route::post('/changepassword',[CustomerAuthController::class, 'changepassword']);
+// customer forgot password
+Route::middleware(['throttle:6,1'])->group(function () {
+    Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
+});
+Route::post('/change-token-check', [CustomerAuthController::class, 'changetokencheck']);
+Route::post('/changepassword', [CustomerAuthController::class, 'changepassword']);
 
 // Logs: attach guest session to user
 
 Route::post('/guestlogs', [UserLogController::class, 'store']);
 
 // Customer Authentication APIs (separate guard)
-Route::post('/register', [CustomerAuthController::class, 'register']);
-Route::post('/login', [CustomerAuthController::class, 'login']);
-Route::post('/send-otp', [CustomerAuthController::class, 'sendOtp']);
-Route::post('/verify-otp', [CustomerAuthController::class, 'verifyOtp']);
+Route::middleware(['throttle:6,1'])->group(function () {
+    Route::post('/register', [CustomerAuthController::class, 'register']);
+    Route::post('/login', [CustomerAuthController::class, 'login']);
+    Route::post('/send-otp', [CustomerAuthController::class, 'sendOtp']);
+    Route::post('/verify-otp', [CustomerAuthController::class, 'verifyOtp']);
+});
 Route::post('/auth/oauth/login', [CustomerAuthController::class, 'handleTokenCallback']);
+
+Route::post('/auth/refresh', [CustomerAuthController::class, 'refreshToken'])->middleware('throttle:6,1');
 
 // Protected routes that require authentication
 Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
@@ -144,11 +142,11 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/orders/history', [OrderController::class, 'getOrderHistory']);
 
     // Payment operations
-    Route:: post('createrazorpayorder', [PaymentController::class, 'createOrder']);
-    Route:: post('paychecksave', [PaymentController::class, 'paychecksave']);
-    Route:: get('orderdetails/{orid}', [OrderController::class, 'orderdetails']);
-    Route:: get('order/pdf/{orid}', [OrderController::class, 'generateInvoicePdf'])->name('api.order.pdf');
-    Route:: get('payment-methods', [PaymentController::class, 'getPaymentMethods']);
+    Route::post('createrazorpayorder', [PaymentController::class, 'createOrder']);
+    Route::post('paychecksave', [PaymentController::class, 'paychecksave']);
+    Route::get('orderdetails/{orid}', [OrderController::class, 'orderdetails']);
+    Route::get('order/pdf/{orid}', [OrderController::class, 'generateInvoicePdf'])->name('api.order.pdf');
+    Route::get('payment-methods', [PaymentController::class, 'getPaymentMethods']);
     // Address operations
     Route::get('/addresses', [AddressController::class, 'getAddresses']);
     Route::get('/addressesind', [AddressController::class, 'index']);
@@ -167,14 +165,12 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::post('/sync-wishlist', [WishlistController::class, 'sync']);
     Route::post('/checkwishlist', [WishlistController::class, 'checkwishlist']);
 
-
     // Recently viewed operations
     Route::get('/recently-viewed', [RecentlyViewedController::class, 'index']);
     Route::post('/recently-viewed', [RecentlyViewedController::class, 'store']);
     Route::post('/sync-recently-viewed', [RecentlyViewedController::class, 'sync']);
 
-
-    Route::post('/wishlistremovebyid/{wishlist}',[WishlistController::class, 'wishlistremovebyid' ]);
+    Route::post('/wishlistremovebyid/{wishlist}', [WishlistController::class, 'wishlistremovebyid']);
 
     // Claim guest data into the authenticated account while keeping session_token
     Route::post('/guest/claim', [GuestDataController::class, 'claim']);
@@ -187,19 +183,17 @@ Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/refund-eligibility', [RefundController::class, 'checkEligibility']);
     // Refund operations (authenticated)
 
-        Route::get('/refunds', [RefundController::class, 'index']);
-        Route::post('/refunds', [RefundController::class, 'store']);
-        Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
-        Route::post('/refunds/check-razorpay-status', [RefundController::class, 'checkRazorpayRefundStatus']);
-        Route::get('/refunds/{refund}', [RefundController::class, 'show']);
-        Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
-        Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
-        Route::get('/refund-statistics', [RefundController::class, 'statistics']);
-        Route::get('/return_orders/{order_id}', [RefundController::class, 'getOrderDetails']);
-        Route::get('/refunds-check-item-eligibility',[RefundController::class, 'getOrderitemsDetails']);
-        Route::get('/refunds-get-refundable-items',[RefundController::class, 'getRefundableItems']);
-
-
+    Route::get('/refunds', [RefundController::class, 'index']);
+    Route::post('/refunds', [RefundController::class, 'store']);
+    Route::get('/refunds/check-razorpay-eligibility', [RefundController::class, 'checkRazorpayEligibility']);
+    Route::post('/refunds/check-razorpay-status', [RefundController::class, 'checkRazorpayRefundStatus']);
+    Route::get('/refunds/{refund}', [RefundController::class, 'show']);
+    Route::post('/refunds/{refund}/cancel', [RefundController::class, 'cancel']);
+    Route::get('/credit-notes', [RefundController::class, 'creditNotes']);
+    Route::get('/refund-statistics', [RefundController::class, 'statistics']);
+    Route::get('/return_orders/{order_id}', [RefundController::class, 'getOrderDetails']);
+    Route::get('/refunds-check-item-eligibility', [RefundController::class, 'getOrderitemsDetails']);
+    Route::get('/refunds-get-refundable-items', [RefundController::class, 'getRefundableItems']);
 
 });
 
@@ -247,5 +241,3 @@ Route::prefix('ai')->group(function () {
     Route::post('/generate-description', [AiAssistantController::class, 'generateDescription']);
     Route::post('/generate-image', [AiAssistantController::class, 'generateImage']);
 });
-
-

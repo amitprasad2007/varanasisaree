@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Mail\ForgetPasswordSendEmail;
 use App\Models\Customer;
 use App\Services\CustomerService;
-use Illuminate\Support\Carbon;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 
@@ -95,15 +95,15 @@ class CustomerAuthController extends Controller
         }
 
         $phone = $request->phone;
-        
-        // For testing/development, use a static OTP or generate a random one and log it
-        $otp = '123456'; // In production: rand(100000, 999999)
-        
+
+        // Use a static OTP for local development, otherwise generate a random one
+        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
+
         // Here you would integrate with an SMS Gateway (e.g., Twilio, MSG91) to actually send the SMS
         Log::info("OTP for {$phone} is {$otp}");
 
         // Store OTP in cache for 10 minutes
-        Cache::put('otp_' . $phone, $otp, now()->addMinutes(10));
+        Cache::put('otp_'.$phone, $otp, now()->addMinutes(10));
 
         return response()->json([
             'success' => true,
@@ -128,9 +128,9 @@ class CustomerAuthController extends Controller
         $otp = $request->otp;
         $email = $request->email;
 
-        $cachedOtp = Cache::get('otp_' . $phone);
+        $cachedOtp = Cache::get('otp_'.$phone);
 
-        if (!$cachedOtp || $cachedOtp != $otp) {
+        if (! $cachedOtp || $cachedOtp != $otp) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
@@ -138,12 +138,12 @@ class CustomerAuthController extends Controller
         }
 
         // OTP is valid, clear it
-        Cache::forget('otp_' . $phone);
+        Cache::forget('otp_'.$phone);
 
         // Find or create customer
         $customer = Customer::where('phone', $phone)->first();
 
-        if (!$customer) {
+        if (! $customer) {
             // Check if email was provided and if it already exists
             if ($email) {
                 $existingEmail = Customer::where('email', $email)->first();
@@ -155,21 +155,21 @@ class CustomerAuthController extends Controller
                 }
             } else {
                 // Generate a dummy email if required by the database
-                $email = $phone . '@varanasisaree.placeholder.com';
+                $email = $phone.'@varanasisaree.placeholder.com';
             }
 
             $customer = Customer::create([
-                'name' => 'User ' . substr($phone, -4),
+                'name' => 'User '.substr($phone, -4),
                 'phone' => $phone,
                 'email' => $email,
                 'password' => Hash::make(Str::random(16)), // Random password for OTP users
             ]);
         } else {
             // If customer exists but didn't have email, and provided one now, we could update it
-            if ($email && !$customer->email && !str_contains($customer->email, '@varanasisaree.placeholder.com')) {
+            if ($email && ! $customer->email && ! str_contains($customer->email, '@varanasisaree.placeholder.com')) {
                 // Check if email already exists
                 $existingEmail = Customer::where('email', $email)->where('id', '!=', $customer->id)->first();
-                if (!$existingEmail) {
+                if (! $existingEmail) {
                     $customer->email = $email;
                     $customer->save();
                 }
@@ -409,5 +409,34 @@ class CustomerAuthController extends Controller
         );
 
         return response()->json(['status' => $status === Password::PASSWORD_RESET]);
+    }
+
+    public function refreshToken(Request $request)
+    {
+        $request->validate([
+            'refreshToken' => 'required|string',
+        ]);
+
+        $token = PersonalAccessToken::findToken($request->refreshToken);
+
+        if (! $token || ! $token->tokenable) {
+            return response()->json(['success' => false, 'message' => 'Invalid refresh token'], 401);
+        }
+
+        $customer = $token->tokenable;
+
+        // Revoke the old token
+        $token->delete();
+
+        // Issue a new token
+        $newToken = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Token refreshed successfully',
+            'token' => $newToken,
+            'refreshToken' => $newToken,
+            'user' => $customer,
+        ]);
     }
 }

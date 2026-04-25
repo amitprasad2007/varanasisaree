@@ -416,11 +416,17 @@ class ProductController extends Controller
         }
 
         // Price/discount should reflect default variant when available
-        $basePrice = $defaultVariant ? (float) ($defaultVariant->price ?? $product->price) : (float) $product->price;
+        $baseOriginalPrice = $defaultVariant ? (float) ($defaultVariant->price ?? $product->price) : (float) $product->price;
         $baseDiscount = $defaultVariant && $defaultVariant->discount !== null
             ? (float) $defaultVariant->discount
-            : (float) $product->discount;
-        $baseOriginalPrice = (float) ($basePrice + ($basePrice * $baseDiscount / 100));
+            : (float) ($product->discount ?? 0);
+
+        // Calculate selling price
+        $basePrice = (float) ($baseOriginalPrice - ($baseOriginalPrice * $baseDiscount / 100));
+
+        // Final values for the response (price = selling, original = base)
+        $displayPrice = (int) round($basePrice);
+        $displayOriginalPrice = (int) round($baseOriginalPrice);
 
         return response()->json([
             'id' => $product->id,
@@ -431,8 +437,8 @@ class ProductController extends Controller
                 'name' => $product->brand->name,
                 'slug' => $product->brand->slug,
             ] : null,
-            'price' => $basePrice,
-            'originalPrice' => $baseOriginalPrice,
+            'price' => $displayPrice,
+            'originalPrice' => $baseDiscount > 0 ? $displayOriginalPrice : null,
             'discountPercentage' => number_format($baseDiscount, 2, '.', ''),
             'rating' => $product->rating,
             'reviewCount' => $product->reviewCount,
