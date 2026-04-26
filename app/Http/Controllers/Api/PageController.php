@@ -116,7 +116,39 @@ class PageController extends Controller
                     'content' => $about->description,
                     'metadata' => [
                         'introduction' => $about->description,
-                        'sections' => [],
+                        'sections' => [
+                            [
+                                'title' => 'Our Product Range Includes:',
+                                'items' => [
+                                    'Banarasi Handloom Sarees',
+                                    'Kattan Silk Sarees & Suits',
+                                    'Khaddi & Pure Chiffon Sarees',
+                                    'Georgette, Dupion, and Moonga Sarees',
+                                    'Kanjivaram & Chiniya Silk Sarees',
+                                    'Tanchoi Silk Suits',
+                                    'Cotton & Linen Sarees and Suits',
+                                    'Art Silk and Pure Silk Sarees',
+                                ],
+                            ],
+                            [
+                                'title' => 'Why Choose Us?',
+                                'items' => [
+                                    'Direct Manufacturing Prices',
+                                    'Premium Quality Guarantee',
+                                    'Trending & Traditional Designs',
+                                    'Wholesale & Retail Orders Accepted',
+                                    'Legacy of Trust Since 1985',
+                                ],
+                            ],
+                            [
+                                'title' => 'Empowering Artisans, Preserving Traditions',
+                                'content' => 'Today, Samar Silk Palace proudly supports over 200 artisan families across Varanasi. Our commitment to sustainable and ethical practices ensures that each purchase contributes to the livelihood of skilled weavers and the preservation of India\'s living textile heritage.',
+                            ],
+                            [
+                                'title' => 'Visit Us',
+                                'content' => "N 12/381-C, Bajardiha, Dev-Pokhri, Varanasi, Uttar Pradesh, India - 221109\n\nCall/WhatsApp: +91 9305626874\nGST No.: 09AEWPF0981M1ZR",
+                            ],
+                        ],
                     ],
                     'last_updated_at' => $about->updated_at->format('F Y'),
                 ],
