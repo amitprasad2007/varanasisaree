@@ -447,6 +447,7 @@ class CustomerAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'phone' => 'sometimes|required|string|max:20|unique:customers,phone,'.$customer->id,
+            'email' => 'sometimes|required|email|max:255|unique:customers,email,'.$customer->id,
             'address' => 'sometimes|nullable|string',
             'gstin' => 'sometimes|nullable|string|max:20',
         ]);
@@ -458,7 +459,7 @@ class CustomerAuthController extends Controller
             ], 422);
         }
 
-        $customer->update($request->only(['name', 'phone', 'address', 'gstin']));
+        $customer->update($request->only(['name', 'phone', 'address', 'gstin', 'email']));
 
         return response()->json([
             'success' => true,

@@ -28,6 +28,8 @@ class CustomerService
             'phone' => $customer->phone,
             'avatar' => $this->processAvatarUrl($customer->avatar),
             'google_id' => $customer->google_id ?? null,
+            'address' => $customer->address,
+            'gstin' => $customer->gstin,
             'created_at' => $customer->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $customer->updated_at->format('Y-m-d H:i:s'),
         ];
