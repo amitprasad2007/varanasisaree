@@ -50,9 +50,7 @@ class PageController extends Controller
     public function privacy()
     {
         try {
-            $page = Page::where('slug', 'privacy-policy')
-                ->where('is_active', true)
-                ->first();
+            $page = $this->findPolicyPage('privacy-policy');
 
             $data = [
                 'id' => $page?->id ?? 97,
@@ -92,6 +90,7 @@ class PageController extends Controller
                                 'Request deletion of your data',
                                 'Opt-out of marketing communications',
                                 'Request a copy of your stored data',
+                                'Right to be forgotten and data portability',
                             ],
                         ],
                     ],
@@ -120,9 +119,7 @@ class PageController extends Controller
     public function terms()
     {
         try {
-            $page = Page::where('slug', 'terms-conditions')
-                ->where('is_active', true)
-                ->first();
+            $page = $this->findPolicyPage('terms-conditions');
 
             $data = [
                 'id' => $page?->id ?? 96,
@@ -149,9 +146,9 @@ class PageController extends Controller
                             'content' => 'All content, including designs, text, and images, is the property of Samar Silk Palace. Unauthorized use or reproduction is strictly prohibited and protected by international copyright laws.',
                         ],
                         [
-                            'title' => 'Liability',
+                            'title' => 'Governing Law',
                             'icon' => 'balance',
-                            'content' => 'Samar Silk Palace shall not be liable for any indirect, incidental, or consequential damages arising from the use of our products or platform.',
+                            'content' => 'These terms are governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Varanasi, Uttar Pradesh.',
                         ],
                     ],
                 ],
