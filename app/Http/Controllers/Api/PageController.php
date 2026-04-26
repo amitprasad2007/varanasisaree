@@ -398,7 +398,6 @@ class PageController extends Controller
                                     'Preserving Heritage Art',
                                 ],
                             ],
-                        ],
                             [
                                 'title' => 'Visit Our Showroom',
                                 'icon' => 'location_on',
