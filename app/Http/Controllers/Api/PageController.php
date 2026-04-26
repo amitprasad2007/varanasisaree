@@ -179,12 +179,10 @@ class PageController extends Controller
     public function shipping()
     {
         try {
-            $page = Page::where('slug', 'shipping-delivery')
-                ->where('is_active', true)
-                ->first();
+            $page = $this->findPolicyPage('shipping-delivery');
 
             $data = [
-                'id' => $page?->id ?? 98,
+                'id' => $page?->id ?? 97,
                 'title' => 'Shipping & Delivery',
                 'slug' => 'shipping-delivery',
                 'type' => 'policy',
@@ -254,6 +252,7 @@ class PageController extends Controller
             ], 404);
         }
     }
+    
 
     /**
      * Get cancellation and refund policy
@@ -263,9 +262,7 @@ class PageController extends Controller
     public function refund()
     {
         try {
-            $page = Page::where('slug', 'cancellation-refund')
-                ->where('is_active', true)
-                ->first();
+            $page = $this->findPolicyPage('cancellation-refund');
 
             $data = [
                 'id' => $page?->id ?? 99,
@@ -339,9 +336,7 @@ class PageController extends Controller
     public function aboutUs()
     {
         try {
-            $page = Page::where('slug', 'about-us')
-                ->where('is_active', true)
-                ->first();
+            $page = $this->findPolicyPage('about-us');
 
             if ($page) {
                 return $this->show('about-us');
@@ -419,6 +414,22 @@ class PageController extends Controller
                 'error' => $e->getMessage(),
             ], 404);
         }
+    }
+
+    /**
+     * Helper to find a policy page by slug variants
+     */
+    private function findPolicyPage(string $slug)
+    {
+        $possibleSlugs = [
+            str_replace('_', '-', $slug),
+            str_replace('-', '_', $slug),
+            $slug
+        ];
+
+        return Page::whereIn('slug', $possibleSlugs)
+            ->where('is_active', true)
+            ->first();
     }
 
     /**
