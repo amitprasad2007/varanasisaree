@@ -134,7 +134,7 @@ class CustomerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
-            ], 401);
+            ], 400);
         }
 
         // OTP is valid, clear it
@@ -509,7 +509,7 @@ class CustomerAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
-            ], 401);
+            ], 400);
         }
 
         Cache::forget('phone_update_otp_'.$request->user()->id.'_'.$phone);
