@@ -249,7 +249,6 @@ class PageController extends Controller
             ], 404);
         }
     }
-    
 
     /**
      * Get cancellation and refund policy
@@ -334,28 +333,31 @@ class PageController extends Controller
     {
         try {
             $page = $this->findPolicyPage('about-us');
+            $about = null;
 
-            if ($page) {
-                return $this->show('about-us');
+            if (! $page) {
+                $about = Aboutus::active()->first();
             }
 
-            // Fallback to legacy Aboutus table if Page record is missing
-            $about = Aboutus::active()->first();
-            if (! $about) {
+            if (! $page && ! $about) {
                 return response()->json([
                     'success' => false,
                     'message' => 'About Us content not found',
                 ], 404);
             }
 
+            $content = $page?->content ?? $about?->description ?? 'Samar Silk Palace is a premier destination for authentic Banarasi handloom products.';
+            $id = $page?->id ?? $about?->id ?? 1;
+            $updatedAt = $page?->updated_at ?? $about?->updated_at ?? now();
+
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'id' => $about->id,
-                    'title' => $about->page_title ?? 'About Us',
+                    'id' => $id,
+                    'title' => $page?->title ?? $about?->page_title ?? 'About Us',
                     'slug' => 'about-us',
                     'type' => 'policy',
-                    'content' => $about->description,
+                    'content' => $content,
                     'metadata' => [
                         'introduction' => 'Welcome to Samar Silk Palace, where tradition meets elegance. Since 1985, we have been dedicated to preserving the rich heritage of Banarasi handloom weaving, bringing the finest silk creations to connoisseurs worldwide.',
                         'sections' => [
@@ -395,13 +397,13 @@ class PageController extends Controller
                                 'icon' => 'location_on',
                                 'items' => [
                                     'Address: CK 10/44, Brahmanand Chauraha, Chowk, Varanasi - 221001',
-                                    'GSTIN: '.($about->gst_no ?? '09AAKCS1234F1Z1'),
+                                    'GSTIN: 09AAKCS1234F1Z1',
                                     'Hours: Mon-Sat, 10:30 AM - 8:30 PM',
                                 ],
                             ],
                         ],
                     ],
-                    'last_updated_at' => $about->updated_at->format('F Y'),
+                    'last_updated_at' => $updatedAt->format('F Y'),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -421,7 +423,7 @@ class PageController extends Controller
         $possibleSlugs = [
             str_replace('_', '-', $slug),
             str_replace('-', '_', $slug),
-            $slug
+            $slug,
         ];
 
         return Page::whereIn('slug', $possibleSlugs)
