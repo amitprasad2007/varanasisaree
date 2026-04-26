@@ -126,6 +126,8 @@ Route::post('/auth/refresh', [CustomerAuthController::class, 'refreshToken'])->m
 Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/user', [CustomerAuthController::class, 'profile']);
     Route::put('/auth/profile', [CustomerAuthController::class, 'updateProfile']);
+    Route::post('/auth/request-phone-update', [CustomerAuthController::class, 'requestPhoneUpdate']);
+    Route::post('/auth/verify-phone-update', [CustomerAuthController::class, 'verifyPhoneUpdate']);
     Route::post('/logout', [CustomerAuthController::class, 'logout']);
 
     // Cart operations

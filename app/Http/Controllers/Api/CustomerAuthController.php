@@ -446,7 +446,6 @@ class CustomerAuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
-            'phone' => 'sometimes|required|string|max:20|unique:customers,phone,'.$customer->id,
             'email' => 'sometimes|required|email|max:255|unique:customers,email,'.$customer->id,
             'address' => 'sometimes|nullable|string',
             'gstin' => 'sometimes|nullable|string|max:20',
@@ -459,11 +458,69 @@ class CustomerAuthController extends Controller
             ], 422);
         }
 
-        $customer->update($request->only(['name', 'phone', 'address', 'gstin', 'email']));
+        $customer->update($request->only(['name', 'address', 'gstin', 'email']));
 
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully',
+            'customer' => $customer,
+        ]);
+    }
+
+    public function requestPhoneUpdate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|max:20|unique:customers,phone,'.$request->user()->id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $phone = $request->phone;
+        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
+
+        Log::info("Phone update OTP for {$phone} is {$otp}");
+
+        Cache::put('phone_update_otp_'.$request->user()->id.'_'.$phone, $otp, now()->addMinutes(10));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP sent successfully to your new phone number',
+        ]);
+    }
+
+    public function verifyPhoneUpdate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|max:20|unique:customers,phone,'.$request->user()->id,
+            'otp' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $phone = $request->phone;
+        $otp = $request->otp;
+        $cachedOtp = Cache::get('phone_update_otp_'.$request->user()->id.'_'.$phone);
+
+        if (! $cachedOtp || $cachedOtp != $otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired OTP',
+            ], 401);
+        }
+
+        Cache::forget('phone_update_otp_'.$request->user()->id.'_'.$phone);
+
+        $customer = $request->user();
+        $customer->phone = $phone;
+        $customer->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Phone number updated successfully',
             'customer' => $customer,
         ]);
     }
