@@ -82,6 +82,16 @@ class PageController extends Controller
     }
 
     /**
+     * Get about us information
+     *
+     * @return JsonResponse
+     */
+    public function aboutUs()
+    {
+        return $this->show('about-us');
+    }
+
+    /**
      * Get delivery information
      *
      * @return JsonResponse
