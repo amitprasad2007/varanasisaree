@@ -478,8 +478,8 @@ class CustomerAuthController extends Controller
         }
 
         $phone = $request->phone;
-        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
-
+      //  $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
+        $otp = '123456' ;
         Log::info("Phone update OTP for {$phone} is {$otp}");
 
         Cache::put('phone_update_otp_'.$request->user()->id.'_'.$phone, $otp, now()->addMinutes(10));
