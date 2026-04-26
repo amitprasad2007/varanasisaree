@@ -114,7 +114,10 @@ class PageController extends Controller
                     'slug' => 'about-us',
                     'type' => 'policy',
                     'content' => $about->description,
-                    'metadata' => null,
+                    'metadata' => [
+                        'introduction' => $about->description,
+                        'sections' => [],
+                    ],
                     'last_updated_at' => $about->updated_at->format('F Y'),
                 ],
             ]);
