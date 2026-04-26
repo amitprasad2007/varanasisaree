@@ -37,10 +37,15 @@ Route::get('/blogs/{slug}', [BlogPostController::class, 'show']);
 Route::get('/pages/{slug}', [PageController::class, 'show']);
 Route::get('/policies', [PageController::class, 'policies']);
 Route::get('/policies/privacy', [PageController::class, 'privacy']);
+Route::get('/policies/privacy_policy', [PageController::class, 'privacy']);
 Route::get('/policies/terms', [PageController::class, 'terms']);
+Route::get('/policies/terms_conditions', [PageController::class, 'terms']);
 Route::get('/policies/shipping', [PageController::class, 'shipping']);
+Route::get('/policies/shipping_policy', [PageController::class, 'shipping']);
 Route::get('/policies/refund', [PageController::class, 'refund']);
+Route::get('/policies/refund_policy', [PageController::class, 'refund']);
 Route::get('/policies/about_us', [PageController::class, 'aboutUs']);
+Route::get('/policies/about-us', [PageController::class, 'aboutUs']);
 Route::get('/delivery-info', [PageController::class, 'deliveryInfo']);
 
 // FAQ APIs
