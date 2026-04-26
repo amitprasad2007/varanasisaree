@@ -458,7 +458,14 @@ class CustomerAuthController extends Controller
             ], 422);
         }
 
-        $customer->update($request->only(['name', 'address', 'gstin', 'email']));
+        $updateData = $request->only(['name', 'address', 'gstin']);
+
+        // Only allow email update if it's currently a placeholder
+        if ($request->has('email') && str_contains($customer->email, '@varanasisaree.placeholder.com')) {
+            $updateData['email'] = $request->email;
+        }
+
+        $customer->update($updateData);
 
         return response()->json([
             'success' => true,
