@@ -88,7 +88,43 @@ class PageController extends Controller
      */
     public function aboutUs()
     {
-        return $this->show('about-us');
+        try {
+            $page = Page::where('slug', 'about-us')
+                ->where('is_active', true)
+                ->first();
+
+            if ($page) {
+                return $this->show('about-us');
+            }
+
+            // Fallback to legacy Aboutus table if Page record is missing
+            $about = \App\Models\Aboutus::active()->first();
+            if (! $about) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'About Us content not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $about->id,
+                    'title' => $about->page_title ?? 'About Us',
+                    'slug' => 'about-us',
+                    'type' => 'policy',
+                    'content' => $about->description,
+                    'metadata' => null,
+                    'last_updated_at' => $about->updated_at->format('F Y'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Page not found',
+                'error' => $e->getMessage(),
+            ], 404);
+        }
     }
 
     /**
