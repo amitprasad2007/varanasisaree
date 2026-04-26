@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\ProductReview;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
 
 class AdminProductReviewTest extends TestCase
 {
@@ -43,7 +42,7 @@ class AdminProductReviewTest extends TestCase
             'product_id' => $product->id,
             'rating' => 5,
             'review' => 'Great product',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -52,7 +51,7 @@ class AdminProductReviewTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('product_reviews', [
             'id' => $review->id,
-            'status' => 'approved'
+            'status' => 'approved',
         ]);
     }
 
@@ -65,7 +64,7 @@ class AdminProductReviewTest extends TestCase
             'product_id' => $product->id,
             'rating' => 5,
             'review' => 'Bad product',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -74,7 +73,7 @@ class AdminProductReviewTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('product_reviews', [
             'id' => $review->id,
-            'status' => 'rejected'
+            'status' => 'rejected',
         ]);
     }
 
@@ -87,7 +86,7 @@ class AdminProductReviewTest extends TestCase
             'product_id' => $product->id,
             'rating' => 5,
             'review' => 'Bad product',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -95,7 +94,7 @@ class AdminProductReviewTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('product_reviews', [
-            'id' => $review->id
+            'id' => $review->id,
         ]);
     }
 }

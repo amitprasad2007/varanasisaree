@@ -33,9 +33,9 @@ class OrderController extends Controller
         $product = Product::with('category')->findOrFail($request->product_id);
         $categorySlug = strtolower($product->category->slug ?? '');
         $productSlug = strtolower($product->slug ?? '');
-        
-        $isThan = in_array($categorySlug, ['than', 'thaan']) || 
-                  str_contains($categorySlug, 'than') || 
+
+        $isThan = in_array($categorySlug, ['than', 'thaan']) ||
+                  str_contains($categorySlug, 'than') ||
                   str_contains($categorySlug, 'fabric') ||
                   str_starts_with($productSlug, 'than-') ||
                   str_starts_with($productSlug, 'fabric-');
@@ -151,9 +151,9 @@ class OrderController extends Controller
         foreach ($cartItems as $item) {
             $categorySlug = strtolower($item->product->category->slug ?? '');
             $productSlug = strtolower($item->product->slug ?? '');
-            
-            $isThan = in_array($categorySlug, ['than', 'thaan']) || 
-                      str_contains($categorySlug, 'than') || 
+
+            $isThan = in_array($categorySlug, ['than', 'thaan']) ||
+                      str_contains($categorySlug, 'than') ||
                       str_contains($categorySlug, 'fabric') ||
                       str_starts_with($productSlug, 'than-') ||
                       str_starts_with($productSlug, 'fabric-');

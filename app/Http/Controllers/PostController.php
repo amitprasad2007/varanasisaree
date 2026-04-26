@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
-use App\Models\PostCategory;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
+use App\Models\Post;
+use App\Models\PostCategory;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class PostController extends Controller
 {
@@ -20,7 +20,7 @@ class PostController extends Controller
         $posts = Post::with('category')->latest()->paginate(15);
 
         return Inertia::render('Admin/Posts/Index', [
-            'posts' => $posts
+            'posts' => $posts,
         ]);
     }
 
@@ -32,7 +32,7 @@ class PostController extends Controller
         $categories = PostCategory::where('status', 'active')->get();
 
         return Inertia::render('Admin/Posts/Create', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -54,7 +54,7 @@ class PostController extends Controller
         $originalSlug = $validated['slug'];
         $count = 1;
         while (Post::where('slug', $validated['slug'])->exists()) {
-            $validated['slug'] = $originalSlug . '-' . $count;
+            $validated['slug'] = $originalSlug.'-'.$count;
             $count++;
         }
 
@@ -88,7 +88,7 @@ class PostController extends Controller
         $post->load('category');
 
         return Inertia::render('Admin/Posts/Show', [
-            'post' => $post
+            'post' => $post,
         ]);
     }
 
@@ -101,7 +101,7 @@ class PostController extends Controller
 
         return Inertia::render('Admin/Posts/Edit', [
             'post' => $post->load('category'),
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -120,7 +120,7 @@ class PostController extends Controller
             $originalSlug = $validated['slug'];
             $count = 1;
             while (Post::where('slug', $validated['slug'])->where('id', '!=', $post->id)->exists()) {
-                $validated['slug'] = $originalSlug . '-' . $count;
+                $validated['slug'] = $originalSlug.'-'.$count;
                 $count++;
             }
         }
@@ -148,7 +148,7 @@ class PostController extends Controller
         }
 
         // Update published_at if status changed to published
-        if (isset($validated['status']) && $validated['status'] === 'published' && !$post->published_at) {
+        if (isset($validated['status']) && $validated['status'] === 'published' && ! $post->published_at) {
             $validated['published_at'] = now();
         }
 

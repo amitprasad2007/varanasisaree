@@ -18,5 +18,3 @@ class SalePayment extends Model
         return $this->belongsTo(Sale::class);
     }
 }
-
-

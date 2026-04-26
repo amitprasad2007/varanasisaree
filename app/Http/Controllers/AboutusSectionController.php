@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAboutusSectionRequest;
 use App\Http\Requests\UpdateAboutusSectionRequest;
-use App\Models\AboutUsSection;
 use App\Models\Aboutus;
+use App\Models\AboutUsSection;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -14,6 +14,7 @@ class AboutusSectionController extends Controller
     public function index(Aboutus $aboutus)
     {
         $sections = $aboutus->sections()->orderBy('order')->get();
+
         return Inertia::render('Admin/Aboutus/Sections/Index', [
             'aboutus' => $aboutus,
             'sections' => $sections,
@@ -42,6 +43,7 @@ class AboutusSectionController extends Controller
             'order' => $validated['order'] ?? 0,
             'status' => $validated['status'],
         ]);
+
         return redirect()->route('aboutus.sections.index', $validated['aboutus_id'])
             ->with('success', 'Section created successfully.');
     }
@@ -70,6 +72,7 @@ class AboutusSectionController extends Controller
             $data['image'] = $request->file('image')->store('aboutus-sections', 'public');
         }
         $section->update($data);
+
         return redirect()->route('aboutus.sections.index', $aboutus->id)
             ->with('success', 'Section updated successfully.');
     }
@@ -80,9 +83,8 @@ class AboutusSectionController extends Controller
             Storage::disk('public')->delete($section->image);
         }
         $section->delete();
+
         return redirect()->route('aboutus.sections.index', $aboutus->id)
             ->with('success', 'Section deleted successfully.');
     }
 }
-
-

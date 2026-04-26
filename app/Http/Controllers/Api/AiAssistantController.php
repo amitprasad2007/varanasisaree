@@ -61,7 +61,7 @@ class AiAssistantController extends Controller
         if (! empty($criteria['follow_up_question'])) {
             return response()->json([
                 'follow_up_question' => $criteria['follow_up_question'],
-                'recommendations' => "I'd love to help you find the perfect saree! " . $criteria['follow_up_question'],
+                'recommendations' => "I'd love to help you find the perfect saree! ".$criteria['follow_up_question'],
                 'matched_count' => 0,
             ]);
         }

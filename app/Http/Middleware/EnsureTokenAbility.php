@@ -25,5 +25,3 @@ class EnsureTokenAbility
         return $next($request);
     }
 }
-
-

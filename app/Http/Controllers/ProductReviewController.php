@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductReview;
 use App\Http\Requests\StoreProductReviewRequest;
 use App\Http\Requests\UpdateProductReviewRequest;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -24,7 +24,7 @@ class ProductReviewController extends Controller
         $reviews = $query->paginate(10);
 
         return Inertia::render('Admin/ProductReviews/Index', [
-            'reviews' => $reviews
+            'reviews' => $reviews,
         ]);
     }
 

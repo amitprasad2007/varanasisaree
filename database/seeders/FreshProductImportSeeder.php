@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Http\Controllers\ProductBulkUploadController;
+use Illuminate\Database\Seeder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class FreshProductImportSeeder extends Seeder
         // 2. Truncate tables (Foreign Key checks disabled temporarily)
         echo "Truncating database tables...\n";
         Schema::disableForeignKeyConstraints();
-        
+
         $tables = [
             'product_variant_images',
             'image_products',
@@ -37,7 +37,7 @@ class FreshProductImportSeeder extends Seeder
             'categories',
             'brands',
             'colors',
-            'sizes'
+            'sizes',
         ];
 
         foreach ($tables as $table) {
@@ -46,14 +46,15 @@ class FreshProductImportSeeder extends Seeder
                 DB::table($table)->truncate();
             }
         }
-        
+
         Schema::enableForeignKeyConstraints();
 
         // 3. Prepare the import
         $filePath = 'e:/laragon/www/varanasisaree/products_export_allitesm.xlsx';
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             echo "ABORTED: Excel file not found at $filePath\n";
+
             return;
         }
 
@@ -69,20 +70,20 @@ class FreshProductImportSeeder extends Seeder
         );
 
         $request = new Request([], [], [], [], ['file' => $file]);
-        
-        $controller = new ProductBulkUploadController();
+
+        $controller = new ProductBulkUploadController;
         $response = $controller->upload($request);
 
         echo "\nImport Result:\n";
         $result = $response->getData();
-        echo "Success: " . ($result->success ?? 0) . " rows processed.\n";
-        
-        if (!empty($result->errors)) {
+        echo 'Success: '.($result->success ?? 0)." rows processed.\n";
+
+        if (! empty($result->errors)) {
             echo "Errors found:\n";
             print_r($result->errors);
         }
 
-        if (!empty($result->warnings)) {
+        if (! empty($result->warnings)) {
             echo "Warnings found:\n";
             print_r($result->warnings);
         }

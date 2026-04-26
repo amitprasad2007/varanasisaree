@@ -14,5 +14,3 @@ class ApiPlaygroundController extends Controller
         return Inertia::render('Admin/Api/Index');
     }
 }
-
-

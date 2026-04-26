@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserManagementController extends Controller
 {
@@ -16,7 +16,7 @@ class UserManagementController extends Controller
         $users = User::with('roles')->latest()->get();
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
@@ -72,7 +72,7 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8',
             'role_ids' => 'required|array',
             'role_ids.*' => 'exists:roles,id',
@@ -103,5 +103,4 @@ class UserManagementController extends Controller
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
     }
-
 }

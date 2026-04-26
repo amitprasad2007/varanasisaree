@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shipping;
 use App\Http\Requests\StoreShippingRequest;
 use App\Http\Requests\UpdateShippingRequest;
+use App\Models\Shipping;
 
 class ShippingController extends Controller
 {

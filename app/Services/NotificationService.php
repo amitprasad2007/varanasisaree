@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Notification;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Order;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -16,7 +16,7 @@ class NotificationService
     public function sendOrderStatusNotification(Order $order, string $newStatus): void
     {
         $customer = $order->customer;
-        if (!$customer) {
+        if (! $customer) {
             return;
         }
 
@@ -61,7 +61,7 @@ class NotificationService
                 'message' => $message,
             ], function ($mail) use ($customer, $title) {
                 $mail->to($customer->email, $customer->name)
-                     ->subject($title);
+                    ->subject($title);
             });
 
             // Mark email as sent
@@ -71,14 +71,14 @@ class NotificationService
             Log::info('Order status email sent', [
                 'order_id' => $order->id,
                 'customer_email' => $customer->email,
-                'status' => $newStatus
+                'status' => $newStatus,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to send order status email notification', [
                 'order_id' => $order->id,
                 'customer_id' => $customer->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -89,7 +89,7 @@ class NotificationService
     public function sendAwbNotification(Order $order): void
     {
         $customer = $order->customer;
-        if (!$customer) {
+        if (! $customer) {
             return;
         }
 
@@ -125,7 +125,7 @@ class NotificationService
                 'customer' => $customer,
             ], function ($mail) use ($customer, $title) {
                 $mail->to($customer->email, $customer->name)
-                     ->subject($title);
+                    ->subject($title);
             });
 
             // Mark email as sent
@@ -135,14 +135,14 @@ class NotificationService
             Log::info('AWB email sent', [
                 'order_id' => $order->id,
                 'customer_email' => $customer->email,
-                'awb_number' => $order->awb_number
+                'awb_number' => $order->awb_number,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to send AWB email notification', [
                 'order_id' => $order->id,
                 'customer_id' => $customer->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -153,12 +153,12 @@ class NotificationService
     public function sendPaymentConfirmation(Order $order): void
     {
         $customer = $order->customer;
-        if (!$customer) {
+        if (! $customer) {
             return;
         }
 
         $title = "Payment Confirmed - {$order->order_id}";
-        $message = "Your payment has been confirmed. Your order is now being processed.";
+        $message = 'Your payment has been confirmed. Your order is now being processed.';
 
         // Create notification record in database
         $notification = Notification::create([
@@ -180,7 +180,7 @@ class NotificationService
             'order_id' => $order->id,
             'customer_id' => $customer->id,
             'amount' => $order->total_amount,
-            'payment_method' => $order->payment_method
+            'payment_method' => $order->payment_method,
         ]);
 
         // Send email notification
@@ -191,7 +191,7 @@ class NotificationService
                 'message' => $message,
             ], function ($mail) use ($customer, $title) {
                 $mail->to($customer->email, $customer->name)
-                     ->subject($title);
+                    ->subject($title);
             });
 
             // Mark email as sent
@@ -206,7 +206,7 @@ class NotificationService
             Log::error('Failed to send payment confirmation email', [
                 'order_id' => $order->id,
                 'customer_id' => $customer->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -221,7 +221,7 @@ class NotificationService
         Log::warning('Low stock alert', [
             'product_id' => $product->id,
             'product_name' => $product->name,
-            'current_stock' => $currentStock
+            'current_stock' => $currentStock,
         ]);
     }
 
@@ -231,7 +231,9 @@ class NotificationService
     public function sendRefundStatusNotification($refund, string $eventType): void
     {
         $customer = $refund->customer ?? ($refund->sale ? $refund->sale->customer : null);
-        if (!$customer) return;
+        if (! $customer) {
+            return;
+        }
 
         $eventMessages = [
             'requested' => 'Your refund request has been received and is pending review.',
@@ -243,7 +245,7 @@ class NotificationService
         $title = "Refund Status Update - {$refund->reference}";
         $message = $eventMessages[$eventType] ?? ("Refund status updated to: {$eventType}");
 
-        $notification = \App\Models\Notification::create([
+        $notification = Notification::create([
             'order_id' => $refund->order ? $refund->order->id : $refund->order_id,
             'customer_id' => $customer->id,
             'type' => 'refund_status',
@@ -296,14 +298,17 @@ class NotificationService
             $notification = Notification::find($notificationId);
             if ($notification) {
                 $notification->markAsRead();
+
                 return true;
             }
+
             return false;
         } catch (\Exception $e) {
             Log::error('Failed to mark notification as read', [
                 'notification_id' => $notificationId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -320,8 +325,9 @@ class NotificationService
         } catch (\Exception $e) {
             Log::error('Failed to get unread count', [
                 'customer_id' => $customerId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }

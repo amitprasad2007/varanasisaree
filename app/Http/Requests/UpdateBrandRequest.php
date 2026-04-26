@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateBrandRequest extends FormRequest
@@ -17,13 +18,13 @@ class UpdateBrandRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-           'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:brands,slug,' . $this->route('brand')->id,
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:brands,slug,'.$this->route('brand')->id,
             'description' => 'nullable|string',
             'images' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',

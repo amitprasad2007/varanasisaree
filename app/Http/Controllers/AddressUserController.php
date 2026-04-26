@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AddressUser;
 use App\Http\Requests\StoreAddressUserRequest;
 use App\Http\Requests\UpdateAddressUserRequest;
+use App\Models\AddressUser;
 
 class AddressUserController extends Controller
 {

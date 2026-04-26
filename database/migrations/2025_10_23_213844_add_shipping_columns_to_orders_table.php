@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             // Add AWB and tracking columns if they don't exist
-            if (!Schema::hasColumn('orders', 'awb_number')) {
+            if (! Schema::hasColumn('orders', 'awb_number')) {
                 $table->string('awb_number')->nullable()->unique()->after('status');
             }
-            if (!Schema::hasColumn('orders', 'tracking_number')) {
+            if (! Schema::hasColumn('orders', 'tracking_number')) {
                 $table->string('tracking_number')->nullable()->after('awb_number');
             }
-            if (!Schema::hasColumn('orders', 'delivered_at')) {
+            if (! Schema::hasColumn('orders', 'delivered_at')) {
                 $table->timestamp('delivered_at')->nullable()->after('shipped_at');
             }
-            if (!Schema::hasColumn('orders', 'shipping_notes')) {
+            if (! Schema::hasColumn('orders', 'shipping_notes')) {
                 $table->text('shipping_notes')->nullable()->after('delivered_at');
             }
         });

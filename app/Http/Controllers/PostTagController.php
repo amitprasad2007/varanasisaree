@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PostTag;
 use App\Http\Requests\StorePostTagRequest;
 use App\Http\Requests\UpdatePostTagRequest;
+use App\Models\PostTag;
 
 class PostTagController extends Controller
 {

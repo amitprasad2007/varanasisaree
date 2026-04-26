@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\VendorMenuSection;
-use App\Models\VendorMenuItem;
 use App\Models\Vendor;
+use App\Models\VendorMenuItem;
+use App\Models\VendorMenuSection;
+use Illuminate\Database\Seeder;
 
 class VendorMenuPermissionSeeder extends Seeder
 {
@@ -33,7 +33,7 @@ class VendorMenuPermissionSeeder extends Seeder
         // 2. Map Items to Sections (Heuristic mapping based on common names)
         // If items were seeded with old 'section' string, we can't access it if column removed.
         // We will match by Label/Path groups.
-        
+
         $mapping = [
             'Dashboard' => 'overview',
             'Products' => 'catalog',
@@ -55,7 +55,7 @@ class VendorMenuPermissionSeeder extends Seeder
                     break;
                 }
             }
-            
+
             $section = VendorMenuSection::where('slug', $slug)->first();
             if ($section) {
                 $item->vendor_menu_section_id = $section->id;

@@ -39,7 +39,7 @@ return new class extends Migration
             $table->string('signature_name')->nullable();
             $table->json('metadata')->nullable(); // Additional shipping data
             $table->timestamps();
-            
+
             $table->index(['order_id', 'status']);
             $table->index(['awb_number']);
             $table->index(['tracking_number']);

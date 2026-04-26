@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Builder;
 
 class Customer extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'phone', 'email', 'address', 'gstin', 'password', 'status', 'google_id', 'facebook_id', 'avatar'
+        'name', 'phone', 'email', 'address', 'gstin', 'password', 'status', 'google_id', 'facebook_id', 'avatar',
     ];
 
     protected $hidden = [
@@ -69,14 +69,17 @@ class Customer extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(AddressUser::class);
     }
+
     public function addressesdefault(): HasOne
     {
         return $this->hasOne(AddressUser::class)->where('is_default', true);
     }
+
     public function cartItems(): HasMany
     {
         return $this->hasMany(Cart::class)->whereNull('order_id');
@@ -92,5 +95,3 @@ class Customer extends Authenticatable
         return $this->hasMany(Refund::class);
     }
 }
-
-

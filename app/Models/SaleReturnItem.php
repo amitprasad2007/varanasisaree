@@ -11,7 +11,7 @@ class SaleReturnItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sale_return_id', 'sale_item_id', 'product_id', 'product_variant_id', 'quantity', 'amount' ];
+        'sale_return_id', 'sale_item_id', 'product_id', 'product_variant_id', 'quantity', 'amount'];
 
     public function saleReturn(): BelongsTo
     {
@@ -23,5 +23,3 @@ class SaleReturnItem extends Model
         return $this->belongsTo(SaleItem::class);
     }
 }
-
-

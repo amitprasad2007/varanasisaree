@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\Shipment;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,7 +51,7 @@ class ShipmentController extends Controller
             'signature_required' => 'boolean',
         ]);
 
-        $shipment = new Shipment();
+        $shipment = new Shipment;
         $awbNumber = $request->awb_number ?: $shipment->generateAwbNumber();
 
         $shipment = Shipment::create([

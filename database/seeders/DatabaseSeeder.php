@@ -5,14 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\CollectionTypeSeeder;
-use Database\Seeders\CollectionSeeder;
-use Database\Seeders\CompanyInfoSeeder;
-use Database\Seeders\FAQSeeder;
-use Database\Seeders\AboutusSeeder;
-use Database\Seeders\PageSeeder;
-use Database\Seeders\PostCategorySeeder;
-use Database\Seeders\PostSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -32,11 +24,11 @@ class DatabaseSeeder extends Seeder
             // CollectionTypeSeeder::class,
             // CollectionSeeder::class,
             // CompanyInfoSeeder::class,
-            //FAQSeeder::class,
-            //AboutusSeeder::class,
-           // PageSeeder::class,
-             // PostCategorySeeder::class,
-           // PostSeeder::class,
+            // FAQSeeder::class,
+            // AboutusSeeder::class,
+            // PageSeeder::class,
+            // PostCategorySeeder::class,
+            // PostSeeder::class,
 
         ]);
     }

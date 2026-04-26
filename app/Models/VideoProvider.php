@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\VideoProviderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VideoProvider extends Model
 {
-    /** @use HasFactory<\Database\Factories\VideoProviderFactory> */
+    /** @use HasFactory<VideoProviderFactory> */
     use HasFactory;
+
     protected $fillable = [
         'name',
         'base_url',

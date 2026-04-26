@@ -16,7 +16,7 @@ class CollectionController extends Controller
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description']);
+            ->get(['id', 'name', 'slug', 'description', 'banner_image', 'thumbnail_image', 'seo_title', 'seo_description']);
 
         return response()->json($types);
     }
@@ -35,7 +35,7 @@ class CollectionController extends Controller
         $collections = $query->with('collectionType:id,name,slug')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description']);
+            ->get(['id', 'collection_type_id', 'name', 'slug', 'description', 'banner_image', 'thumbnail_image', 'seo_title', 'seo_description']);
 
         return response()->json($collections);
     }
@@ -48,29 +48,31 @@ class CollectionController extends Controller
             ->with([
                 'collectionType:id,name,slug',
                 'products' => function ($q) {
-                    $q->select('products.id','products.name','products.slug','products.price','products.status')
-                      ->where('products.status', 'active')
-                      ->with('imageproducts:id,product_id,image_path')
-                      ->orderBy('pivot_sort_order');
+                    $q->select('products.id', 'products.name', 'products.slug', 'products.price', 'products.status')
+                        ->where('products.status', 'active')
+                        ->with('imageproducts:id,product_id,image_path')
+                        ->orderBy('pivot_sort_order');
                 },
             ])
-            ->firstOrFail(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description']);
+            ->firstOrFail(['id', 'collection_type_id', 'name', 'slug', 'description', 'banner_image', 'thumbnail_image', 'seo_title', 'seo_description']);
 
         // Transform products to include image URLs
         $collection->products = $collection->products->map(function ($product) {
-             // Images (resolve and convert to absolute URLs)
+            // Images (resolve and convert to absolute URLs)
             $images = $product->resolveImagePaths()->map(function ($path) {
                 $path = (string) $path;
                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                     return $path;
                 }
-                return asset('storage/' . ltrim($path, '/'));
+
+                return asset('storage/'.ltrim($path, '/'));
             })->values();
 
             // Skip products with no images
             if ($images->isEmpty()) {
                 return null;
             }
+
             return [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -106,7 +108,7 @@ class CollectionController extends Controller
             ->with('collectionType:id,name,slug')
             ->orderBy('sort_order')
             ->limit(6)
-            ->get(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image','seo_title','seo_description']);
+            ->get(['id', 'collection_type_id', 'name', 'slug', 'description', 'banner_image', 'thumbnail_image', 'seo_title', 'seo_description']);
 
         return response()->json($collections);
     }
@@ -114,8 +116,8 @@ class CollectionController extends Controller
     public function search(Request $request)
     {
         $query = $request->query('q');
-        
-        if (!$query) {
+
+        if (! $query) {
             return response()->json([]);
         }
 
@@ -123,16 +125,14 @@ class CollectionController extends Controller
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%");
+                    ->orWhere('description', 'like', "%{$query}%");
             })
             ->with('collectionType:id,name,slug')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->limit(10)
-            ->get(['id','collection_type_id','name','slug','description','banner_image','thumbnail_image']);
+            ->get(['id', 'collection_type_id', 'name', 'slug', 'description', 'banner_image', 'thumbnail_image']);
 
         return response()->json($collections);
     }
 }
-
-

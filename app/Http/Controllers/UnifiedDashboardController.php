@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Sale;
-use App\Models\Order;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\Sale;
 use Inertia\Inertia;
 use Inertia\Response;
 

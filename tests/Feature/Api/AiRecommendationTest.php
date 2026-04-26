@@ -1,12 +1,13 @@
 <?php
 
-/** @var \Tests\TestCase $this */
+/** @var TestCase $this */
 
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\AiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 

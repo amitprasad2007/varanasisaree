@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\VendorMenuSection;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -50,33 +52,33 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error')
+                'error' => fn () => $request->session()->get('error'),
             ],
-            'vendor_menu' => fn () => function() {
-                $vendor = \Illuminate\Support\Facades\Auth::guard('vendor')->user();
-                
-                if (!$vendor) {
+            'vendor_menu' => fn () => function () {
+                $vendor = Auth::guard('vendor')->user();
+
+                if (! $vendor) {
                     return [];
                 }
 
                 // Fetch Sections with Items
-                $sections = \App\Models\VendorMenuSection::where('is_active', true)
+                $sections = VendorMenuSection::where('is_active', true)
                     ->orderBy('order')
-                    ->with(['vendormenuitems' => function($q) use ($vendor) {
+                    ->with(['vendormenuitems' => function ($q) use ($vendor) {
                         $q->whereNull('parent_id')
-                          ->where('is_active', true)
-                          ->with(['children' => function($cq) use ($vendor) {
-                              $cq->where('is_active', true);
-                              // Filter children permissions
-                              $cq->whereHas('vendors', function($vq) use ($vendor) {
-                                  $vq->where('vendors.id', $vendor->id);
-                              });
-                              $cq->orderBy('order');
-                          }])
-                          ->orderBy('order');
+                            ->where('is_active', true)
+                            ->with(['children' => function ($cq) use ($vendor) {
+                                $cq->where('is_active', true);
+                                // Filter children permissions
+                                $cq->whereHas('vendors', function ($vq) use ($vendor) {
+                                    $vq->where('vendors.id', $vendor->id);
+                                });
+                                $cq->orderBy('order');
+                            }])
+                            ->orderBy('order');
 
                         // Filter parent permissions
-                        $q->whereHas('vendors', function($vq) use ($vendor) {
+                        $q->whereHas('vendors', function ($vq) use ($vendor) {
                             $vq->where('vendors.id', $vendor->id);
                         });
                     }])
@@ -89,12 +91,13 @@ class HandleInertiaRequests extends Middleware
                         $menu[$section->name] = $section->vendormenuitems;
                     }
                 }
+
                 return $menu;
             },
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
-            ]
+            ],
         ];
     }
 }

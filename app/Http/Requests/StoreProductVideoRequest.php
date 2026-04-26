@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductVideoRequest extends FormRequest
@@ -17,12 +18,12 @@ class StoreProductVideoRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-           'video_provider_id' => 'required|exists:video_providers,id',
+            'video_provider_id' => 'required|exists:video_providers,id',
             'title' => 'required|string|max:255',
             'video_id' => 'required|string|max:255',
             'description' => 'nullable|string',

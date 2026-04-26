@@ -13,19 +13,19 @@ return new class extends Migration
     {
         if (Schema::hasTable('users')) {
             Schema::table('users', function (Blueprint $table) {
-                if (!Schema::hasColumn('users', 'avatar')) {
+                if (! Schema::hasColumn('users', 'avatar')) {
                     $table->string('avatar')->nullable();
                 }
-                if (!Schema::hasColumn('users', 'phone')) {
+                if (! Schema::hasColumn('users', 'phone')) {
                     $table->string('phone')->nullable();
                 }
-                if (!Schema::hasColumn('users', 'address')) {
+                if (! Schema::hasColumn('users', 'address')) {
                     $table->string('address')->nullable();
                 }
-                if (!Schema::hasColumn('users', 'is_active')) {
+                if (! Schema::hasColumn('users', 'is_active')) {
                     $table->boolean('is_active')->default(true);
                 }
-                if (!Schema::hasColumn('users', 'last_login_at')) {
+                if (! Schema::hasColumn('users', 'last_login_at')) {
                     $table->timestamp('last_login_at')->nullable();
                 }
             });

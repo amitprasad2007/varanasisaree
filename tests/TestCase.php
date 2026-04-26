@@ -2,11 +2,13 @@
 
 namespace Tests;
 
+use App\Models\Brand;
+use App\Models\Category;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 /**
- * @property \App\Models\Category $category
- * @property \App\Models\Brand $brand
+ * @property Category $category
+ * @property Brand $brand
  */
 abstract class TestCase extends BaseTestCase
 {

@@ -10,7 +10,7 @@ class CartItem extends Model
     protected $fillable = [
         'cart_id',
         'product_id',
-        'quantity'
+        'quantity',
     ];
 
     public function cart(): BelongsTo

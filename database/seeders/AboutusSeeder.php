@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Aboutus;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class AboutusSeeder extends Seeder
@@ -17,7 +16,7 @@ class AboutusSeeder extends Seeder
             'page_title' => 'About Siyabling',
             'description' => 'Welcome to our story...',
             'image' => 'aboutus.jpg',
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         AboutUsSection::insert([

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Brand;
 use App\Http\Requests\StoreBrandRequest;
 use App\Http\Requests\UpdateBrandRequest;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
+use App\Models\Brand;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class BrandController extends Controller
 {
@@ -19,7 +18,7 @@ class BrandController extends Controller
         $brands = Brand::all();
 
         return Inertia::render('Admin/Brands/Index', [
-            'brands' => $brands
+            'brands' => $brands,
         ]);
     }
 
@@ -84,15 +83,15 @@ class BrandController extends Controller
     public function update(UpdateBrandRequest $request, Brand $brand)
     {
         $validated = $request->validated();
-       // Format slug: replace spaces and special characters with hyphens
-       $validated['slug'] = str_replace(' ', '-', $validated['slug']);
-       $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
-       $validated['slug'] = strtolower($validated['slug']);
+        // Format slug: replace spaces and special characters with hyphens
+        $validated['slug'] = str_replace(' ', '-', $validated['slug']);
+        $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
+        $validated['slug'] = strtolower($validated['slug']);
 
-       $validated['status'] = $validated['status'] ? 'active' : 'inactive';
+        $validated['status'] = $validated['status'] ? 'active' : 'inactive';
 
-       // Handle photo upload
-       if ($request->hasFile('images')) {
+        // Handle photo upload
+        if ($request->hasFile('images')) {
             // Delete old photo if exists
             if ($brand->images) {
                 Storage::disk('public')->delete($brand->images);
@@ -105,8 +104,8 @@ class BrandController extends Controller
             unset($validated['images']);
         }
         // Handle photo upload
-       if ($request->hasFile('logo')) {
-        // Delete old photo if exists
+        if ($request->hasFile('logo')) {
+            // Delete old photo if exists
             if ($brand->logo) {
                 Storage::disk('public')->delete($brand->logo);
             }

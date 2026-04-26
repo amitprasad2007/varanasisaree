@@ -3,19 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vendor;
+use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Exception;
-use Laravel\Socialite\Facades\Socialite;
 
-class VendorController  extends Controller
+class VendorController extends Controller
 {
-
     public function index(Request $request): Response
     {
         $query = Vendor::query();
@@ -34,14 +31,14 @@ class VendorController  extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('business_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%");
             });
         }
 
         $vendors = $query->withCount(['products', 'orders', 'sales'])
-                        ->orderBy('created_at', 'desc')
-                        ->paginate(15);
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         $stats = [
             'total' => Vendor::count(),
@@ -54,15 +51,16 @@ class VendorController  extends Controller
         return Inertia::render('Admin/Vendors/Index', [
             'vendors' => $vendors,
             'stats' => $stats,
-            'filters' => $request->only(['status', 'verified', 'search'])
+            'filters' => $request->only(['status', 'verified', 'search']),
         ]);
     }
 
-    public function show($id) : Response
+    public function show($id): Response
     {
         $vendor = Vendor::find($id);
+
         return Inertia::render('Admin/Vendors/Show', [
-            'vendor' => $vendor
+            'vendor' => $vendor,
         ]);
     }
 
@@ -73,7 +71,7 @@ class VendorController  extends Controller
         // Update vendor status to active and mark as verified
         $vendor->update([
             'status' => 'active',
-            'is_verified' => true
+            'is_verified' => true,
         ]);
 
         return redirect()->back()->with('success', 'Vendor approved successfully.');
@@ -85,7 +83,7 @@ class VendorController  extends Controller
 
         // Update vendor status to suspended
         $vendor->update([
-            'status' => 'suspended'
+            'status' => 'suspended',
         ]);
 
         return redirect()->back()->with('success', 'Vendor suspended successfully.');
@@ -97,7 +95,7 @@ class VendorController  extends Controller
 
         // Update vendor status to active
         $vendor->update([
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         return redirect()->back()->with('success', 'Vendor activated successfully.');
@@ -110,7 +108,7 @@ class VendorController  extends Controller
         // Update vendor status to rejected and unverify
         $vendor->update([
             'status' => 'inactive',
-            'is_verified' => false
+            'is_verified' => false,
         ]);
 
         return redirect()->back()->with('success', 'Vendor rejected successfully.');
@@ -119,12 +117,12 @@ class VendorController  extends Controller
     public function updateCommission(Request $request, $id)
     {
         $request->validate([
-            'commission_rate' => 'required|numeric|min:0|max:100'
+            'commission_rate' => 'required|numeric|min:0|max:100',
         ]);
 
         $vendor = Vendor::findOrFail($id);
         $vendor->update([
-            'commission_rate' => $request->commission_rate
+            'commission_rate' => $request->commission_rate,
         ]);
 
         return redirect()->back()->with('success', 'Commission rate updated successfully.');
@@ -133,12 +131,12 @@ class VendorController  extends Controller
     public function updatePaymentTerms(Request $request, $id)
     {
         $request->validate([
-            'payment_terms' => 'required|string|max:255'
+            'payment_terms' => 'required|string|max:255',
         ]);
 
         $vendor = Vendor::findOrFail($id);
         $vendor->update([
-            'payment_terms' => $request->payment_terms
+            'payment_terms' => $request->payment_terms,
         ]);
 
         return redirect()->back()->with('success', 'Payment terms updated successfully.');
@@ -163,7 +161,7 @@ class VendorController  extends Controller
         $request->validate([
             'action' => 'required|in:approve,suspend,activate,reject,delete',
             'vendor_ids' => 'required|array',
-            'vendor_ids.*' => 'exists:vendors,id'
+            'vendor_ids.*' => 'exists:vendors,id',
         ]);
 
         $action = $request->action;
@@ -173,7 +171,7 @@ class VendorController  extends Controller
             case 'approve':
                 Vendor::whereIn('id', $vendorIds)->update([
                     'status' => 'active',
-                    'is_verified' => true
+                    'is_verified' => true,
                 ]);
                 $message = 'Vendors approved successfully.';
                 break;
@@ -191,7 +189,7 @@ class VendorController  extends Controller
             case 'reject':
                 Vendor::whereIn('id', $vendorIds)->update([
                     'status' => 'inactive',
-                    'is_verified' => false
+                    'is_verified' => false,
                 ]);
                 $message = 'Vendors rejected successfully.';
                 break;
@@ -201,8 +199,8 @@ class VendorController  extends Controller
                 $vendorsWithData = Vendor::whereIn('id', $vendorIds)
                     ->where(function ($query) {
                         $query->whereHas('products')
-                              ->orWhereHas('orders')
-                              ->orWhereHas('sales');
+                            ->orWhereHas('orders')
+                            ->orWhereHas('sales');
                     })->count();
 
                 if ($vendorsWithData > 0) {
@@ -219,9 +217,10 @@ class VendorController  extends Controller
 
     public function create()
     {
-       
+
         return Inertia::render('Admin/Vendors/Create');
     }
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -276,8 +275,8 @@ class VendorController  extends Controller
             return redirect()->route('admin.vendors.index')
                 ->with('success', 'Vendor created successfully.');
 
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Creation failed: ' . $e->getMessage()])->withInput();
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Creation failed: '.$e->getMessage()])->withInput();
         }
     }
 
@@ -288,7 +287,7 @@ class VendorController  extends Controller
         $counter = 1;
 
         while (Vendor::where('subdomain', $subdomain)->exists()) {
-            $subdomain = $baseSubdomain . '-' . $counter;
+            $subdomain = $baseSubdomain.'-'.$counter;
             $counter++;
         }
 

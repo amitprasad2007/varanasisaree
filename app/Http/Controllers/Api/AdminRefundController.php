@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Refund;
-use App\Models\RefundTransaction;
-use App\Services\RefundService;
 use App\Services\RazorpayRefundService;
-use Illuminate\Http\Request;
+use App\Services\RefundService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class AdminRefundController extends Controller
 {
@@ -26,7 +24,7 @@ class AdminRefundController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', \App\Models\Refund::class);
+        $this->authorize('viewAny', Refund::class);
         $query = Refund::with([
             'customer',
             'sale',
@@ -34,7 +32,7 @@ class AdminRefundController extends Controller
             'creditNote',
             'refundTransaction',
             'refundItems.product',
-            'refundItems.productVariant'
+            'refundItems.productVariant',
         ]);
 
         // Apply filters
@@ -82,7 +80,7 @@ class AdminRefundController extends Controller
             'refundItems.product',
             'refundItems.productVariant',
             'refundItems.saleReturnItem',
-            'refundItems.orderItem'
+            'refundItems.orderItem',
         ]);
 
         return response()->json([
@@ -98,7 +96,7 @@ class AdminRefundController extends Controller
     {
         $this->authorize('approve', $refund);
         $request->validate([
-            'admin_notes' => 'nullable|string|max:1000'
+            'admin_notes' => 'nullable|string|max:1000',
         ]);
 
         if ($refund->status !== 'pending') {
@@ -132,7 +130,7 @@ class AdminRefundController extends Controller
         $this->authorize('reject', $refund);
         $request->validate([
             'reason' => 'required|string|max:1000',
-            'admin_notes' => 'nullable|string|max:1000'
+            'admin_notes' => 'nullable|string|max:1000',
         ]);
 
         if ($refund->status !== 'pending') {
@@ -165,7 +163,7 @@ class AdminRefundController extends Controller
     {
         $this->authorize('process', $refund);
         $request->validate([
-            'admin_notes' => 'nullable|string|max:1000'
+            'admin_notes' => 'nullable|string|max:1000',
         ]);
 
         if ($refund->refund_status !== 'approved') {
@@ -204,7 +202,7 @@ class AdminRefundController extends Controller
         }
 
         $refundTransaction = $refund->refundTransaction;
-        if (!$refundTransaction || $refundTransaction->status !== 'failed') {
+        if (! $refundTransaction || $refundTransaction->status !== 'failed') {
             return response()->json([
                 'success' => false,
                 'message' => 'No failed Razorpay transaction found for this refund.',
@@ -213,10 +211,10 @@ class AdminRefundController extends Controller
 
         try {
             $razorpayService = app(RazorpayRefundService::class);
-            
+
             $result = $razorpayService->processRefund(
-                $refundTransaction, 
-                $refundTransaction->amount, 
+                $refundTransaction,
+                $refundTransaction->amount,
                 $refund->reason
             );
 
@@ -243,7 +241,7 @@ class AdminRefundController extends Controller
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to retry Razorpay refund: ' . $result['error'],
+                    'message' => 'Failed to retry Razorpay refund: '.$result['error'],
                 ], 400);
             }
         } catch (\Exception $e) {
@@ -264,7 +262,7 @@ class AdminRefundController extends Controller
         // Add additional admin statistics
         $statistics['pending_approval'] = Refund::pending()->count();
         $statistics['processing_refunds'] = Refund::where('refund_status', 'processing')->count();
-        $statistics['failed_refunds'] = Refund::whereHas('refundTransaction', function($query) {
+        $statistics['failed_refunds'] = Refund::whereHas('refundTransaction', function ($query) {
             $query->where('status', 'failed');
         })->count();
 
@@ -280,8 +278,8 @@ class AdminRefundController extends Controller
     public function getByStatus(string $status): JsonResponse
     {
         $validStatuses = ['pending', 'approved', 'rejected', 'processing', 'completed', 'cancelled'];
-        
-        if (!in_array($status, $validStatuses)) {
+
+        if (! in_array($status, $validStatuses)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid status provided.',
@@ -293,7 +291,7 @@ class AdminRefundController extends Controller
                 'customer',
                 'sale',
                 'order',
-                'refundTransaction'
+                'refundTransaction',
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -316,12 +314,12 @@ class AdminRefundController extends Controller
             return response()->json([
                 'success' => $result['success'],
                 'message' => $result['message'] ?? $result['error'],
-                'data' => $result
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 400);
         }
     }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyInfo;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CompanyInfoController extends Controller
 {
@@ -12,14 +12,14 @@ class CompanyInfoController extends Controller
      * Get company information
      * Returns the first (and usually only) company info record
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index()
     {
         try {
             $companyInfo = CompanyInfo::first();
 
-            if (!$companyInfo) {
+            if (! $companyInfo) {
                 // Return default company info if not found
                 return response()->json([
                     'success' => true,
@@ -86,14 +86,14 @@ class CompanyInfoController extends Controller
     /**
      * Get contact information (subset of company info)
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function contact()
     {
         try {
             $companyInfo = CompanyInfo::first();
 
-            if (!$companyInfo) {
+            if (! $companyInfo) {
                 return response()->json([
                     'success' => true,
                     'data' => [
@@ -138,14 +138,14 @@ class CompanyInfoController extends Controller
     /**
      * Get social media links
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function social()
     {
         try {
             $companyInfo = CompanyInfo::first();
 
-            if (!$companyInfo) {
+            if (! $companyInfo) {
                 return response()->json([
                     'success' => true,
                     'data' => [

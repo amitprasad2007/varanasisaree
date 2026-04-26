@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Vendor;
 use App\Models\Product;
-use App\Models\Order;
-use App\Models\Sale;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,7 +64,7 @@ class VendorDashboardController extends Controller
         $monthlyRevenue = $this->getMonthlyRevenue($vendor);
 
         return Inertia::render('Vendor/Dashboard', [
-            'vendor'=> $vendor,
+            'vendor' => $vendor,
             'stats' => $stats,
             'recent_orders' => $recentOrders,
             'top_products' => $topProducts,
@@ -77,7 +73,7 @@ class VendorDashboardController extends Controller
             'date_range' => [
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
-            ]
+            ],
         ]);
     }
 
@@ -99,16 +95,16 @@ class VendorDashboardController extends Controller
 
         // Search by name
         if ($request->has('search') && $request->search !== '') {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $products = $query->withCount('orderItems')
-                         ->orderBy('created_at', 'desc')
-                         ->paginate(15);
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return Inertia::render('Vendor/Products', [
             'products' => $products,
-            'filters' => $request->only(['status', 'category_id', 'search'])
+            'filters' => $request->only(['status', 'category_id', 'search']),
         ]);
     }
 
@@ -134,11 +130,11 @@ class VendorDashboardController extends Controller
         }
 
         $orders = $query->orderBy('created_at', 'desc')
-                       ->paginate(15);
+            ->paginate(15);
 
         return Inertia::render('Vendor/Orders', [
             'orders' => $orders,
-            'filters' => $request->only(['status', 'payment_status', 'start_date', 'end_date'])
+            'filters' => $request->only(['status', 'payment_status', 'start_date', 'end_date']),
         ]);
     }
 
@@ -159,11 +155,11 @@ class VendorDashboardController extends Controller
         }
 
         $sales = $query->orderBy('created_at', 'desc')
-                      ->paginate(15);
+            ->paginate(15);
 
         return Inertia::render('Vendor/Sales', [
             'sales' => $sales,
-            'filters' => $request->only(['status', 'start_date', 'end_date'])
+            'filters' => $request->only(['status', 'start_date', 'end_date']),
         ]);
     }
 
@@ -193,7 +189,7 @@ class VendorDashboardController extends Controller
             'date_range' => [
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
-            ]
+            ],
         ]);
     }
 
@@ -250,7 +246,7 @@ class VendorDashboardController extends Controller
 
     private function getStartDate($period)
     {
-        return match($period) {
+        return match ($period) {
             'week' => Carbon::now()->subWeek(),
             'month' => Carbon::now()->subMonth(),
             'quarter' => Carbon::now()->subQuarter(),
@@ -270,7 +266,7 @@ class VendorDashboardController extends Controller
             ->where('payment_status', 'paid')
             ->whereBetween('created_at', [
                 $startDate->copy()->subPeriod(),
-                $endDate->copy()->subPeriod()
+                $endDate->copy()->subPeriod(),
             ])
             ->sum('total_amount');
 

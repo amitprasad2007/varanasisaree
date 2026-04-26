@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,34 +19,34 @@ class UpdateProductRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-       $productId = $this->route('product'); // This should return just the ID (e.g. 2)
+        $productId = $this->route('product'); // This should return just the ID (e.g. 2)
 
-    return [
-        'name' => 'required|string',
-        'slug' => [
-            'required',
-            'string',
-            Rule::unique('products', 'slug')->ignore($productId), // Ignore current product when updating
-        ],
-        'category_id' => 'required|exists:categories,id',
-        'subcategory_id' => 'required|exists:categories,id',
-        'brand_id' => 'required|exists:brands,id',
-        'description' => 'required|string',
-        'price' => 'required|numeric|min:0',
-        'discount' => 'required|numeric|between:0,100',
-        'stock_quantity' => 'required|integer|min:0',
-        'fabric' => 'nullable|string',
-        'color' => 'nullable|string',
-        'size' => 'nullable|string',
-        'work_type' => 'nullable|string',
-        'occasion' => 'nullable|string',
-        'weight' => 'nullable|numeric|min:0',
-        'status' => ['required', 'boolean'],
-        'is_bestseller' => 'nullable|boolean'
-    ];
+        return [
+            'name' => 'required|string',
+            'slug' => [
+                'required',
+                'string',
+                Rule::unique('products', 'slug')->ignore($productId), // Ignore current product when updating
+            ],
+            'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'required|exists:categories,id',
+            'brand_id' => 'required|exists:brands,id',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'discount' => 'required|numeric|between:0,100',
+            'stock_quantity' => 'required|integer|min:0',
+            'fabric' => 'nullable|string',
+            'color' => 'nullable|string',
+            'size' => 'nullable|string',
+            'work_type' => 'nullable|string',
+            'occasion' => 'nullable|string',
+            'weight' => 'nullable|numeric|min:0',
+            'status' => ['required', 'boolean'],
+            'is_bestseller' => 'nullable|boolean',
+        ];
     }
 }

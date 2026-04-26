@@ -30,6 +30,7 @@ class UserLogController extends Controller
 
         return response()->json(['status' => 'ok']);
     }
+
     // Attach a guest session token's logs to the authenticated user
     public function attachSession(Request $request)
     {
@@ -48,5 +49,3 @@ class UserLogController extends Controller
         return response()->json(['status' => 'ok']);
     }
 }
-
-

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VendorMenuItem;
+use App\Models\VendorMenuSection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,9 +12,9 @@ class VendorMenuController extends Controller
     public function index()
     {
         // Fetch items ordered by order
-        $sections = \App\Models\VendorMenuSection::with(['vendormenuitems' => function($q) {
-                $q->whereNull('parent_id')->with('children')->orderBy('order');
-            }])
+        $sections = VendorMenuSection::with(['vendormenuitems' => function ($q) {
+            $q->whereNull('parent_id')->with('children')->orderBy('order');
+        }])
             ->orderBy('order')
             ->get();
 
@@ -42,12 +43,12 @@ class VendorMenuController extends Controller
         ]);
 
         // Resolve Section ID
-        $section = \App\Models\VendorMenuSection::where('name', $validated['section'])->firstOrFail();
+        $section = VendorMenuSection::where('name', $validated['section'])->firstOrFail();
         $validated['vendor_menu_section_id'] = $section->id;
         unset($validated['section']);
 
-        if (!isset($validated['order'])) {
-             $validated['order'] = VendorMenuItem::where('vendor_menu_section_id', $section->id)
+        if (! isset($validated['order'])) {
+            $validated['order'] = VendorMenuItem::where('vendor_menu_section_id', $section->id)
                 ->where('parent_id', $validated['parent_id'])
                 ->max('order') + 1;
         }
@@ -69,7 +70,7 @@ class VendorMenuController extends Controller
             'is_logout' => 'boolean',
         ]);
 
-        $section = \App\Models\VendorMenuSection::where('name', $validated['section'])->firstOrFail();
+        $section = VendorMenuSection::where('name', $validated['section'])->firstOrFail();
         $validated['vendor_menu_section_id'] = $section->id;
         unset($validated['section']);
 
@@ -81,6 +82,7 @@ class VendorMenuController extends Controller
     public function destroy(VendorMenuItem $vendorMenu)
     {
         $vendorMenu->delete();
+
         return redirect()->back()->with('success', 'Menu item deleted successfully.');
     }
 }

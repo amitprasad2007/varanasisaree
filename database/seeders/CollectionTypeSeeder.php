@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Models\CollectionType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Models\CollectionType;
 
 class CollectionTypeSeeder extends Seeder
 {
     public function run(): void
     {
         $types = [
-            'Season', 'Occasion', 'Style', 'Trend'
+            'Season', 'Occasion', 'Style', 'Trend',
         ];
 
         foreach ($types as $index => $name) {
@@ -27,5 +27,3 @@ class CollectionTypeSeeder extends Seeder
         }
     }
 }
-
-

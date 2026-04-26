@@ -16,7 +16,7 @@ class FaqManagementController extends Controller
         $faqs = Faq::ordered()->paginate(20);
 
         return Inertia::render('Admin/Faqs/Index', [
-            'faqs' => $faqs
+            'faqs' => $faqs,
         ]);
     }
 
@@ -32,7 +32,7 @@ class FaqManagementController extends Controller
         ];
 
         return Inertia::render('Admin/Faqs/Create', [
-            'statusOptions' => $statusOptions
+            'statusOptions' => $statusOptions,
         ]);
     }
 
@@ -49,7 +49,7 @@ class FaqManagementController extends Controller
         ]);
 
         // If order is not provided, set it to the highest order + 1
-        if (!isset($validated['order'])) {
+        if (! isset($validated['order'])) {
             $maxOrder = Faq::max('order') ?? 0;
             $validated['order'] = $maxOrder + 1;
         }
@@ -67,7 +67,7 @@ class FaqManagementController extends Controller
         $faq = Faq::findOrFail($id);
 
         return Inertia::render('Admin/Faqs/Show', [
-            'faq' => $faq
+            'faq' => $faq,
         ]);
     }
 
@@ -86,7 +86,7 @@ class FaqManagementController extends Controller
 
         return Inertia::render('Admin/Faqs/Edit', [
             'faq' => $faq,
-            'statusOptions' => $statusOptions
+            'statusOptions' => $statusOptions,
         ]);
     }
 

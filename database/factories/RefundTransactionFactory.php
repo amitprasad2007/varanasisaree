@@ -3,17 +3,18 @@
 namespace Database\Factories;
 
 use App\Models\Refund;
+use App\Models\RefundTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RefundTransactionFactory extends Factory
 {
-    protected $model = \App\Models\RefundTransaction::class;
+    protected $model = RefundTransaction::class;
 
     public function definition()
     {
         return [
             'refund_id' => Refund::factory(),
-            'transaction_id' => 'TXN-' . $this->faker->date('YmdHis') . '-' . strtoupper($this->faker->lexify('????')),
+            'transaction_id' => 'TXN-'.$this->faker->date('YmdHis').'-'.strtoupper($this->faker->lexify('????')),
             'gateway' => $this->faker->randomElement(['razorpay', 'stripe', 'paytm', 'manual', 'bank_transfer']),
             'status' => $this->faker->randomElement(['processing', 'completed', 'failed', 'pending']),
             'amount' => $this->faker->randomFloat(2, 100, 5000),
@@ -22,7 +23,7 @@ class RefundTransactionFactory extends Factory
             'gateway_response' => $this->faker->optional(0.7)->randomElement([
                 json_encode(['status' => 'success', 'transaction_id' => 'txn_123']),
                 json_encode(['status' => 'failed', 'error' => 'Insufficient funds']),
-                null
+                null,
             ]),
             'processed_at' => $this->faker->dateTimeBetween('-15 days', 'now'),
             'completed_at' => $this->faker->optional(0.7)->dateTimeBetween('-10 days', 'now'),
@@ -44,8 +45,8 @@ class RefundTransactionFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'completed',
-                'gateway_transaction_id' => 'gateway_' . $this->faker->lexify('????????'),
-                'gateway_refund_id' => 'refund_' . $this->faker->lexify('????????'),
+                'gateway_transaction_id' => 'gateway_'.$this->faker->lexify('????????'),
+                'gateway_refund_id' => 'refund_'.$this->faker->lexify('????????'),
                 'completed_at' => $this->faker->dateTimeBetween('-10 days', 'now'),
             ];
         });
@@ -67,8 +68,8 @@ class RefundTransactionFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'gateway' => 'razorpay',
-                'gateway_transaction_id' => 'rzp_' . $this->faker->lexify('????????'),
-                'gateway_refund_id' => 'ref_' . $this->faker->lexify('????????'),
+                'gateway_transaction_id' => 'rzp_'.$this->faker->lexify('????????'),
+                'gateway_refund_id' => 'ref_'.$this->faker->lexify('????????'),
             ];
         });
     }

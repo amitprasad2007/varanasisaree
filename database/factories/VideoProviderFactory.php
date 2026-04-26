@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\VideoProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\VideoProvider>
+ * @extends Factory<VideoProvider>
  */
 class VideoProviderFactory extends Factory
 {

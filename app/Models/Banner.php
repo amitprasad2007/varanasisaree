@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\BannerFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class Banner extends Model
 {
-    /** @use HasFactory<\Database\Factories\BannerFactory> */
+    /** @use HasFactory<BannerFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -17,7 +18,7 @@ class Banner extends Model
         'description',
         'link',
         'status',
-        'order'
+        'order',
     ];
 
     public function scopeActive($query): Builder
@@ -25,7 +26,7 @@ class Banner extends Model
         return $query->where('status', 'active');
     }
 
-    public function scopeOrdered($query): Builder   
+    public function scopeOrdered($query): Builder
     {
         return $query->orderBy('order', 'asc');
     }

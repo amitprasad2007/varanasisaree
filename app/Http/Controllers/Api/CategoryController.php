@@ -11,8 +11,6 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-
-
     public function apiIndex()
     {
         $categories = Category::where('status', 'active')
@@ -20,11 +18,12 @@ class CategoryController extends Controller
             ->whereNull('parent_id')
             ->get()
             ->map(function ($category) {
-                if(Str::startsWith($category->photo, 'http')  || Str::startsWith($category->photo, 'https')) {
+                if (Str::startsWith($category->photo, 'http') || Str::startsWith($category->photo, 'https')) {
                     $images = $category->photo;
-                }else{
-                    $images = asset('storage/' . $category->photo);
+                } else {
+                    $images = asset('storage/'.$category->photo);
                 }
+
                 return [
                     'id' => $category->id,
                     'name' => $category->title,
@@ -45,7 +44,7 @@ class CategoryController extends Controller
             ->where('status', 'active')
             ->where(function ($q) use ($categories) {
                 $q->where('category_id', $categories->id)
-                  ->orWhere('subcategory_id', $categories->id);
+                    ->orWhere('subcategory_id', $categories->id);
             })
             ->with(['imageproducts', 'variants.images', 'category']);
 
@@ -64,6 +63,7 @@ class CategoryController extends Controller
             if (is_array($value)) {
                 return array_values(array_filter($value, fn ($v) => $v !== null && $v !== ''));
             }
+
             return [];
         };
 
@@ -73,7 +73,7 @@ class CategoryController extends Controller
         $designFilters = $toArray($designFilters);
 
         // Apply price filters on final price (price - price * discount/100)
-        if (!empty($priceFilters)) {
+        if (! empty($priceFilters)) {
             $query->where(function ($q) use ($priceFilters) {
                 foreach ($priceFilters as $filter) {
                     switch ($filter) {
@@ -95,7 +95,7 @@ class CategoryController extends Controller
         }
 
         // Apply color filter via variants/colors hex_code
-        if (!empty($colorFilters)) {
+        if (! empty($colorFilters)) {
             $query->whereExists(function ($sub) use ($colorFilters) {
                 $sub->from('product_variants')
                     ->join('colors', 'product_variants.color_id', '=', 'colors.id')
@@ -105,28 +105,30 @@ class CategoryController extends Controller
         }
 
         // Apply material filter to product.fabric (case-insensitive, supports slug or name)
-        if (!empty($materialFilters)) {
+        if (! empty($materialFilters)) {
             $normalized = array_map(function ($v) {
                 // convert slug to words if needed
                 $v = str_replace('-', ' ', (string) $v);
+
                 return strtolower($v);
             }, $materialFilters);
             $query->where(function ($q) use ($normalized) {
                 foreach ($normalized as $term) {
-                    $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%' . $term . '%']);
+                    $q->orWhereRaw('LOWER(COALESCE(fabric, "")) LIKE ?', ['%'.$term.'%']);
                 }
             });
         }
 
         // Apply design filter to product.work_type (case-insensitive)
-        if (!empty($designFilters)) {
+        if (! empty($designFilters)) {
             $normalized = array_map(function ($v) {
                 $v = str_replace('-', ' ', (string) $v);
+
                 return strtolower($v);
             }, $designFilters);
             $query->where(function ($q) use ($normalized) {
                 foreach ($normalized as $term) {
-                    $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%' . $term . '%']);
+                    $q->orWhereRaw('LOWER(COALESCE(work_type, "")) LIKE ?', ['%'.$term.'%']);
                 }
             });
         }
@@ -181,7 +183,8 @@ class CategoryController extends Controller
                 if (Str::startsWith($path, ['http://', 'https://', '//'])) {
                     return $path;
                 }
-                return asset('storage/' . ltrim($path, '/'));
+
+                return asset('storage/'.ltrim($path, '/'));
             })->values();
 
             // Skip products with no images
@@ -212,6 +215,7 @@ class CategoryController extends Controller
             if ($item['originalPrice'] === null) {
                 unset($item['originalPrice']);
             }
+
             return $item;
         })->values();
 
@@ -225,9 +229,10 @@ class CategoryController extends Controller
         return response()->json($result);
     }
 
-    public function catdetails(Category $categories){
+    public function catdetails(Category $categories)
+    {
         $imageUrl = $categories->photo
-            ? asset('storage/' . ltrim($categories->photo, '/'))
+            ? asset('storage/'.ltrim($categories->photo, '/'))
             : null;
 
         // Count active products that belong directly or via subcategory
@@ -235,7 +240,7 @@ class CategoryController extends Controller
             ->where('status', 'active')
             ->where(function ($q) use ($categories) {
                 $q->where('category_id', $categories->id)
-                  ->orWhere('subcategory_id', $categories->id);
+                    ->orWhere('subcategory_id', $categories->id);
             })
             ->count();
 
@@ -246,9 +251,11 @@ class CategoryController extends Controller
             'productsCount' => $productsCount,
         ]);
     }
-    public function getcategorybyname($slug){
+
+    public function getcategorybyname($slug)
+    {
         $category = Category::where('slug', $slug)->where('status', 'active')->first();
+
         return response()->json($category);
     }
-
 }

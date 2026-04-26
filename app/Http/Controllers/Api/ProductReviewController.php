@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProductReview;
-use App\Models\ProductRatings;
-use App\Models\Product;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\ProductRatings;
+use App\Models\ProductReview;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ProductReviewController extends Controller
@@ -19,24 +19,24 @@ class ProductReviewController extends Controller
     public function getProductReviews(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'productSlug' => 'required|string'
+            'productSlug' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         try {
             $product = Product::where('slug', $request->productSlug)->first();
 
-            if (!$product) {
+            if (! $product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found',
                 ], 404);
             }
 
@@ -54,20 +54,20 @@ class ProductReviewController extends Controller
                         'review_text' => $review->review,
                         'created_at' => $review->created_at->toISOString(),
                         'updated_at' => $review->updated_at->toISOString(),
-                        'customer_name' => $review->customer->name ?? 'Anonymous'
+                        'customer_name' => $review->customer->name ?? 'Anonymous',
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'data' => $reviews
+                'data' => $reviews,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch reviews',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -81,14 +81,14 @@ class ProductReviewController extends Controller
             'productSlug' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
             'reviewText' => 'required|string|max:1000',
-            'userId' => 'required|integer'
+            'userId' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -96,20 +96,20 @@ class ProductReviewController extends Controller
             // Find product by slug
             $product = Product::where('slug', $request->productSlug)->first();
 
-            if (!$product) {
+            if (! $product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found',
                 ], 200);
             }
 
             // Verify customer exists
             $customer = Customer::find($request->userId);
 
-            if (!$customer) {
+            if (! $customer) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Customer not found'
+                    'message' => 'Customer not found',
                 ], 200);
             }
 
@@ -121,7 +121,7 @@ class ProductReviewController extends Controller
             if ($existingReview) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You have already reviewed this product'
+                    'message' => 'You have already reviewed this product',
                 ], 200);
             }
 
@@ -131,19 +131,17 @@ class ProductReviewController extends Controller
                 'customer_id' => $request->userId,
                 'rating' => $request->rating,
                 'review' => $request->reviewText,
-                'status' => 'pending' // Reviews need approval
+                'status' => 'pending', // Reviews need approval
             ]);
 
-            if($review){
+            if ($review) {
                 $rating = ProductRatings::create([
                     'product_id' => $product->id,
                     'customer_id' => $request->userId,
                     'rating' => $request->rating,
-                    'review_id' => $review->id  
+                    'review_id' => $review->id,
                 ]);
             }
-
-
 
             return response()->json([
                 'success' => true,
@@ -155,15 +153,15 @@ class ProductReviewController extends Controller
                     'rating' => $review->rating,
                     'review_text' => $review->review,
                     'created_at' => $review->created_at->toISOString(),
-                    'updated_at' => $review->updated_at->toISOString()
-                ]
+                    'updated_at' => $review->updated_at->toISOString(),
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to submit review',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -174,24 +172,24 @@ class ProductReviewController extends Controller
     public function getReviewStats(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'productSlug' => 'required|string'
+            'productSlug' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation error',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         try {
             $product = Product::where('slug', $request->productSlug)->first();
 
-            if (!$product) {
+            if (! $product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found',
                 ], 404);
             }
 
@@ -210,15 +208,15 @@ class ProductReviewController extends Controller
                 'data' => [
                     'total_reviews' => $totalReviews,
                     'average_rating' => round($averageRating, 1),
-                    'rating_distribution' => $ratingDistribution
-                ]
+                    'rating_distribution' => $ratingDistribution,
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch review statistics',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

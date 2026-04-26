@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\PostTag;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PostTag>
+ * @extends Factory<PostTag>
  */
 class PostTagFactory extends Factory
 {

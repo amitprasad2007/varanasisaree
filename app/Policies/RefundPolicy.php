@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Customer;
 use App\Models\Refund;
 use App\Models\User;
 use App\Models\Vendor;
@@ -45,7 +46,7 @@ class RefundPolicy
         }
 
         // Customer can view their own refunds
-        if ($user instanceof \App\Models\Customer && $refund->customer_id === $user->id) {
+        if ($user instanceof Customer && $refund->customer_id === $user->id) {
             return true;
         }
 
@@ -81,8 +82,8 @@ class RefundPolicy
         }
 
         // Vendor users can update their own refunds if not completed
-        if ($user->vendor_id && 
-            $refund->vendor_id === $user->vendor_id && 
+        if ($user->vendor_id &&
+            $refund->vendor_id === $user->vendor_id &&
             in_array($refund->refund_status, ['pending', 'approved'])) {
             return true;
         }
@@ -101,7 +102,7 @@ class RefundPolicy
         }
 
         // Vendor managers can approve their vendor's refunds
-        if ($user->vendor_id && 
+        if ($user->vendor_id &&
             $refund->vendor_id === $user->vendor_id &&
             $user->hasRole('vendor_manager') &&
             $refund->refund_status === 'pending') {
@@ -109,7 +110,7 @@ class RefundPolicy
         }
 
         // For high-value refunds, require admin approval
-        if ($refund->requiresVendorApproval() && !$user->hasRole('admin')) {
+        if ($refund->requiresVendorApproval() && ! $user->hasRole('admin')) {
             return false;
         }
 
@@ -135,7 +136,7 @@ class RefundPolicy
         }
 
         // Vendor users with finance permissions can process their vendor's refunds
-        if ($user->vendor_id && 
+        if ($user->vendor_id &&
             $refund->vendor_id === $user->vendor_id &&
             $user->can('process_refunds') &&
             $refund->refund_status === 'approved') {

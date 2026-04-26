@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use App\Models\Collection;
 use App\Models\CollectionType;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class CollectionSeeder extends Seeder
 {
@@ -28,7 +28,9 @@ class CollectionSeeder extends Seeder
 
         foreach ($map as $typeName => $collections) {
             $type = CollectionType::where('name', $typeName)->first();
-            if (!$type) continue;
+            if (! $type) {
+                continue;
+            }
 
             foreach ($collections as $index => $name) {
                 Collection::updateOrCreate(
@@ -45,5 +47,3 @@ class CollectionSeeder extends Seeder
         }
     }
 }
-
-

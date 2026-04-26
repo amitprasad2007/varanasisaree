@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Contactus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Contactus>
+ * @extends Factory<Contactus>
  */
 class ContactusFactory extends Factory
 {

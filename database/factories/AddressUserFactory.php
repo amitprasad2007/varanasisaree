@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\AddressUser;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AddressUser>
+ * @extends Factory<AddressUser>
  */
 class AddressUserFactory extends Factory
 {

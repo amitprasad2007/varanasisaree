@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProductVideoRequest;
+use App\Http\Requests\UpdateProductVideoRequest;
 use App\Models\Product;
 use App\Models\ProductVideo;
 use App\Models\VideoProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use App\Http\Requests\StoreProductVideoRequest;
-use App\Http\Requests\UpdateProductVideoRequest;
 
 class ProductVideoController extends Controller
 {
@@ -19,9 +19,10 @@ class ProductVideoController extends Controller
     public function index(Product $product)
     {
         $product->load(['videos.videoProvider']);
+
         return Inertia::render('Admin/ProductVideos/Index', [
             'product' => $product,
-            'videos' => $product->videos
+            'videos' => $product->videos,
         ]);
     }
 
@@ -34,9 +35,10 @@ class ProductVideoController extends Controller
 
         return Inertia::render('Admin/ProductVideos/Create', [
             'product' => $product,
-            'providers' => $providers
+            'providers' => $providers,
         ]);
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -86,7 +88,7 @@ class ProductVideoController extends Controller
         return Inertia::render('Admin/ProductVideos/Edit', [
             'product' => $product,
             'video' => $video,
-            'providers' => $providers
+            'providers' => $providers,
         ]);
     }
 
@@ -116,7 +118,7 @@ class ProductVideoController extends Controller
         }
 
         // If this video is set as featured, unfeatured all others
-        if ($validated['is_featured'] && !$video->is_featured) {
+        if ($validated['is_featured'] && ! $video->is_featured) {
             ProductVideo::where('product_id', $product->id)
                 ->where('is_featured', true)
                 ->update(['is_featured' => false]);

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Testimonial;
+use Illuminate\Http\Request;
 
 class TestimonialController extends Controller
 {
@@ -19,13 +19,13 @@ class TestimonialController extends Controller
             ->where('status', 'active')
             ->latest()
             ->get()
-            ->map(function ($testimonial) use ($language) {
+            ->map(function ($testimonial) {
                 return [
                     'id' => $testimonial->id,
                     'name' => $testimonial->name,
                     'role' => $testimonial->designation,
                     'company' => $testimonial->company,
-                    'image' => $testimonial->photo ? asset('storage/' . $testimonial->photo) : null,
+                    'image' => $testimonial->photo ? asset('storage/'.$testimonial->photo) : null,
                     'text' => $testimonial->testimonial,
                     'rating' => $testimonial->rating,
                 ];

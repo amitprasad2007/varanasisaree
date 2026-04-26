@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Customer;
 use App\Models\Post;
 use App\Models\PostCategory;
-use App\Models\Customer;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder
 {

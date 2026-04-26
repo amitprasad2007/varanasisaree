@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleManagementController extends Controller
 {
@@ -41,7 +41,7 @@ class RoleManagementController extends Controller
             'guard_name' => $validated['guard_name'] ?? 'web',
         ]);
 
-        if (!empty($validated['permission_ids'])) {
+        if (! empty($validated['permission_ids'])) {
             $role->syncPermissions($validated['permission_ids']);
         }
 
@@ -61,7 +61,7 @@ class RoleManagementController extends Controller
     public function update(Request $request, Role $role)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$role->id,
             'guard_name' => 'nullable|string|max:255',
             'permission_ids' => 'array',
             'permission_ids.*' => 'exists:permissions,id',
@@ -84,5 +84,3 @@ class RoleManagementController extends Controller
         return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
     }
 }
-
-

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class PageController extends Controller
 {
@@ -17,7 +17,7 @@ class PageController extends Controller
         $pages = Page::latest()->paginate(15);
 
         return Inertia::render('Admin/Pages/Index', [
-            'pages' => $pages
+            'pages' => $pages,
         ]);
     }
 
@@ -34,7 +34,7 @@ class PageController extends Controller
         ];
 
         return Inertia::render('Admin/Pages/Create', [
-            'pageTypes' => $pageTypes
+            'pageTypes' => $pageTypes,
         ]);
     }
 
@@ -63,7 +63,7 @@ class PageController extends Controller
         $originalSlug = $validated['slug'];
         $count = 1;
         while (Page::where('slug', $validated['slug'])->exists()) {
-            $validated['slug'] = $originalSlug . '-' . $count;
+            $validated['slug'] = $originalSlug.'-'.$count;
             $count++;
         }
 
@@ -88,7 +88,7 @@ class PageController extends Controller
         $page = Page::findOrFail($id);
 
         return Inertia::render('Admin/Pages/Show', [
-            'page' => $page
+            'page' => $page,
         ]);
     }
 
@@ -108,7 +108,7 @@ class PageController extends Controller
 
         return Inertia::render('Admin/Pages/Edit', [
             'page' => $page,
-            'pageTypes' => $pageTypes
+            'pageTypes' => $pageTypes,
         ]);
     }
 
@@ -121,7 +121,7 @@ class PageController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug,' . $id,
+            'slug' => 'nullable|string|max:255|unique:pages,slug,'.$id,
             'type' => 'required|in:policy,page,faq,settings',
             'content' => 'nullable|string',
             'metadata' => 'nullable|json',
@@ -136,7 +136,7 @@ class PageController extends Controller
             $originalSlug = $validated['slug'];
             $count = 1;
             while (Page::where('slug', $validated['slug'])->where('id', '!=', $id)->exists()) {
-                $validated['slug'] = $originalSlug . '-' . $count;
+                $validated['slug'] = $originalSlug.'-'.$count;
                 $count++;
             }
         }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wishlist;
 use App\Http\Requests\StoreWishlistRequest;
 use App\Http\Requests\UpdateWishlistRequest;
+use App\Models\Wishlist;
 
 class WishlistController extends Controller
 {

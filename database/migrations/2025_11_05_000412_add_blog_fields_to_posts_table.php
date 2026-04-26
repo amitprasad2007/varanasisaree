@@ -35,7 +35,7 @@ return new class extends Migration
                 'author_name',
                 'published_at',
                 'is_featured',
-                'views_count'
+                'views_count',
             ]);
         });
     }

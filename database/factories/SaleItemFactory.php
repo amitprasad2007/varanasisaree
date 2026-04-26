@@ -6,7 +6,7 @@ use App\Models\SaleItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SaleItem>
+ * @extends Factory<SaleItem>
  */
 class SaleItemFactory extends Factory
 {
@@ -23,11 +23,10 @@ class SaleItemFactory extends Factory
             'product_id' => null,
             'product_variant_id' => null,
             'name' => $this->faker->words(3, true),
-            'sku' => 'SKU-' . strtoupper($this->faker->bothify('??##??')),
+            'sku' => 'SKU-'.strtoupper($this->faker->bothify('??##??')),
             'quantity' => $quantity,
             'price' => $price,
             'line_total' => $lineTotal,
         ];
     }
 }
-

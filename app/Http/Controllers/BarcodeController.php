@@ -17,8 +17,9 @@ class BarcodeController extends Controller
             $product->save();
         }
 
-        $generator = new BarcodeGeneratorSVG();
+        $generator = new BarcodeGeneratorSVG;
         $svg = $generator->getBarcode($product->barcode, $generator::TYPE_CODE_128, 2, 80);
+
         return response($svg)->header('Content-Type', 'image/svg+xml');
     }
 
@@ -30,6 +31,7 @@ class BarcodeController extends Controller
         }
 
         $svg = QrCode::format('svg')->size(240)->margin(1)->generate($product->barcode);
+
         return response($svg)->header('Content-Type', 'image/svg+xml');
     }
 
@@ -40,8 +42,9 @@ class BarcodeController extends Controller
             $variant->save();
         }
 
-        $generator = new BarcodeGeneratorSVG();
+        $generator = new BarcodeGeneratorSVG;
         $svg = $generator->getBarcode($variant->barcode, $generator::TYPE_CODE_128, 2, 80);
+
         return response($svg)->header('Content-Type', 'image/svg+xml');
     }
 
@@ -53,6 +56,7 @@ class BarcodeController extends Controller
         }
 
         $svg = QrCode::format('svg')->size(240)->margin(1)->generate($variant->barcode);
+
         return response($svg)->header('Content-Type', 'image/svg+xml');
     }
 
@@ -60,7 +64,8 @@ class BarcodeController extends Controller
     {
         $prefix = 'PRD';
         $random = strtoupper(Str::random(6));
-        $idPart = $product->id ? str_pad((string)$product->id, 6, '0', STR_PAD_LEFT) : strtoupper(Str::random(4));
+        $idPart = $product->id ? str_pad((string) $product->id, 6, '0', STR_PAD_LEFT) : strtoupper(Str::random(4));
+
         return sprintf('%s-%s-%s', $prefix, $random, $idPart);
     }
 
@@ -68,10 +73,9 @@ class BarcodeController extends Controller
     {
         $prefix = 'VAR';
         $random = strtoupper(Str::random(6));
-        $prodId = $variant->product_id ? str_pad((string)$variant->product_id, 6, '0', STR_PAD_LEFT) : '000000';
-        $varId = $variant->id ? str_pad((string)$variant->id, 6, '0', STR_PAD_LEFT) : strtoupper(Str::random(4));
+        $prodId = $variant->product_id ? str_pad((string) $variant->product_id, 6, '0', STR_PAD_LEFT) : '000000';
+        $varId = $variant->id ? str_pad((string) $variant->id, 6, '0', STR_PAD_LEFT) : strtoupper(Str::random(4));
+
         return sprintf('%s-%s-%s-%s', $prefix, $random, $prodId, $varId);
     }
 }
-
-

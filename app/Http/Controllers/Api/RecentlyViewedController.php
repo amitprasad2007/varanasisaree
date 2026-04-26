@@ -9,12 +9,13 @@ use Illuminate\Http\Request;
 
 class RecentlyViewedController extends Controller
 {
-
     public $productService;
+
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
+
     // Return last N items viewed by the authenticated customer
     public function index(Request $request)
     {
@@ -28,11 +29,12 @@ class RecentlyViewedController extends Controller
             ->get();
 
         $products = $items->pluck('product');
-        if($products->isEmpty()){
+        if ($products->isEmpty()) {
             return response()->json([]);
         }
-        
+
         $result = $this->productService->productdetails($products);
+
         return response()->json($result);
     }
 
@@ -128,12 +130,13 @@ class RecentlyViewedController extends Controller
             ->orderByDesc('viewed_at')
             ->limit($limit)
             ->get();
-            $products = $items->pluck('product');
-            if($products->isEmpty()){
-                return response()->json([]);
-            }
-            $result = $this->productService->productdetails($products);
-            return response()->json($result);
+        $products = $items->pluck('product');
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+        $result = $this->productService->productdetails($products);
+
+        return response()->json($result);
     }
 
     private function pruneCustomer(int $customerId, int $keep): void
@@ -162,5 +165,3 @@ class RecentlyViewedController extends Controller
         }
     }
 }
-
-

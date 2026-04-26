@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Coupon;
 use App\Http\Requests\StoreCouponRequest;
 use App\Http\Requests\UpdateCouponRequest;
+use App\Models\Coupon;
 use Inertia\Inertia;
 
 class CouponController extends Controller
@@ -17,7 +17,7 @@ class CouponController extends Controller
         $coupons = Coupon::orderBy('created_at', 'desc')->get();
 
         return Inertia::render('Admin/Coupons/Index', [
-            'coupons' => $coupons
+            'coupons' => $coupons,
         ]);
     }
 
@@ -63,7 +63,7 @@ class CouponController extends Controller
     public function edit(Coupon $coupon)
     {
         return Inertia::render('Admin/Coupons/Edit', [
-            'coupon' => $coupon
+            'coupon' => $coupon,
         ]);
     }
 
@@ -72,7 +72,6 @@ class CouponController extends Controller
      */
     public function update(UpdateCouponRequest $request, Coupon $coupon)
     {
-
 
         $data = $request->all();
 
@@ -98,13 +97,12 @@ class CouponController extends Controller
         return redirect()->route('coupons.index')
             ->with('message', 'Coupon deleted successfully');
     }
+
     public function updateStatus(Coupon $coupon)
     {
-        $coupon->status = !$coupon->status;
+        $coupon->status = ! $coupon->status;
         $coupon->save();
 
         return back()->with('message', 'Coupon status updated successfully');
     }
-
-
 }

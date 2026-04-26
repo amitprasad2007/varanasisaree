@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('email_sent')->default(false);
             $table->timestamp('email_sent_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['order_id', 'type']);
             $table->index(['customer_id', 'is_read']);
         });

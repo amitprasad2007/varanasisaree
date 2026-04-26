@@ -9,13 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('credit_notes', function (Blueprint $table) {
-            if (!Schema::hasColumn('credit_notes', 'sale_id')) {
+            if (! Schema::hasColumn('credit_notes', 'sale_id')) {
                 $table->foreignId('sale_id')->nullable()->after('order_id')->constrained('sales')->nullOnDelete();
             }
-            if (!Schema::hasColumn('credit_notes', 'sale_return_id')) {
+            if (! Schema::hasColumn('credit_notes', 'sale_return_id')) {
                 $table->foreignId('sale_return_id')->nullable()->after('sale_id')->constrained('sale_returns')->nullOnDelete();
             }
-            if (!Schema::hasColumn('credit_notes', 'reference')) {
+            if (! Schema::hasColumn('credit_notes', 'reference')) {
                 $table->string('reference')->nullable()->after('remaining_amount');
             }
         });

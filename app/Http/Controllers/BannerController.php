@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Banner;
 use App\Http\Requests\StoreBannerRequest;
 use App\Http\Requests\UpdateBannerRequest;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Banner;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class BannerController extends Controller
 {
@@ -18,9 +18,9 @@ class BannerController extends Controller
     public function index()
     {
         $banners = Banner::orderBy('order')->get();
-        
+
         return Inertia::render('Admin/Banners/Index', [
-            'banners' => $banners
+            'banners' => $banners,
         ]);
     }
 
@@ -39,12 +39,11 @@ class BannerController extends Controller
     {
         $validated = $request->validated();
 
-
         $imagePath = $request->file('image')->store('banners', 'public');
 
         // Get the highest order number and add 1
         $maxOrder = Banner::max('order') ?? 0;
-        
+
         Banner::create([
             'title' => $request->title,
             'image' => $imagePath,
@@ -71,7 +70,7 @@ class BannerController extends Controller
     public function edit(Banner $banner)
     {
         return Inertia::render('Admin/Banners/Edit', [
-            'banner' => $banner
+            'banner' => $banner,
         ]);
     }
 
@@ -81,7 +80,6 @@ class BannerController extends Controller
     public function update(UpdateBannerRequest $request, Banner $banner)
     {
         $validated = $request->validated();
-
 
         $data = [
             'title' => $request->title,
@@ -95,7 +93,7 @@ class BannerController extends Controller
             if ($banner->image) {
                 Storage::disk('public')->delete($banner->image);
             }
-            
+
             // Store the new image
             $imagePath = $request->file('image')->store('banners', 'public');
             $data['image'] = $imagePath;
@@ -115,7 +113,7 @@ class BannerController extends Controller
         if ($banner->image) {
             Storage::disk('public')->delete($banner->image);
         }
-        
+
         $banner->delete();
 
         return redirect()->route('banners.index')->with('success', 'Banner deleted successfully.');
@@ -148,6 +146,4 @@ class BannerController extends Controller
 
         return redirect()->route('banners.index')->with('success', 'Banner status updated successfully.');
     }
-
-    
 }

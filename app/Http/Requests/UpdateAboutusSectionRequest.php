@@ -32,5 +32,3 @@ class UpdateAboutusSectionRequest extends FormRequest
         ];
     }
 }
-
-

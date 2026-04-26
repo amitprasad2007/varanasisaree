@@ -6,7 +6,7 @@ use App\Models\Sale;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Sale>
+ * @extends Factory<Sale>
  */
 class SaleFactory extends Factory
 {
@@ -21,7 +21,7 @@ class SaleFactory extends Factory
 
         return [
             'customer_id' => null,
-            'invoice_number' => 'INV-' . str_pad((string) $this->faker->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
+            'invoice_number' => 'INV-'.str_pad((string) $this->faker->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
             'status' => 'completed',
             'subtotal' => $subtotal,
             'discount_type' => null,
@@ -33,4 +33,3 @@ class SaleFactory extends Factory
         ];
     }
 }
-

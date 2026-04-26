@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
@@ -23,14 +22,14 @@ class InventoryService
                     $variant = ProductVariant::find($item->product_variant_id);
                     if ($variant && $variant->stock_quantity >= $item->quantity) {
                         $variant->decrement('stock_quantity', $item->quantity);
-                        
+
                         // Log inventory change
                         Log::info('Inventory reserved for variant', [
                             'variant_id' => $variant->id,
                             'product_id' => $item->product_id,
                             'quantity_reserved' => $item->quantity,
                             'remaining_stock' => $variant->stock_quantity,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
 
                         // Check for low stock
@@ -42,7 +41,7 @@ class InventoryService
                             'variant_id' => $item->product_variant_id,
                             'required_quantity' => $item->quantity,
                             'available_stock' => $variant ? $variant->stock_quantity : 0,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
                     }
                 } else {
@@ -50,13 +49,13 @@ class InventoryService
                     $product = Product::find($item->product_id);
                     if ($product && $product->stock_quantity >= $item->quantity) {
                         $product->decrement('stock_quantity', $item->quantity);
-                        
+
                         // Log inventory change
                         Log::info('Inventory reserved for product', [
                             'product_id' => $product->id,
                             'quantity_reserved' => $item->quantity,
                             'remaining_stock' => $product->stock_quantity,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
 
                         // Check for low stock
@@ -68,7 +67,7 @@ class InventoryService
                             'product_id' => $item->product_id,
                             'required_quantity' => $item->quantity,
                             'available_stock' => $product ? $product->stock_quantity : 0,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
                     }
                 }
@@ -88,13 +87,13 @@ class InventoryService
                     $variant = ProductVariant::find($item->product_variant_id);
                     if ($variant) {
                         $variant->increment('stock_quantity', $item->quantity);
-                        
+
                         Log::info('Inventory released for variant', [
                             'variant_id' => $variant->id,
                             'product_id' => $item->product_id,
                             'quantity_released' => $item->quantity,
                             'new_stock' => $variant->stock_quantity,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
                     }
                 } else {
@@ -102,12 +101,12 @@ class InventoryService
                     $product = Product::find($item->product_id);
                     if ($product) {
                         $product->increment('stock_quantity', $item->quantity);
-                        
+
                         Log::info('Inventory released for product', [
                             'product_id' => $product->id,
                             'quantity_released' => $item->quantity,
                             'new_stock' => $product->stock_quantity,
-                            'order_id' => $order->id
+                            'order_id' => $order->id,
                         ]);
                     }
                 }
@@ -128,7 +127,7 @@ class InventoryService
                 $variant = ProductVariant::find($item->product_variant_id);
                 $available = $variant ? $variant->stock_quantity : 0;
                 $sufficient = $available >= $item->quantity;
-                
+
                 $availability[] = [
                     'item_id' => $item->id,
                     'product_id' => $item->product_id,
@@ -136,35 +135,35 @@ class InventoryService
                     'required_quantity' => $item->quantity,
                     'available_quantity' => $available,
                     'sufficient' => $sufficient,
-                    'type' => 'variant'
+                    'type' => 'variant',
                 ];
 
-                if (!$sufficient) {
+                if (! $sufficient) {
                     $hasInsufficientStock = true;
                 }
             } else {
                 $product = Product::find($item->product_id);
                 $available = $product ? $product->stock_quantity : 0;
                 $sufficient = $available >= $item->quantity;
-                
+
                 $availability[] = [
                     'item_id' => $item->id,
                     'product_id' => $item->product_id,
                     'required_quantity' => $item->quantity,
                     'available_quantity' => $available,
                     'sufficient' => $sufficient,
-                    'type' => 'product'
+                    'type' => 'product',
                 ];
 
-                if (!$sufficient) {
+                if (! $sufficient) {
                     $hasInsufficientStock = true;
                 }
             }
         }
 
         return [
-            'available' => !$hasInsufficientStock,
-            'items' => $availability
+            'available' => ! $hasInsufficientStock,
+            'items' => $availability,
         ];
     }
 
@@ -207,23 +206,27 @@ class InventoryService
                 $variant = ProductVariant::find($variantId);
                 if ($variant) {
                     $variant->update(['stock_quantity' => $quantity]);
+
                     return true;
                 }
             } else {
                 $product = Product::find($productId);
                 if ($product) {
                     $product->update(['stock_quantity' => $quantity]);
+
                     return true;
                 }
             }
+
             return false;
         } catch (\Exception $e) {
             Log::error('Failed to update stock', [
                 'product_id' => $productId,
                 'variant_id' => $variantId,
                 'quantity' => $quantity,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

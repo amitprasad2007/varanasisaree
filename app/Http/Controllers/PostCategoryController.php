@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PostCategory;
 use App\Http\Requests\StorePostCategoryRequest;
 use App\Http\Requests\UpdatePostCategoryRequest;
-use Inertia\Inertia;
+use App\Models\PostCategory;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class PostCategoryController extends Controller
 {
@@ -18,7 +18,7 @@ class PostCategoryController extends Controller
         $categories = PostCategory::withCount('posts')->latest()->get();
 
         return Inertia::render('Admin/PostCategories/Index', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -48,7 +48,7 @@ class PostCategoryController extends Controller
         $originalSlug = $validated['slug'];
         $count = 1;
         while (PostCategory::where('slug', $validated['slug'])->exists()) {
-            $validated['slug'] = $originalSlug . '-' . $count;
+            $validated['slug'] = $originalSlug.'-'.$count;
             $count++;
         }
 
@@ -67,7 +67,7 @@ class PostCategoryController extends Controller
         $postCategory->loadCount('posts');
 
         return Inertia::render('Admin/PostCategories/Show', [
-            'category' => $postCategory
+            'category' => $postCategory,
         ]);
     }
 
@@ -77,7 +77,7 @@ class PostCategoryController extends Controller
     public function edit(PostCategory $postCategory)
     {
         return Inertia::render('Admin/PostCategories/Edit', [
-            'category' => $postCategory
+            'category' => $postCategory,
         ]);
     }
 
@@ -96,7 +96,7 @@ class PostCategoryController extends Controller
             $originalSlug = $validated['slug'];
             $count = 1;
             while (PostCategory::where('slug', $validated['slug'])->where('id', '!=', $postCategory->id)->exists()) {
-                $validated['slug'] = $originalSlug . '-' . $count;
+                $validated['slug'] = $originalSlug.'-'.$count;
                 $count++;
             }
         }

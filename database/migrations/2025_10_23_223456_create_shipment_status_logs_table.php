@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamp('changed_at');
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->index(['shipment_id', 'changed_at']);
         });
     }

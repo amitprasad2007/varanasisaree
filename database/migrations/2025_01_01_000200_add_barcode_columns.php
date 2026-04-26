@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (Schema::hasTable('products')) {
             Schema::table('products', function (Blueprint $table) {
-                if (!Schema::hasColumn('products', 'barcode')) {
+                if (! Schema::hasColumn('products', 'barcode')) {
                     $table->string('barcode')->nullable()->index()->after('slug');
                 }
             });
@@ -18,7 +18,7 @@ return new class extends Migration
 
         if (Schema::hasTable('product_variants')) {
             Schema::table('product_variants', function (Blueprint $table) {
-                if (!Schema::hasColumn('product_variants', 'barcode')) {
+                if (! Schema::hasColumn('product_variants', 'barcode')) {
                     $table->string('barcode')->nullable()->index()->after('sku');
                 }
             });
@@ -39,5 +39,3 @@ return new class extends Migration
         }
     }
 };
-
-

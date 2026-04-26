@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Testimonial;
 use App\Http\Requests\StoreTestimonialRequest;
 use App\Http\Requests\UpdateTestimonialRequest;
+use App\Models\Testimonial;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
 
 class TestimonialController extends Controller
 {
@@ -17,8 +17,9 @@ class TestimonialController extends Controller
     public function index()
     {
         $testimonials = Testimonial::with('user')
-        ->latest()
-        ->get();    
+            ->latest()
+            ->get();
+
         return Inertia::render('Admin/Testimonials/Index', [
             'testimonials' => $testimonials,
         ]);
@@ -41,8 +42,8 @@ class TestimonialController extends Controller
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('testimonials', 'public');
             $validated['photo'] = $path;
-        }     
-        
+        }
+
         Testimonial::create($validated);
 
         return redirect()->route('testimonials.index')
@@ -82,7 +83,7 @@ class TestimonialController extends Controller
         }
 
         $validated['is_approved'] = $validated['status'] === 'approved';
-        
+
         $testimonial->update($validated);
 
         return redirect()->route('testimonials.index')
@@ -98,17 +99,16 @@ class TestimonialController extends Controller
         if ($testimonial->photo) {
             Storage::disk('public')->delete($testimonial->photo);
         }
-        
+
         $testimonial->delete();
 
         return redirect()->route('testimonials.index')
             ->with('success', 'Testimonial deleted successfully.');
     }
 
-     /**
+    /**
      * Update the status of the testimonial
      */
-
     public function updateStatus(Request $request, Testimonial $testimonial)
     {
         $request->validate([
@@ -122,7 +122,6 @@ class TestimonialController extends Controller
         return redirect()->back()
             ->with('success', 'Testimonial status updated successfully.');
     }
-    
 
     /**
      * Update the approval status of the testimonial
@@ -140,8 +139,4 @@ class TestimonialController extends Controller
         return redirect()->back()
             ->with('success', 'Testimonial approval status updated successfully.');
     }
-
-   
-
-    
 }

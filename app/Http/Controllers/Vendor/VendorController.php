@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Vendor;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -82,7 +82,7 @@ class VendorController extends Controller
                 ->with('success', 'Vendor registered successfully. Please wait for admin approval.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Registration failed: ' . $e->getMessage()])->withInput();
+            return back()->withErrors(['error' => 'Registration failed: '.$e->getMessage()])->withInput();
         }
     }
 
@@ -104,15 +104,17 @@ class VendorController extends Controller
 
             if ($vendor->status !== 'active') {
                 Auth::guard('vendor')->logout();
+
                 return back()->withErrors([
-                    'email' => 'Account is not active. Please contact admin for approval.'
+                    'email' => 'Account is not active. Please contact admin for approval.',
                 ])->withInput();
             }
 
-            if (!$vendor->is_verified) {
+            if (! $vendor->is_verified) {
                 Auth::guard('vendor')->logout();
+
                 return back()->withErrors([
-                    'email' => 'Account is not verified. Please contact admin.'
+                    'email' => 'Account is not verified. Please contact admin.',
                 ])->withInput();
             }
 
@@ -152,8 +154,8 @@ class VendorController extends Controller
             'state' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'gstin' => 'nullable|string|max:15|unique:vendors,gstin,' . $vendor->id,
-            'pan' => 'nullable|string|max:10|unique:vendors,pan,' . $vendor->id,
+            'gstin' => 'nullable|string|max:15|unique:vendors,gstin,'.$vendor->id,
+            'pan' => 'nullable|string|max:10|unique:vendors,pan,'.$vendor->id,
             'contact_person' => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:20',
@@ -167,7 +169,7 @@ class VendorController extends Controller
         $vendor->update($request->only([
             'business_name', 'description', 'address', 'city', 'state',
             'country', 'postal_code', 'gstin', 'pan', 'contact_person',
-            'contact_email', 'contact_phone', 'logo'
+            'contact_email', 'contact_phone', 'logo',
         ]));
 
         return back()->with('success', 'Profile updated successfully');
@@ -186,7 +188,7 @@ class VendorController extends Controller
 
         $vendor = Auth::guard('vendor')->user();
 
-        if (!Hash::check($request->current_password, $vendor->password)) {
+        if (! Hash::check($request->current_password, $vendor->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
 
@@ -210,8 +212,9 @@ class VendorController extends Controller
     {
 
         $exists = Vendor::where('subdomain', $domain)->exists();
+
         return response()->json([
-            'available' => !$exists,
+            'available' => ! $exists,
             'subdomain' => $request->subdomain,
         ]);
     }
@@ -223,11 +226,10 @@ class VendorController extends Controller
         $counter = 1;
 
         while (Vendor::where('subdomain', $subdomain)->exists()) {
-            $subdomain = $baseSubdomain . '-' . $counter;
+            $subdomain = $baseSubdomain.'-'.$counter;
             $counter++;
         }
 
         return $subdomain;
     }
 }
-

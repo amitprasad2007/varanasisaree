@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\StoreSubCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Requests\UpdateSubCategoryRequest;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
+use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
@@ -19,20 +18,20 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::with('subcategories')->whereNull('parent_id')->get();
+
         return Inertia::render('Admin/Categories/Index', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
     public function subcatindex()
     {
-        $subcategories = Category::with('parent')->whereNotNull('parent_id' )->get();
+        $subcategories = Category::with('parent')->whereNotNull('parent_id')->get();
 
         return Inertia::render('Admin/Subcategories/Index', [
-            'subcategories' => $subcategories
+            'subcategories' => $subcategories,
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -47,10 +46,9 @@ class CategoryController extends Controller
         $categories = Category::where('status', 'active')->get();
 
         return Inertia::render('Admin/Subcategories/Create', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -80,7 +78,6 @@ class CategoryController extends Controller
         return redirect()->route('categories.index');
     }
 
-
     public function substore(StoreSubCategoryRequest $request)
     {
         $validated = $request->validated();
@@ -90,7 +87,7 @@ class CategoryController extends Controller
         $validated['slug'] = preg_replace('/[^A-Za-z0-9\-]/', '-', $validated['slug']);
         $validated['slug'] = strtolower($validated['slug']);
 
-        $validated['is_parent'] = 0 ;
+        $validated['is_parent'] = 0;
         // Add authenticated user ID
         $validated['added_by'] = auth()->id();
 
@@ -106,8 +103,6 @@ class CategoryController extends Controller
 
         return redirect()->route('subcatindex');
     }
-
-
 
     /**
      * Display the specified resource.
@@ -130,13 +125,13 @@ class CategoryController extends Controller
     public function subedit($id)
     {
         $subcategory = Category::with('parent')->find($id);
-        $categories = Category::whereNull('parent_id' )->get();
+        $categories = Category::whereNull('parent_id')->get();
+
         return Inertia::render('Admin/Subcategories/Edit', [
             'subcategory' => $subcategory,
             'categories' => $categories,
         ]);
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -219,6 +214,7 @@ class CategoryController extends Controller
 
         return redirect()->route('categories.index');
     }
+
     public function subdestroy(Category $subcategory)
     {
         $subcategory->delete();
@@ -226,14 +222,13 @@ class CategoryController extends Controller
         return redirect()->route('subcatindex');
     }
 
-     // Get subcategories for a specific category (for dynamic dropdown)
-     public function getSubcategories($categoryId)
-     {
-         $subcategories = Category::where('parent_id', $categoryId)
-             ->where('status', 'active')
-             ->get();
+    // Get subcategories for a specific category (for dynamic dropdown)
+    public function getSubcategories($categoryId)
+    {
+        $subcategories = Category::where('parent_id', $categoryId)
+            ->where('status', 'active')
+            ->get();
 
-         return response()->json($subcategories);
-     }
-
+        return response()->json($subcategories);
+    }
 }

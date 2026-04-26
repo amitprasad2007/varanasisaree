@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Refund;
 use App\Models\Vendor;
 use App\Services\RefundService;
@@ -26,14 +25,14 @@ class VendorRefundController extends Controller
     public function index(Request $request): Response
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         $query = $vendor->refunds()->with([
             'sale.customer',
-            'order.customer', 
+            'order.customer',
             'customer',
             'processedBy',
             'creditNote',
-            'refundItems.product'
+            'refundItems.product',
         ]);
 
         // Apply filters
@@ -67,7 +66,7 @@ class VendorRefundController extends Controller
     public function show(Refund $refund): Response
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         // Ensure refund belongs to this vendor
         if ($refund->vendor_id !== $vendor->id) {
             abort(403, 'This refund does not belong to your store');
@@ -81,7 +80,7 @@ class VendorRefundController extends Controller
             'creditNote',
             'refundItems.product',
             'refundItems.productVariant',
-            'refundTransaction'
+            'refundTransaction',
         ]);
 
         $user = auth()->user();
@@ -103,7 +102,7 @@ class VendorRefundController extends Controller
     public function approve(Request $request, Refund $refund)
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         if ($refund->vendor_id !== $vendor->id) {
             abort(403, 'This refund does not belong to your store');
         }
@@ -129,7 +128,7 @@ class VendorRefundController extends Controller
     public function reject(Request $request, Refund $refund)
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         if ($refund->vendor_id !== $vendor->id) {
             abort(403, 'This refund does not belong to your store');
         }
@@ -156,7 +155,7 @@ class VendorRefundController extends Controller
     public function analytics(Request $request)
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         $period = $request->get('period', '30'); // days
         $startDate = now()->subDays($period);
 
@@ -189,7 +188,7 @@ class VendorRefundController extends Controller
     public function export(Request $request)
     {
         $vendor = auth()->user()->vendor ?? Vendor::findOrFail(auth()->user()->vendor_id);
-        
+
         // Implementation for CSV export
         return response()->json(['message' => 'Export functionality to be implemented']);
     }

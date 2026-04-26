@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductVariant;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
-use App\Models\Product;
 use App\Models\Color;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Size;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ProductVariantController extends Controller
 {
@@ -21,7 +21,7 @@ class ProductVariantController extends Controller
 
         return Inertia::render('Admin/ProductVariants/Index', [
             'product' => $product,
-            'variants' => $variants
+            'variants' => $variants,
         ]);
     }
 
@@ -33,7 +33,7 @@ class ProductVariantController extends Controller
         return Inertia::render('Admin/ProductVariants/Create', [
             'product' => $product,
             'colors' => $colors,
-            'sizes' => $sizes
+            'sizes' => $sizes,
         ]);
     }
 
@@ -62,7 +62,7 @@ class ProductVariantController extends Controller
         $variant = ProductVariant::create($data);
 
         if (empty($variant->barcode)) {
-            $variant->barcode = 'VAR-' . strtoupper(\Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string)$variant->id, 6, '0', STR_PAD_LEFT);
+            $variant->barcode = 'VAR-'.strtoupper(\Str::random(6)).'-'.str_pad((string) $product->id, 6, '0', STR_PAD_LEFT).'-'.str_pad((string) $variant->id, 6, '0', STR_PAD_LEFT);
             $variant->save();
         }
 
@@ -78,7 +78,7 @@ class ProductVariantController extends Controller
             'product' => $product,
             'variant' => $variant->load(['color', 'size']),
             'colors' => $colors,
-            'sizes' => $sizes
+            'sizes' => $sizes,
         ]);
     }
 
@@ -87,7 +87,7 @@ class ProductVariantController extends Controller
         $request->validate([
             'color_id' => 'nullable|exists:colors,id',
             'size_id' => 'nullable|exists:sizes,id',
-            'sku' => 'required|string|unique:product_variants,sku,' . $variant->id,
+            'sku' => 'required|string|unique:product_variants,sku,'.$variant->id,
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0|max:100',
             'stock_quantity' => 'required|integer|min:0',
@@ -110,7 +110,7 @@ class ProductVariantController extends Controller
 
         $variant->update($data);
         if (empty($variant->barcode)) {
-            $variant->barcode = 'VAR-' . strtoupper(\Str::random(6)) . '-' . str_pad((string)$product->id, 6, '0', STR_PAD_LEFT) . '-' . str_pad((string)$variant->id, 6, '0', STR_PAD_LEFT);
+            $variant->barcode = 'VAR-'.strtoupper(\Str::random(6)).'-'.str_pad((string) $product->id, 6, '0', STR_PAD_LEFT).'-'.str_pad((string) $variant->id, 6, '0', STR_PAD_LEFT);
             $variant->save();
         }
 
@@ -124,6 +124,7 @@ class ProductVariantController extends Controller
         }
 
         $variant->delete();
+
         return redirect()->route('product-variants.index', $product)->with('success', 'Product variant deleted successfully.');
     }
 
@@ -131,15 +132,17 @@ class ProductVariantController extends Controller
     {
         $search = $request->input('search');
         $perPage = (int) $request->input('perPage', 10);
-        if ($perPage < 1 || $perPage > 100) $perPage = 10;
+        if ($perPage < 1 || $perPage > 100) {
+            $perPage = 10;
+        }
 
         $variants = ProductVariant::with(['product', 'color', 'size'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('sku', 'like', "%{$search}%")
-                      ->orWhereHas('product', function ($pq) use ($search) {
-                          $pq->where('name', 'like', "%{$search}%");
-                      });
+                        ->orWhereHas('product', function ($pq) use ($search) {
+                            $pq->where('name', 'like', "%{$search}%");
+                        });
                 });
             })
             ->orderBy('created_at', 'desc')
@@ -148,7 +151,7 @@ class ProductVariantController extends Controller
 
         return Inertia::render('Admin/ProductVariants/AllVariants', [
             'variants' => $variants,
-            'filters' => $request->only(['search', 'perPage'])
+            'filters' => $request->only(['search', 'perPage']),
         ]);
     }
 }

@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Database\Factories\ShippingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Shipping extends Model
 {
-    /** @use HasFactory<\Database\Factories\ShippingFactory> */
+    /** @use HasFactory<ShippingFactory> */
     use HasFactory;
 }

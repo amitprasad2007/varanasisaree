@@ -12,7 +12,7 @@ class Sale extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_id', 'vendor_id', 'invoice_number', 'status', 'subtotal', 'discount_type', 'discount_value', 'tax_percent', 'tax_amount', 'total', 'paid_total', 'payment_status', 'payment_method', 'payment_details', 'payment_date', 'payment_amount', 'refunded_amount', 'refund_status', 'last_refund_at'
+        'customer_id', 'vendor_id', 'invoice_number', 'status', 'subtotal', 'discount_type', 'discount_value', 'tax_percent', 'tax_amount', 'total', 'paid_total', 'payment_status', 'payment_method', 'payment_details', 'payment_date', 'payment_amount', 'refunded_amount', 'refund_status', 'last_refund_at',
     ];
 
     public function customer(): BelongsTo
@@ -55,7 +55,7 @@ class Sale extends Model
      */
     public function isEligibleForRefund(): bool
     {
-        return $this->status === 'completed' && 
+        return $this->status === 'completed' &&
                $this->refund_status !== 'full' &&
                $this->refunded_amount < $this->total;
     }
@@ -100,5 +100,3 @@ class Sale extends Model
         return $query->where('vendor_id', $vendorId);
     }
 }
-
-

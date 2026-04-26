@@ -5,16 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class BlogPostController extends Controller
 {
     /**
      * Display a listing of blog posts
      *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index(Request $request)
     {
@@ -89,8 +88,7 @@ class BlogPostController extends Controller
     /**
      * Display the specified blog post by slug
      *
-     * @param string $slug
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function show(string $slug)
     {
@@ -159,7 +157,7 @@ class BlogPostController extends Controller
     /**
      * Get featured blog posts for homepage
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function featured()
     {
@@ -199,7 +197,7 @@ class BlogPostController extends Controller
     /**
      * Get blog categories
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function categories()
     {

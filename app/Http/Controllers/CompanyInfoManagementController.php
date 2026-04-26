@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\CompanyInfo;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class CompanyInfoManagementController extends Controller
 {
@@ -17,13 +17,13 @@ class CompanyInfoManagementController extends Controller
     {
         $companyInfo = CompanyInfo::first();
 
-        if (!$companyInfo) {
+        if (! $companyInfo) {
             // If no company info exists, redirect to create
             return redirect()->route('company-info.create');
         }
 
         return Inertia::render('Admin/CompanyInfo/Index', [
-            'companyInfo' => $companyInfo
+            'companyInfo' => $companyInfo,
         ]);
     }
 
@@ -68,7 +68,7 @@ class CompanyInfoManagementController extends Controller
             'linkedin_url' => 'nullable|url|max:255',
             'whatsapp_number' => 'nullable|string|max:20',
             'about_text' => 'nullable|string',
-            'founded_year' => 'nullable|integer|min:1800|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1800|max:'.date('Y'),
             'business_hours' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'additional_data' => 'nullable|json',
@@ -100,7 +100,7 @@ class CompanyInfoManagementController extends Controller
         $companyInfo = CompanyInfo::findOrFail($id);
 
         return Inertia::render('Admin/CompanyInfo/Show', [
-            'companyInfo' => $companyInfo
+            'companyInfo' => $companyInfo,
         ]);
     }
 
@@ -112,7 +112,7 @@ class CompanyInfoManagementController extends Controller
         $companyInfo = CompanyInfo::findOrFail($id);
 
         return Inertia::render('Admin/CompanyInfo/Edit', [
-            'companyInfo' => $companyInfo
+            'companyInfo' => $companyInfo,
         ]);
     }
 
@@ -141,7 +141,7 @@ class CompanyInfoManagementController extends Controller
             'linkedin_url' => 'nullable|url|max:255',
             'whatsapp_number' => 'nullable|string|max:20',
             'about_text' => 'nullable|string',
-            'founded_year' => 'nullable|integer|min:1800|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1800|max:'.date('Y'),
             'business_hours' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'additional_data' => 'nullable|json',

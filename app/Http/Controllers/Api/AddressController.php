@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\AddressUser;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class AddressController extends Controller
@@ -18,7 +18,7 @@ class AddressController extends Controller
         $addresses = AddressUser::where('customer_id', $customer->id)->get();
 
         return response()->json([
-            'addresses' => $addresses
+            'addresses' => $addresses,
         ]);
     }
 
@@ -78,7 +78,7 @@ class AddressController extends Controller
 
         return response()->json([
             'message' => 'Address added successfully',
-            'address' => $address
+            'address' => $address,
         ], 201);
     }
 
@@ -132,7 +132,7 @@ class AddressController extends Controller
 
         return response()->json([
             'message' => 'Address updated successfully',
-            'address' => $address
+            'address' => $address,
         ]);
     }
 
@@ -149,7 +149,7 @@ class AddressController extends Controller
         $address->delete();
 
         return response()->json([
-            'message' => 'Address deleted successfully'
+            'message' => 'Address deleted successfully',
         ]);
     }
 
@@ -164,7 +164,7 @@ class AddressController extends Controller
             ->map(function ($address) {
                 $addressLine = $address->address_line1;
                 if ($address->address_line2) {
-                    $addressLine .= ', ' . $address->address_line2;
+                    $addressLine .= ', '.$address->address_line2;
                 }
 
                 return [
@@ -176,7 +176,7 @@ class AddressController extends Controller
                     'state' => $address->state,
                     'postal' => $address->postal_code,
                     'phone' => $address->phone,
-                    'isDefault' => $address->is_default
+                    'isDefault' => $address->is_default,
                 ];
             });
 

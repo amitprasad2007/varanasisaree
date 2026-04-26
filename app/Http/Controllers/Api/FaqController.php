@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class FaqController extends Controller
 {
     /**
      * Display a listing of active FAQs
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function index()
     {
@@ -44,8 +44,7 @@ class FaqController extends Controller
     /**
      * Get FAQs by category (if needed later)
      *
-     * @param string $category
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function byCategory(string $category)
     {

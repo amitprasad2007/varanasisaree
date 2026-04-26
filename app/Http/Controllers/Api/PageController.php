@@ -4,15 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class PageController extends Controller
 {
     /**
      * Get a specific page by slug
      *
-     * @param string $slug
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function show(string $slug)
     {
@@ -45,7 +44,7 @@ class PageController extends Controller
     /**
      * Get privacy policy
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function privacy()
     {
@@ -55,7 +54,7 @@ class PageController extends Controller
     /**
      * Get terms and conditions
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function terms()
     {
@@ -65,7 +64,7 @@ class PageController extends Controller
     /**
      * Get shipping and delivery policy
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function shipping()
     {
@@ -75,7 +74,7 @@ class PageController extends Controller
     /**
      * Get cancellation and refund policy
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function refund()
     {
@@ -85,7 +84,7 @@ class PageController extends Controller
     /**
      * Get delivery information
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function deliveryInfo()
     {
@@ -94,7 +93,7 @@ class PageController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$page) {
+            if (! $page) {
                 // Return default delivery info if not found
                 return response()->json([
                     'success' => true,
@@ -134,7 +133,7 @@ class PageController extends Controller
     /**
      * List all policy pages
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function policies()
     {

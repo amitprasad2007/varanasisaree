@@ -24,8 +24,13 @@ class SaleReturn extends Model
         return $this->hasMany(SaleReturnItem::class);
     }
 
-    public function creditNotes() { return $this->hasMany(CreditNote::class); }
-    public function refunds() { return $this->hasMany(Refund::class); }
+    public function creditNotes()
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class);
+    }
 }
-
-

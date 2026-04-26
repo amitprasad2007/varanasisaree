@@ -13,7 +13,7 @@ class AboutusController extends Controller
             $query->orderBy('order');
         }])->active()->first();
 
-        if (!$about) {
+        if (! $about) {
             return response()->json(['message' => 'About Us not found'], 404);
         }
 
@@ -21,7 +21,7 @@ class AboutusController extends Controller
             'id' => $about->id,
             'page_title' => $about->page_title,
             'description' => $about->description,
-            'image' => $about->image ? asset('storage/' . $about->image) : null,
+            'image' => $about->image ? asset('storage/'.$about->image) : null,
             'status' => $about->status,
             'sections' => $about->sections->map(function ($section) use ($about) {
                 $sectionData = [
@@ -32,8 +32,8 @@ class AboutusController extends Controller
                     'status' => $section->status,
                 ];
 
-                if (!empty($section->image)) {
-                    $sectionData['image'] = asset('storage/' . $section->image);
+                if (! empty($section->image)) {
+                    $sectionData['image'] = asset('storage/'.$section->image);
                 }
 
                 $sectionData['section_content'] = $section->section_content ?? [];
@@ -45,5 +45,3 @@ class AboutusController extends Controller
         return response()->json($formatted);
     }
 }
-
-

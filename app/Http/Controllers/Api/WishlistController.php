@@ -4,20 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use App\Models\Wishlist;
-use App\Models\ProductVariant;
 use App\Services\ProductService;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class WishlistController extends Controller
 {
     public $productService;
+
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
+
     public function getWishlistItems(Request $request)
     {
         $customer = $request->user();
@@ -27,10 +27,11 @@ class WishlistController extends Controller
             ->get();
 
         $products = $wishlistItems->pluck('product');
-        if( $products->isEmpty()){
+        if ($products->isEmpty()) {
             return response()->json([]);
         }
         $result = $this->productService->productdetails($products);
+
         return response()->json($result);
     }
 
@@ -52,7 +53,7 @@ class WishlistController extends Controller
             ->where('product_variant_id', $validated['product_variant_id'])
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             Wishlist::create([
                 'customer_id' => $customer->id,
                 'product_id' => $validated['product_id'],
@@ -66,16 +67,17 @@ class WishlistController extends Controller
     public function remove(Request $request, int $productId)
     {
         $customer = $request->user();
-        if (!$request['product_variant_id'] ) {
+        if (! $request['product_variant_id']) {
             // If no variant is specified, use the first variant of the product
             $request['product_variant_id'] = Product::find($productId)->variants->first()?->id;
-        }else{
+        } else {
             $request['product_variant_id'] = null;
         }
         Wishlist::where('customer_id', $customer->id)
             ->where('product_id', $productId)
             ->where('product_variant_id', $request['product_variant_id'])
             ->delete();
+
         return response()->json(['status' => 'ok']);
     }
 
@@ -110,7 +112,7 @@ class WishlistController extends Controller
             ];
         })->values()->all();
 
-        if (!empty($toInsert)) {
+        if (! empty($toInsert)) {
             Wishlist::insert($toInsert);
         }
 
@@ -125,7 +127,7 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!isset($validated['product_variant_id']) ) {
+        if (! isset($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
         }
@@ -151,7 +153,7 @@ class WishlistController extends Controller
             'session_token' => ['required', 'string', 'max:64'],
             'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
         ]);
-        if (!isset($validated['product_variant_id']) ) {
+        if (! isset($validated['product_variant_id'])) {
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($productId)->variants->first()?->id;
         }
@@ -160,6 +162,7 @@ class WishlistController extends Controller
             ->where('product_id', $productId)
             ->where('product_variant_id', $validated['product_variant_id'])
             ->delete();
+
         return response()->json(['status' => 'ok']);
     }
 
@@ -168,15 +171,16 @@ class WishlistController extends Controller
         $validated = $request->validate([
             'session_token' => ['required', 'string', 'max:64'],
         ]);
-        $items =  Wishlist::where('session_token', $validated['session_token'])
+        $items = Wishlist::where('session_token', $validated['session_token'])
             ->orderByDesc('updated_at')
             ->limit(200)
             ->get();
-            $products = $items->pluck('product');
-            if( $products->isEmpty()){
-                return response()->json([]);
-            }
-            $result = $this->productService->productdetails($products);
+        $products = $items->pluck('product');
+        if ($products->isEmpty()) {
+            return response()->json([]);
+        }
+        $result = $this->productService->productdetails($products);
+
         return response()->json($result);
     }
 
@@ -191,14 +195,16 @@ class WishlistController extends Controller
             // If no variant is specified, use the first variant of the product
             $validated['product_variant_id'] = Product::find($validated['product_id'])->variants->first()?->id;
         }
-        $whistcount = Wishlist::where('session_token',$validated['session_token'] )
+        $whistcount = Wishlist::where('session_token', $validated['session_token'])
             ->where('product_id', $validated['product_id'])
-            ->where('product_variant_id',$validated['product_variant_id'])
+            ->where('product_variant_id', $validated['product_variant_id'])
             ->count();
+
         return response()->json($whistcount);
     }
 
-    public function checkwishlist(Request $request){
+    public function checkwishlist(Request $request)
+    {
         $customer = $request->user();
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
@@ -212,12 +218,15 @@ class WishlistController extends Controller
             ->where('product_id', $validated['product_id'])
             ->where('product_variant_id', $validated['product_variant_id'])
             ->count();
+
         return response()->json($whistcount);
 
     }
 
-    public function wishlistremovebyid(Wishlist $wishlist){
+    public function wishlistremovebyid(Wishlist $wishlist)
+    {
         $wishlist->delete();
+
         return response()->json(['status' => 'ok']);
     }
 }

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VendorMenuSection extends Model
 {
-    
     protected $fillable = [
         'name',
         'slug',
@@ -18,5 +17,4 @@ class VendorMenuSection extends Model
     {
         return $this->hasMany(VendorMenuItem::class, 'vendor_menu_section_id');
     }
-
 }

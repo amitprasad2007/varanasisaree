@@ -10,13 +10,13 @@ return new class extends Migration
     {
         // Add guest support to wishlists
         Schema::table('wishlists', function (Blueprint $table) {
-            if (!Schema::hasColumn('wishlists', 'session_token')) {
+            if (! Schema::hasColumn('wishlists', 'session_token')) {
                 $table->string('session_token', 64)->nullable()->after('customer_id')->index();
             }
             // Allow nullable customer for guest rows (requires doctrine/dbal)
             try {
                 $table->foreignId('customer_id')->nullable()->change();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // If change() not supported, leave as-is to avoid migration failure in environments without dbal
             }
             $table->unique(['session_token', 'product_id']);
@@ -24,12 +24,12 @@ return new class extends Migration
 
         // Add guest support to recent_views
         Schema::table('recent_views', function (Blueprint $table) {
-            if (!Schema::hasColumn('recent_views', 'session_token')) {
+            if (! Schema::hasColumn('recent_views', 'session_token')) {
                 $table->string('session_token', 64)->nullable()->after('customer_id')->index();
             }
             try {
                 $table->foreignId('customer_id')->nullable()->change();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // ignore if cannot change
             }
             $table->unique(['session_token', 'product_id']);
@@ -55,5 +55,3 @@ return new class extends Migration
         });
     }
 };
-
-

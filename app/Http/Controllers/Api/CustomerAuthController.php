@@ -439,4 +439,31 @@ class CustomerAuthController extends Controller
             'user' => $customer,
         ]);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $customer = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|required|string|max:20|unique:customers,phone,'.$customer->id,
+            'address' => 'sometimes|nullable|string',
+            'gstin' => 'sometimes|nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $customer->update($request->only(['name', 'phone', 'address', 'gstin']));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'customer' => $customer,
+        ]);
+    }
 }

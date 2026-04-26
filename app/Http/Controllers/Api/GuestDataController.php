@@ -78,5 +78,3 @@ class GuestDataController extends Controller
         return response()->json(['status' => 'ok']);
     }
 }
-
-

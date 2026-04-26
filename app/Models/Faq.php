@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class Faq extends Model
 {
     use HasFactory;
 
     protected $table = 'faqs';
+
     protected $fillable = ['question', 'answer', 'order', 'status'];
 
     public function scopeActive($query): Builder
@@ -42,7 +43,4 @@ class Faq extends Model
     {
         return $query->where('status', 'approved');
     }
-
-
-
 }

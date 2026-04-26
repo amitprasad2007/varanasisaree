@@ -125,6 +125,7 @@ Route::post('/auth/refresh', [CustomerAuthController::class, 'refreshToken'])->m
 // Protected routes that require authentication
 Route::middleware(['auth:sanctum', 'ability:customer'])->group(function () {
     Route::get('/user', [CustomerAuthController::class, 'profile']);
+    Route::put('/auth/profile', [CustomerAuthController::class, 'updateProfile']);
     Route::post('/logout', [CustomerAuthController::class, 'logout']);
 
     // Cart operations

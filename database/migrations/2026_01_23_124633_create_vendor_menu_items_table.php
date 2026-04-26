@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_logout')->default(false);
-            $table->timestamps();   
+            $table->timestamps();
             $table->foreign('parent_id')->references('id')->on('vendor_menu_items')->onDelete('cascade');
             $table->foreign('vendor_menu_section_id')->references('id')->on('vendor_menu_sections')->onDelete('cascade');
         });

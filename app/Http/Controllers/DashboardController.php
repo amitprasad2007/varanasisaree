@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\Sale;
-use App\Models\Product;
-use App\Models\Customer;
-use App\Models\User;
-use App\Models\Refund;
 use App\Models\Brand;
 use App\Models\Category;
-use App\Models\Vendor;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Refund;
+use App\Models\Sale;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -21,7 +18,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Date ranges for analytics
         $today = Carbon::today();
         $yesterday = Carbon::yesterday();
@@ -32,7 +29,7 @@ class DashboardController extends Controller
 
         // Core metrics
         $metrics = $this->getMetrics($today, $yesterday, $thisMonth, $lastMonth);
-        
+
         // Charts data
         $salesChart = $this->getSalesChartData();
         $revenueChart = $this->getRevenueChartData();
@@ -41,7 +38,7 @@ class DashboardController extends Controller
         $recentSales = $this->getRecentSales();
         $customerInsights = $this->getCustomerInsights();
         $inventoryAlerts = $this->getInventoryAlerts();
-        
+
         return Inertia::render('dashboard', [
             'metrics' => $metrics,
             'salesChart' => $salesChart,
@@ -116,7 +113,7 @@ class DashboardController extends Controller
                 'total' => $totalRevenue,
                 'pending' => $pendingOrders,
                 'refunds' => Refund::where('refund_status', 'completed')->sum('amount'),
-            ]
+            ],
         ];
     }
 
@@ -163,13 +160,13 @@ class DashboardController extends Controller
         // Check if sku column exists, otherwise use id as fallback
         $columns = DB::getSchemaBuilder()->getColumnListing('products');
         $skuColumn = in_array('sku', $columns) ? 'products.sku' : 'CONCAT("PRD-", products.id)';
-        
+
         return DB::table('sale_items')
-            ->select('products.name', 
-                     DB::raw($skuColumn . ' as sku'), 
-                     'products.price', 
-                     DB::raw('SUM(sale_items.quantity) as total_sold'),
-                     DB::raw('SUM(sale_items.line_total) as total_revenue'))
+            ->select('products.name',
+                DB::raw($skuColumn.' as sku'),
+                'products.price',
+                DB::raw('SUM(sale_items.quantity) as total_sold'),
+                DB::raw('SUM(sale_items.line_total) as total_revenue'))
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->groupBy('products.id', 'products.name', 'products.price')
             ->orderBy('total_sold', 'desc')
@@ -246,7 +243,7 @@ class DashboardController extends Controller
         } else {
             $selectColumns[] = DB::raw('CONCAT("PRD-", id) as sku');
         }
-        
+
         return [
             'low_stock' => Product::where('stock_quantity', '<=', 10)
                 ->where('stock_quantity', '>', 0)
@@ -255,7 +252,7 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->get(),
             'out_of_stock' => Product::where('stock_quantity', 0)
-                ->select(array_filter($selectColumns, fn($col) => $col !== 'stock_quantity as stock'))
+                ->select(array_filter($selectColumns, fn ($col) => $col !== 'stock_quantity as stock'))
                 ->limit(10)
                 ->get(),
         ];

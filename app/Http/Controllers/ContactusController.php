@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contactus;
 use App\Http\Requests\StoreContactusRequest;
 use App\Http\Requests\UpdateContactusRequest;
+use App\Models\Contactus;
 
 class ContactusController extends Controller
 {

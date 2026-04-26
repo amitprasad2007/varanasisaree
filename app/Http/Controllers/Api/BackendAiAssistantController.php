@@ -24,7 +24,7 @@ class BackendAiAssistantController extends Controller
         $validator = Validator::make($request->all(), [
             'message' => 'required|string',
             'history' => 'nullable|array',
-            'image' => 'nullable|string'
+            'image' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -47,7 +47,7 @@ class BackendAiAssistantController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'prompt' => 'required|string|max:1000',
-            'aspect_ratio' => 'nullable|string|in:1:1,2:3,3:2,3:4,4:3,9:16,16:9,21:9'
+            'aspect_ratio' => 'nullable|string|in:1:1,2:3,3:2,3:4,4:3,9:16,16:9,21:9',
         ]);
 
         if ($validator->fails()) {

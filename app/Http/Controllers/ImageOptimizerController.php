@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Spatie\Image\Image;
 
@@ -19,7 +19,7 @@ class ImageOptimizerController extends Controller
     public function getImages()
     {
         // Scan public storage - only specific directories to avoid scanning everything
-        $directories = ['categories', 'banners', 'products', 'blogs', 'testimonials', 'aboutus','brands','collection_types','collections','product-variant-images','product-variants'];
+        $directories = ['categories', 'banners', 'products', 'blogs', 'testimonials', 'aboutus', 'brands', 'collection_types', 'collections', 'product-variant-images', 'product-variants'];
         $images = [];
 
         foreach ($directories as $directory) {
@@ -27,7 +27,7 @@ class ImageOptimizerController extends Controller
                 $files = Storage::disk('public')->allFiles($directory);
                 foreach ($files as $file) {
                     $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif','webp'])) {
+                    if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
                         $images[] = [
                             'path' => $file,
                             'url' => Storage::url($file),
@@ -55,7 +55,7 @@ class ImageOptimizerController extends Controller
             'width' => 'nullable|integer|min:10',
             'height' => 'nullable|integer|min:10',
             'quality' => 'nullable|integer|between:1,100',
-            'delete_original' => 'boolean'
+            'delete_original' => 'boolean',
         ]);
 
         $selectedImages = $request->images;
@@ -70,13 +70,14 @@ class ImageOptimizerController extends Controller
         foreach ($selectedImages as $imagePath) {
             try {
                 $fullPath = Storage::disk('public')->path($imagePath);
-                
-                if (!file_exists($fullPath)) {
+
+                if (! file_exists($fullPath)) {
                     $results[] = [
                         'path' => $imagePath,
                         'status' => 'error',
-                        'message' => 'File not found'
+                        'message' => 'File not found',
                     ];
+
                     continue;
                 }
 
@@ -94,7 +95,7 @@ class ImageOptimizerController extends Controller
                 }
 
                 $image->quality($quality);
-                
+
                 $destinationPath = Storage::disk('public')->path($newPath);
                 $image->save($destinationPath);
 
@@ -110,22 +111,22 @@ class ImageOptimizerController extends Controller
                 $results[] = [
                     'path' => $imagePath,
                     'new_path' => $newPath,
-                    'status' => 'success'
+                    'status' => 'success',
                 ];
 
             } catch (\Throwable $e) {
-                \Log::error("Image optimization failed for $imagePath: " . $e->getMessage());
+                \Log::error("Image optimization failed for $imagePath: ".$e->getMessage());
                 $results[] = [
                     'path' => $imagePath,
                     'status' => 'error',
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ];
             }
         }
 
         return response()->json([
             'message' => 'Optimization completed',
-            'results' => $results
+            'results' => $results,
         ]);
     }
 
@@ -150,9 +151,9 @@ class ImageOptimizerController extends Controller
                     if (Schema::hasColumn($table, $column)) {
                         DB::table($table)
                             ->where($column, $oldPath)
-                            ->orWhere($column, 'like', '%' . $oldPath)
+                            ->orWhere($column, 'like', '%'.$oldPath)
                             ->update([
-                                $column => DB::raw("REPLACE($column, '$oldPath', '$newPath')")
+                                $column => DB::raw("REPLACE($column, '$oldPath', '$newPath')"),
                             ]);
                     }
                 }
