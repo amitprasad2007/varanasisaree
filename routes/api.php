@@ -43,6 +43,7 @@ Route::get('/policies/terms_conditions', [PageController::class, 'terms']);
 Route::get('/policies/shipping', [PageController::class, 'shipping']);
 Route::get('/policies/shipping_policy', [PageController::class, 'shipping']);
 Route::get('/policies/refund', [PageController::class, 'refund']);
+Route::get('/policies/refundpage', [PageController::class, 'refundpage']);
 Route::get('/policies/refund_policy', [PageController::class, 'refund']);
 Route::get('/policies/about_us', [PageController::class, 'aboutUs']);
 Route::get('/policies/about-us', [PageController::class, 'aboutUs']);

@@ -513,4 +513,9 @@ class PageController extends Controller
             ], 500);
         }
     }
+
+    public function refundpage()
+    {
+        return $this->show('cancellation-refund');
+    }
 }
