@@ -267,7 +267,7 @@ class PageController extends Controller
                 'type' => 'policy',
                 'content' => $page?->content ?? 'Our cancellation and refund policy ensures a fair experience for all customers.',
                 'metadata' => [
-                    'introduction' => 'At Samar Silk Palace, we strive to provide our customers with the highest quality products and exceptional service. If you are not entirely satisfied with your purchase, we\'re here to help.',
+                    'introduction' => 'Your satisfaction is our priority. Learn about our fair and transparent return policy.',
                     'sections' => [
                         [
                             'title' => 'Return Policy',
@@ -285,9 +285,27 @@ class PageController extends Controller
                             ],
                         ],
                         [
+                            'title' => 'Return Policy',
+                            'icon' => 'card_giftcard',
+                            'content' =>'We accept returns within 7 days of delivery for eligible items. Items must be unused, in original condition, and with all tags attached.',
+                            'items' => [
+                                'Defective or damaged products',
+                                'Wrong items delivered',
+                                'Significant difference from product description',
+                                'Items in unopened, original packaging',
+                            ],
+                        ]
+                        ,
+                        [
                             'title' => 'Cancellation Policy',
                             'icon' => 'event_busy',
-                            'content' => 'Orders can be cancelled within 24 hours of placement. Please note that cancellations are not permitted once the product has been dispatched.',
+                            'content' => 'You may cancel your order within 24 hours of placing it, provided the order has not been processed or shipped. Once an order enters the processing stage, cancellation may not be possible.',
+                            'items' => [
+                                'Orders can be cancelled within 24 hours of placement',
+                                'Cancellation is not possible once the order is shipped',
+                                'Custom or personalized items cannot be cancelled',
+                                'Contact us immediately at support@samarsilkpalace.com',
+                            ],
                         ],
                     ],
                     'refund_timelines' => [
