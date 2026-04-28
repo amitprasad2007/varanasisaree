@@ -359,7 +359,7 @@ class PageController extends Controller
                     'type' => 'policy',
                     'content' => $content,
                     'metadata' => [
-                        'introduction' => 'Welcome to Samar Silk Palace, where tradition meets elegance. Since 1985, we have been dedicated to preserving the rich heritage of Banarasi handloom weaving, bringing the finest silk creations to connoisseurs worldwide.',
+                        'introduction' => $content,
                         'sections' => [
                             [
                                 'title' => 'Our Legacy',
