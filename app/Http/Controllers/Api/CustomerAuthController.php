@@ -94,10 +94,10 @@ class CustomerAuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $phone = $request->phone;
+        $phone = trim($request->phone);
 
-        // Use a static OTP for local development, otherwise generate a random one
-        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
+        // Force '123456' for testing with APK/Production
+        $otp = '123456';
 
         // Here you would integrate with an SMS Gateway (e.g., Twilio, MSG91) to actually send the SMS
         Log::info("OTP for {$phone} is {$otp}");
@@ -124,13 +124,17 @@ class CustomerAuthController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $phone = $request->phone;
-        $otp = $request->otp;
+        $phone = trim($request->phone);
+        $otp = trim($request->otp);
         $email = $request->email;
 
         $cachedOtp = Cache::get('otp_'.$phone);
 
-        if (! $cachedOtp || $cachedOtp != $otp) {
+        // Debug logging for troubleshooting
+        Log::info("Verifying OTP for {$phone}. Received: '{$otp}', Cached: '{$cachedOtp}'");
+
+        // Allow '123456' as a master OTP for testing (using loose comparison for robustness)
+        if ($otp != '123456' && (! $cachedOtp || $cachedOtp != $otp)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
@@ -484,7 +488,7 @@ class CustomerAuthController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $phone = $request->phone;
+        $phone = trim($request->phone);
       //  $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
         $otp = '123456' ;
         Log::info("Phone update OTP for {$phone} is {$otp}");
@@ -508,11 +512,15 @@ class CustomerAuthController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $phone = $request->phone;
-        $otp = $request->otp;
+        $phone = trim($request->phone);
+        $otp = trim($request->otp);
         $cachedOtp = Cache::get('phone_update_otp_'.$request->user()->id.'_'.$phone);
 
-        if (! $cachedOtp || $cachedOtp != $otp) {
+        // Debug logging for troubleshooting
+        Log::info("Verifying Phone Update OTP for User {$request->user()->id}, Phone {$phone}. Received: '{$otp}', Cached: '{$cachedOtp}'");
+
+        // Allow '123456' as a master OTP for testing (using loose comparison)
+        if ($otp != '123456' && (! $cachedOtp || $cachedOtp != $otp)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
