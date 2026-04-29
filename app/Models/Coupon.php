@@ -62,4 +62,15 @@ class Coupon extends Model
     {
         return $this->status && ! $this->isExpired() && ! $this->isUsageLimitReached();
     }
+
+    public function calculateDiscount($total): float
+    {
+        $discount = $this->type === 'fixed' ? $this->value : ($total * $this->value / 100);
+
+        if ($this->max_discount && $discount > $this->max_discount) {
+            $discount = $this->max_discount;
+        }
+
+        return (float) $discount;
+    }
 }

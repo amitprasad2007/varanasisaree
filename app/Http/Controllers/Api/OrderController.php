@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\OrderItem;
 
 class OrderController extends Controller
 {
@@ -24,6 +25,10 @@ class OrderController extends Controller
             'variant_id' => 'nullable|exists:product_variants,id',
             'address_id' => 'required|exists:address_users,id',
             'payment_method' => 'required|in:cod,razorpay,paytm,others',
+            'shippingcost' => 'nullable|numeric|min:0',
+            'tax' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'coupon_code' => 'nullable|exists:coupons,code',
         ]);
 
         if ($validator->fails()) {
@@ -61,20 +66,52 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create order
+            // Calculate totals securely
             $unitPrice = $variant ? ($variant->final_price ?? $variant->price) : $product->price;
+            $subTotal = $unitPrice * $request->quantity;
+            $discount = 0;
+
+            if ($request->coupon_code) {
+                $coupon = Coupon::where('code', $request->coupon_code)->first();
+                if ($coupon) {
+                    $discount = $coupon->calculateDiscount($subTotal);
+                }
+            } else {
+                $discount = $request->discount ?? 0;
+            }
+
+            $shippingCost = $request->shippingcost ?? 0;
+            $tax = $request->tax ?? 0;
+            $finalTotal = $subTotal - $discount + $shippingCost + $tax;
+
+            // Create order
             $order = Order::create([
+                'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)),
                 'customer_id' => $customer->id,
                 'address_id' => $address->id,
-                'sub_total' => $unitPrice * $request->quantity,
+                'sub_total' => $subTotal,
                 'quantity' => $request->quantity,
-                'total_amount' => $unitPrice * $request->quantity,
+                'shipping_cost' => $shippingCost,
+                'tax' => $tax,
+                'discount' => $discount,
+                'total_amount' => $finalTotal,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
                 'status' => 'pending',
+                'shipping_notes' => $request->shipping_notes,
+                'coupon' => $request->coupon_code,
             ]);
 
-            // Create cart item for the order
+            // Create order item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'product_variant_id' => $variant?->id,
+                'quantity' => $request->quantity,
+                'price' => $unitPrice,
+            ]);
+
+            // Create cart item for the order (for compatibility if needed elsewhere)
             Cart::create([
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
@@ -82,7 +119,7 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'price' => $unitPrice,
                 'quantity' => $request->quantity,
-                'amount' => $unitPrice * $request->quantity,
+                'amount' => $subTotal,
                 'status' => 'new',
             ]);
 
@@ -184,6 +221,8 @@ class OrderController extends Controller
                 }
             }
 
+            $finalTotal = $subTotal - $discount + $request->shippingcost + $request->tax;
+
             // Create order
             $order = Order::create([
                 'order_id' => 'ORD-'.date('YmdHis').'-'.bin2hex(random_bytes(5)), // Generate a unique order ID
@@ -194,20 +233,29 @@ class OrderController extends Controller
                 'quantity' => $quantity,
                 'shipping_cost' => $request->shippingcost,
                 'tax' => $request->tax,
-                'discount' => $request->discount,
-                'total_amount' => $request->total,
+                'discount' => $discount,
+                'total_amount' => $finalTotal,
                 'coupon' => $request->coupon_code,
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_method === 'cod' ? 'unpaid' : 'paid',
                 'status' => 'pending',
                 'transaction_id' => $request->payment_method === 'razorpay' ? $request->razorpay_payment_id : null,
                 'payment_details' => json_encode($request->all()),
+                'shipping_notes' => $request->shipping_notes,
             ]);
 
-            // Update cart items with order_id
-            Cart::where('customer_id', $customer->id)
-                ->whereNull('order_id')
-                ->update(['order_id' => $order->id, 'status' => 'progress']);
+            // Update cart items with order_id and create order items
+            foreach ($cartItems as $cartItem) {
+                $cartItem->update(['order_id' => $order->id, 'status' => 'progress']);
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->price,
+                ]);
+            }
 
             DB::commit();
 
