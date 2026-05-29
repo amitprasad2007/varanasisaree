@@ -103,8 +103,8 @@ class CustomerAuthController extends Controller
 
         $phone = trim($request->phone);
 
-        // Force '123456' for testing with APK/Production
-        $otp = '123456';
+        // Generate dynamic 6-digit OTP, or force '123456' in local development environment
+        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
 
         // Here you would integrate with an SMS Gateway (e.g., Twilio, MSG91) to actually send the SMS
         Log::info("OTP for {$phone} is {$otp}");
@@ -140,8 +140,10 @@ class CustomerAuthController extends Controller
         // Debug logging for troubleshooting
         Log::info("Verifying OTP for {$phone}. Received: '{$otp}', Cached: '{$cachedOtp}'");
 
-        // Allow '123456' as a master OTP for testing (using loose comparison for robustness)
-        if ($otp != '123456' && (! $cachedOtp || $cachedOtp != $otp)) {
+        // Allow '123456' as a master OTP for testing strictly in local/development environments
+        $isMasterOtpValid = app()->environment('local') && $otp === '123456';
+
+        if (! $isMasterOtpValid && (! $cachedOtp || $cachedOtp != $otp)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
@@ -501,8 +503,7 @@ class CustomerAuthController extends Controller
         }
 
         $phone = trim($request->phone);
-        //  $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
-        $otp = '123456';
+        $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
         Log::info("Phone update OTP for {$phone} is {$otp}");
 
         Cache::put('phone_update_otp_'.$request->user()->id.'_'.$phone, $otp, now()->addMinutes(10));
@@ -531,8 +532,10 @@ class CustomerAuthController extends Controller
         // Debug logging for troubleshooting
         Log::info("Verifying Phone Update OTP for User {$request->user()->id}, Phone {$phone}. Received: '{$otp}', Cached: '{$cachedOtp}'");
 
-        // Allow '123456' as a master OTP for testing (using loose comparison)
-        if ($otp != '123456' && (! $cachedOtp || $cachedOtp != $otp)) {
+        // Allow '123456' as a master OTP for testing strictly in local/development environments
+        $isMasterOtpValid = app()->environment('local') && $otp === '123456';
+
+        if (! $isMasterOtpValid && (! $cachedOtp || $cachedOtp != $otp)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired OTP',
