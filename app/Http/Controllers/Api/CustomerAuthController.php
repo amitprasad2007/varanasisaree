@@ -22,6 +22,13 @@ use Laravel\Socialite\Two\AbstractProvider;
 
 class CustomerAuthController extends Controller
 {
+    protected const SUPPORTED_PROVIDERS = [
+        'google' => 'google_id',
+        'facebook' => 'facebook_id',
+        'googleMobile' => 'google_id',
+        'facebookMobile' => 'facebook_id',
+    ];
+
     protected $customerService;
 
     public function __construct(CustomerService $customerService)
@@ -206,38 +213,44 @@ class CustomerAuthController extends Controller
 
     public function redirectToGoogle($provider)
     {
+        if (! array_key_exists($provider, self::SUPPORTED_PROVIDERS)) {
+            abort(404, 'Unsupported social login provider.');
+        }
+
         return Socialite::driver($provider)->redirect();
     }
 
     public function handleGoogleCallback($provider)
     {
+        if (! array_key_exists($provider, self::SUPPORTED_PROVIDERS)) {
+            abort(404, 'Unsupported social login provider.');
+        }
+
+        $column = self::SUPPORTED_PROVIDERS[$provider];
+
         try {
             $socialUser = Socialite::driver($provider)->user();
 
-            // Check if user exists by provider-specific ID
-            $customer = null;
-            if ($provider === 'google') {
-                $customer = Customer::where('google_id', $socialUser->getId())->first();
-            } elseif ($provider === 'facebook') {
-                $customer = Customer::where('facebook_id', $socialUser->getId())->first();
+            // 1. First, check if a user already exists with this provider ID
+            $customer = Customer::where($column, $socialUser->getId())->first();
+
+            // 2. If not, check if a user exists with this email address
+            if (! $customer && $socialUser->getEmail()) {
+                $customer = Customer::where('email', $socialUser->getEmail())->first();
+                if ($customer) {
+                    // Link the provider ID to the existing account
+                    $customer->update([$column => $socialUser->getId()]);
+                }
             }
 
-            // If customer doesn't exist, create new one
+            // 3. If still no customer, create a new one
             if (! $customer) {
-                $customerData = [
-                    'name' => $socialUser->getName(),
+                $customer = Customer::create([
+                    'name' => $socialUser->getName() ?? 'User',
                     'email' => $socialUser->getEmail(),
                     'avatar' => $socialUser->getAvatar(),
-                ];
-
-                // Add provider-specific ID
-                if ($provider === 'google') {
-                    $customerData['google_id'] = $socialUser->getId();
-                } elseif ($provider === 'facebook') {
-                    $customerData['facebook_id'] = $socialUser->getId();
-                }
-
-                $customer = Customer::create($customerData);
+                    $column => $socialUser->getId(),
+                ]);
             }
 
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
@@ -271,6 +284,15 @@ class CustomerAuthController extends Controller
 
     public function handleTokenCallback(Request $request, $provider)
     {
+        if (! array_key_exists($provider, self::SUPPORTED_PROVIDERS)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unsupported social login provider.',
+            ], 400);
+        }
+
+        $column = self::SUPPORTED_PROVIDERS[$provider];
+
         try {
             $request->validate([
                 'token' => 'required|string',
@@ -281,37 +303,27 @@ class CustomerAuthController extends Controller
             $driver = Socialite::driver($provider);
             $socialUser = $driver->userFromToken($request->token);
 
-            $customer = null;
-            if ($provider === 'googleMobile') {
-                $customer = Customer::where('google_id', $socialUser->getId())->orWhere('email', $socialUser->getEmail())->first();
-            } elseif ($provider === 'facebookMobile') {
-                $customer = Customer::where('facebook_id', $socialUser->getId())->orWhere('email', $socialUser->getEmail())->first();
-            }
+            // 1. First, check if a user already exists with this provider ID or email address
+            $customer = Customer::where($column, $socialUser->getId())
+                ->orWhere(function ($query) use ($socialUser) {
+                    if ($socialUser->getEmail()) {
+                        $query->where('email', $socialUser->getEmail());
+                    }
+                })->first();
 
-            // Create new customer if not exists
-            if (! $customer) {
-                $customerData = [
-                    'name' => $socialUser->getName(),
+            // 2. If customer exists but didn't have this provider ID linked, link it
+            if ($customer) {
+                if (! $customer->{$column}) {
+                    $customer->update([$column => $socialUser->getId()]);
+                }
+            } else {
+                // 3. Otherwise, create a new customer
+                $customer = Customer::create([
+                    'name' => $socialUser->getName() ?? 'User',
                     'email' => $socialUser->getEmail(),
                     'avatar' => $socialUser->getAvatar(),
-                ];
-
-                if ($provider === 'googleMobile') {
-                    $customerData['google_id'] = $socialUser->getId();
-                } elseif ($provider === 'facebookMobile') {
-                    $customerData['facebook_id'] = $socialUser->getId();
-                }
-
-                $customer = Customer::create($customerData);
-            } else {
-                // Update provider ID if it was matched by email only
-                if ($provider === 'googleMobile' && ! $customer->google_id) {
-                    $customer->google_id = $socialUser->getId();
-                    $customer->save();
-                } elseif ($provider === 'facebookMobile' && ! $customer->facebook_id) {
-                    $customer->facebook_id = $socialUser->getId();
-                    $customer->save();
-                }
+                    $column => $socialUser->getId(),
+                ]);
             }
 
             $token = $customer->createToken('customerAuthToken', ['customer'])->plainTextToken;
@@ -489,8 +501,8 @@ class CustomerAuthController extends Controller
         }
 
         $phone = trim($request->phone);
-      //  $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
-        $otp = '123456' ;
+        //  $otp = app()->environment('local') ? '123456' : (string) rand(100000, 999999);
+        $otp = '123456';
         Log::info("Phone update OTP for {$phone} is {$otp}");
 
         Cache::put('phone_update_otp_'.$request->user()->id.'_'.$phone, $otp, now()->addMinutes(10));
