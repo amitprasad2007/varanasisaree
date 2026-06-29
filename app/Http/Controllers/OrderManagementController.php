@@ -32,7 +32,9 @@ class OrderManagementController extends Controller
             'customer:id,name,email,phone',
             'address',
             'productItems.product:id,name,slug',
-            'productItems.variant:id,color,size',
+            'productItems.variant:id,product_id,color_id,size_id',
+            'productItems.variant.color',
+            'productItems.variant.size',
             'assignedTo:id,name',
             'statusLogs' => function ($query) {
                 $query->latest()->limit(1);
