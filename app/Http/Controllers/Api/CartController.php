@@ -70,7 +70,7 @@ class CartController extends Controller
             $existingCart->quantity += $request->quantity;
 
             $basePrice = (float) ($variant->price ?? $product->price);
-            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $discount = (float) (! empty($variant->discount) ? $variant->discount : (! empty($product->discount) ? $product->discount : 0));
             $unitPrice = $basePrice - ($basePrice * $discount / 100);
 
             $existingCart->price = $unitPrice;
@@ -78,7 +78,7 @@ class CartController extends Controller
             $existingCart->save();
         } else {
             $basePrice = (float) ($variant->price ?? $product->price);
-            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $discount = (float) (! empty($variant->discount) ? $variant->discount : (! empty($product->discount) ? $product->discount : 0));
             $unitPrice = $basePrice - ($basePrice * $discount / 100);
 
             Cart::create([
@@ -211,13 +211,15 @@ class CartController extends Controller
 
         $subTotal = 0;
         $totaldiscount = 0;
+        $cartBaseTotal = 0;
 
         // Map cart items to the required format
-        $formattedCartItems = $cartItems->map(function ($item) use (&$subTotal, &$totaldiscount) {
+        $formattedCartItems = $cartItems->map(function ($item) use (&$subTotal, &$totaldiscount, &$cartBaseTotal) {
             $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
-            $discountRate = (float) ($item->product_variant_id ? ($item->productVariant->discount ?? 0) : ($item->product->discount ?? 0));
+            $discountRate = (float) ($item->product_variant_id && ! empty($item->productVariant->discount) ? $item->productVariant->discount : (! empty($item->product->discount) ? $item->product->discount : 0));
             $unitPrice = $basePrice - ($basePrice * $discountRate / 100);
 
+            $cartBaseTotal += $basePrice * $item->quantity;
             $subTotal += $unitPrice * $item->quantity;
             $totaldiscount += ($basePrice * $discountRate / 100) * $item->quantity;
 
@@ -242,8 +244,8 @@ class CartController extends Controller
         });
 
         $quantity = $cartItems->sum('quantity');
-        // Assume 5% tax based on getCartSummary, instead of 50%
-        $tax = round($subTotal * 0.5, 2);
+        // Calculate tax at 5% GST
+        $tax = round($subTotal * 0.05, 2);
         $discount = $totaldiscount;
 
         $shipping = 0;
@@ -264,6 +266,8 @@ class CartController extends Controller
             'cartdetails' => $cartdetails,
             'cart_items' => $formattedCartItems,
             'summary' => [
+                'actual_price' => (int) round($cartBaseTotal),
+                'base_price' => (int) round($cartBaseTotal),
                 'sub_total' => $subTotal,
                 'quantity' => $quantity,
                 'tax' => $tax,
@@ -288,12 +292,18 @@ class CartController extends Controller
         });
 
         // Calculate tax (assuming 5% GST)
-        $tax = round($subtotal * 0.5, 2);
+        $tax = round($subtotal * 0.05, 2);
+
+        $cartBaseTotal = $cartItems->sum(function ($item) {
+            $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
+
+            return $basePrice * $item->quantity;
+        });
 
         // Calculate discount from cart items
         $discount = $cartItems->sum(function ($item) {
             $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
-            $discountRate = (float) ($item->product_variant_id ? ($item->productVariant->discount ?? 0) : ($item->product->discount ?? 0));
+            $discountRate = (float) ($item->product_variant_id && ! empty($item->productVariant->discount) ? $item->productVariant->discount : (! empty($item->product->discount) ? $item->product->discount : 0));
 
             return ($basePrice * $discountRate / 100) * $item->quantity;
         });
@@ -333,6 +343,7 @@ class CartController extends Controller
         return response()->json([
             'address' => $customer->addressesdefault,
             'items' => $formattedItems,
+            'actual_price' => (int) round($cartBaseTotal),
             'subtotal' => $subtotal,
             'quantity' => $cartItems->sum('quantity'),
             'discount' => $discount,
@@ -402,7 +413,7 @@ class CartController extends Controller
             $existingCart->quantity += $request->quantity;
 
             $basePrice = (float) ($variant->price ?? $product->price);
-            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $discount = (float) (! empty($variant->discount) ? $variant->discount : (! empty($product->discount) ? $product->discount : 0));
             $unitPrice = $basePrice - ($basePrice * $discount / 100);
 
             $existingCart->price = $unitPrice;
@@ -410,7 +421,7 @@ class CartController extends Controller
             $existingCart->save();
         } else {
             $basePrice = (float) ($variant->price ?? $product->price);
-            $discount = (float) ($variant->discount ?? $product->discount ?? 0);
+            $discount = (float) (! empty($variant->discount) ? $variant->discount : (! empty($product->discount) ? $product->discount : 0));
             $unitPrice = $basePrice - ($basePrice * $discount / 100);
 
             Cart::create([
