@@ -135,7 +135,7 @@ test('admin can search for products and variants', function () {
 });
 
 test('public api getProductDetails returns gift items for variants', function () {
-    $giftProduct = Product::factory()->create(['name' => 'Gift Saree Item', 'status' => 'active']);
+    $giftProduct = Product::factory()->create(['name' => 'Gift Saree Item', 'price' => 1500, 'status' => 'active']);
     $giftItem = GiftItem::create([
         'product_variant_id' => $this->variant->id,
         'product_id' => $giftProduct->id,
@@ -150,4 +150,6 @@ test('public api getProductDetails returns gift items for variants', function ()
     $response->assertStatus(200);
     $response->assertJsonPath('variants.0.gift_items.0.name', 'Gift Saree Item');
     $response->assertJsonPath('variants.0.gift_items.0.offer_type', 'free');
+    $response->assertJsonPath('variants.0.gift_items.0.original_price', 1500);
+    $response->assertJsonPath('variants.0.gift_items.0.slug', $giftProduct->slug);
 });

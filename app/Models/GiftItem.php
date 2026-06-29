@@ -109,4 +109,44 @@ class GiftItem extends Model
 
         return null;
     }
+
+    /**
+     * Get original price of the gift product or variant.
+     */
+    public function getGiftOriginalPriceAttribute(): float
+    {
+        if ($this->product_type === 'variant') {
+            $variant = $this->giftVariant()->first();
+            if ($variant) {
+                return (float) $variant->price;
+            }
+        } else {
+            $product = $this->giftProduct()->first();
+            if ($product) {
+                return (float) $product->price;
+            }
+        }
+
+        return 0.00;
+    }
+
+    /**
+     * Get slug of the gift product.
+     */
+    public function getGiftSlugAttribute(): ?string
+    {
+        if ($this->product_type === 'variant') {
+            $variant = $this->giftVariant()->with('product')->first();
+            if ($variant && $variant->product) {
+                return $variant->product->slug;
+            }
+        } else {
+            $product = $this->giftProduct()->first();
+            if ($product) {
+                return $product->slug;
+            }
+        }
+
+        return null;
+    }
 }

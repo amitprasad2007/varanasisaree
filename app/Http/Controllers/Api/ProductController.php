@@ -403,6 +403,8 @@ class ProductController extends Controller
                         'image' => $gift->gift_image,
                         'offer_type' => $gift->offer_type,
                         'offered_price' => (float) $gift->offered_price,
+                        'original_price' => (float) $gift->gift_original_price,
+                        'slug' => $gift->gift_slug,
                         'min_spend' => $gift->min_spend ? (float) $gift->min_spend : null,
                         'min_quantity' => $gift->min_quantity ? (int) $gift->min_quantity : null,
                         'eligibility_text' => $gift->eligibility_text,
