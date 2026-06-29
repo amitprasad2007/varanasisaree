@@ -209,8 +209,18 @@ class CartController extends Controller
         $customer = $request->user();
         $cartItems = $this->getCustomerCart($customer->id);
 
+        $subTotal = 0;
+        $totaldiscount = 0;
+
         // Map cart items to the required format
-        $formattedCartItems = $cartItems->map(function ($item) {
+        $formattedCartItems = $cartItems->map(function ($item) use (&$subTotal, &$totaldiscount) {
+            $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
+            $discountRate = (float) ($item->product_variant_id ? ($item->productVariant->discount ?? 0) : ($item->product->discount ?? 0));
+            $unitPrice = $basePrice - ($basePrice * $discountRate / 100);
+
+            $subTotal += $unitPrice * $item->quantity;
+            $totaldiscount += ($basePrice * $discountRate / 100) * $item->quantity;
+
             return [
                 'id' => $item->product_id,
                 'cart_id' => $item->id,
@@ -223,20 +233,31 @@ class CartController extends Controller
                 'image' => ($item->product_variant_id ? ($item->productVariant?->primaryImage()?->image_path ?? $item->productVariant->image_path ?? null) : null)
                     ?? $item->product->resolveImagePaths()->first()
                     ?? 'https://via.placeholder.com/150',
-                'price' => (int) round($item->price),
-                'originalPrice' => (int) round($item->product->price),
+                'price' => (int) round($unitPrice),
+                'originalPrice' => (int) round($basePrice),
                 'quantity' => (float) $item->quantity,
                 'color' => ($item->product_variant_id ? ($item->productVariant->color->name ?? null) : null) ?? $item->product->color ?? '',
                 'maxQuantity' => $item->product->max_quantity ?? 10, // fallback if not available
             ];
         });
 
-        $subTotal = $cartItems->sum('amount');
         $quantity = $cartItems->sum('quantity');
-        $tax = round($subTotal * 0.18, 2);
-        $discount = min(round($subTotal * 0.1, 2), 5000);
-        $shipping = ($subTotal > 50000) ? 0 : 499; // You can implement shipping calculation logic here
-        $total = ($subTotal + $tax + $shipping) - $discount;
+        // Assume 5% tax based on getCartSummary, instead of 50%
+        $tax = round($subTotal * 0.5, 2);
+        $discount = $totaldiscount;
+
+        $shipping = 0;
+        if ($subTotal <= 1500) {
+            $shipping = 99;
+        } elseif ($subTotal <= 3000) {
+            $shipping = 149;
+        } elseif ($subTotal <= 5000) {
+            $shipping = 149; // Defaulting to 149 for the 3000-5000 range based on description
+        } else {
+            $shipping = 0; // > 5000 is nil
+        }
+
+        $total = ($subTotal + $tax + $shipping);
         $cartdetails = $this->getCustomerCart($customer->id);
 
         return response()->json([
@@ -266,16 +287,30 @@ class CartController extends Controller
             return $item->price * $item->quantity;
         });
 
-        // Calculate tax (assuming 18% GST)
-        $tax = round($subtotal * 0.18, 2);
+        // Calculate tax (assuming 5% GST)
+        $tax = round($subtotal * 0.5, 2);
 
-        // For this example, we'll use a fixed discount
-        $discount = min(round($subtotal * 0.1, 2), 5000);
+        // Calculate discount from cart items
+        $discount = $cartItems->sum(function ($item) {
+            $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
+            $discountRate = (float) ($item->product_variant_id ? ($item->productVariant->discount ?? 0) : ($item->product->discount ?? 0));
 
-        // Free shipping for this example
-        $shipping = ($subtotal > 50000) ? 0 : 499;
+            return ($basePrice * $discountRate / 100) * $item->quantity;
+        });
 
-        $total = ($subtotal + $tax + $shipping) - $discount;
+        $shipping = 0;
+        if ($subtotal <= 1500) {
+            $shipping = 99;
+        } elseif ($subtotal <= 3000) {
+            $shipping = 149;
+        } elseif ($subtotal <= 5000) {
+            $shipping = 149;
+        } else {
+            $shipping = 0;
+        }
+
+        // Subtotal already uses $item->price which is the discounted price.
+        $total = ($subtotal + $tax + $shipping);
 
         $formattedItems = $cartItems->map(function ($item) {
             return [
