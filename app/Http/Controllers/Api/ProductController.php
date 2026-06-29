@@ -296,7 +296,7 @@ class ProductController extends Controller
     {
 
         $product = Product::where('slug', $slug)
-            ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'variants.color', 'videos', 'primaryImage', 'featuredVideo'])
+            ->with(['specifications', 'category', 'subcategory', 'brand', 'imageproducts', 'variants.images', 'variants.color', 'variants.giftItems', 'videos', 'primaryImage', 'featuredVideo'])
             ->first();
 
         if (! $product) {
@@ -387,6 +387,29 @@ class ProductController extends Controller
 
             $sellingPrice = (float) ($baseOriginalPrice - ($baseOriginalPrice * $discountPercent / 100));
 
+            $giftItems = collect($variant->giftItems ?? [])
+                ->filter(function ($gift) {
+                    $now = now();
+                    $isActive = $gift->status === 'active';
+                    $isStarted = is_null($gift->start_date) || $gift->start_date <= $now;
+                    $isNotEnded = is_null($gift->end_date) || $gift->end_date >= $now;
+
+                    return $isActive && $isStarted && $isNotEnded;
+                })
+                ->map(function ($gift) {
+                    return [
+                        'id' => $gift->id,
+                        'name' => $gift->gift_name,
+                        'image' => $gift->gift_image,
+                        'offer_type' => $gift->offer_type,
+                        'offered_price' => (float) $gift->offered_price,
+                        'min_spend' => $gift->min_spend ? (float) $gift->min_spend : null,
+                        'min_quantity' => $gift->min_quantity ? (int) $gift->min_quantity : null,
+                        'eligibility_text' => $gift->eligibility_text,
+                    ];
+                })
+                ->values();
+
             return [
                 'id' => $variant->id,
                 'color' => $variant->color ? [
@@ -399,6 +422,7 @@ class ProductController extends Controller
                 'available' => $available,
                 'price' => (int) round($sellingPrice),
                 'originalPrice' => $discountPercent > 0 ? (int) round($baseOriginalPrice) : null,
+                'gift_items' => $giftItems,
             ];
         })->values();
 

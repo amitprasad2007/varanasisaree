@@ -175,6 +175,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('products/{product}/variants/{variant}/edit', [ProductVariantController::class, 'edit'])->name('product-variants.edit');
     Route::put('products/{product}/variants/{variant}', [ProductVariantController::class, 'update'])->name('product-variants.update');
     Route::delete('products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy'])->name('product-variants.destroy');
+
+    // Product Variant Gift Items
+    Route::get('products/{product}/variants/{variant}/gift-items', [ProductVariantController::class, 'giftItems'])->name('product-variants.gift-items');
+    Route::post('products/{product}/variants/{variant}/gift-items', [ProductVariantController::class, 'storeGiftItem'])->name('product-variants.gift-items.store');
+    Route::put('products/{product}/variants/{variant}/gift-items/{giftItem}', [ProductVariantController::class, 'updateGiftItem'])->name('product-variants.gift-items.update');
+    Route::delete('products/{product}/variants/{variant}/gift-items/{giftItem}', [ProductVariantController::class, 'destroyGiftItem'])->name('product-variants.gift-items.destroy');
+    Route::get('gift-items/search', [ProductVariantController::class, 'searchProductsAndVariants'])->name('product-variants.gift-items.search');
+
     // Variant Barcode & QR
     Route::get('variants/{variant}/barcode', [BarcodeController::class, 'variantBarcode'])->name('variants.barcode');
     Route::get('variants/{variant}/qr', [BarcodeController::class, 'variantQr'])->name('variants.qr');

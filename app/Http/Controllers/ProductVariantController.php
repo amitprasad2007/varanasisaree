@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Color;
+use App\Models\GiftItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Size;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProductVariantController extends Controller
 {
@@ -153,5 +157,163 @@ class ProductVariantController extends Controller
             'variants' => $variants,
             'filters' => $request->only(['search', 'perPage']),
         ]);
+    }
+
+    public function giftItems(Product $product, ProductVariant $variant): Response
+    {
+        $giftItems = GiftItem::where('product_variant_id', $variant->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($gift) {
+                return [
+                    'id' => $gift->id,
+                    'product_variant_id' => $gift->product_variant_id,
+                    'product_id' => $gift->product_id,
+                    'product_type' => $gift->product_type,
+                    'offer_type' => $gift->offer_type,
+                    'offered_price' => (float) $gift->offered_price,
+                    'status' => $gift->status,
+                    'start_date' => $gift->start_date ? $gift->start_date->format('Y-m-d H:i:s') : null,
+                    'end_date' => $gift->end_date ? $gift->end_date->format('Y-m-d H:i:s') : null,
+                    'min_spend' => $gift->min_spend ? (float) $gift->min_spend : null,
+                    'min_quantity' => $gift->min_quantity ? (int) $gift->min_quantity : null,
+                    'eligibility_text' => $gift->eligibility_text,
+                    'gift_name' => $gift->gift_name,
+                    'gift_image' => $gift->gift_image,
+                ];
+            });
+
+        return Inertia::render('Admin/ProductVariants/GiftItems', [
+            'product' => $product,
+            'variant' => $variant->load(['color', 'size']),
+            'giftItems' => $giftItems,
+        ]);
+    }
+
+    public function storeGiftItem(Request $request, Product $product, ProductVariant $variant): RedirectResponse
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'product_type' => 'required|string|in:main,variant',
+            'offer_type' => 'required|string|in:free,discounted',
+            'offered_price' => 'required|numeric|min:0',
+            'status' => 'required|string|in:active,inactive',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'min_spend' => 'nullable|numeric|min:0',
+            'min_quantity' => 'nullable|integer|min:0',
+            'eligibility_text' => 'nullable|string|max:255',
+        ]);
+
+        $data = $request->all();
+        $data['product_variant_id'] = $variant->id;
+
+        GiftItem::create($data);
+
+        return redirect()->route('product-variants.gift-items', [$product, $variant])
+            ->with('success', 'Gift item added successfully.');
+    }
+
+    public function updateGiftItem(Request $request, Product $product, ProductVariant $variant, GiftItem $giftItem): RedirectResponse
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'product_type' => 'required|string|in:main,variant',
+            'offer_type' => 'required|string|in:free,discounted',
+            'offered_price' => 'required|numeric|min:0',
+            'status' => 'required|string|in:active,inactive',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'min_spend' => 'nullable|numeric|min:0',
+            'min_quantity' => 'nullable|integer|min:0',
+            'eligibility_text' => 'nullable|string|max:255',
+        ]);
+
+        $giftItem->update($request->all());
+
+        return redirect()->route('product-variants.gift-items', [$product, $variant])
+            ->with('success', 'Gift item updated successfully.');
+    }
+
+    public function destroyGiftItem(Product $product, ProductVariant $variant, GiftItem $giftItem): RedirectResponse
+    {
+        $giftItem->delete();
+
+        return redirect()->route('product-variants.gift-items', [$product, $variant])
+            ->with('success', 'Gift item removed successfully.');
+    }
+
+    public function searchProductsAndVariants(Request $request): JsonResponse
+    {
+        $query = $request->input('query');
+
+        if (empty($query)) {
+            return response()->json([]);
+        }
+
+        // Search active products (limit 15)
+        $products = Product::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('barcode', 'like', "%{$query}%");
+            })
+            ->limit(15)
+            ->get();
+
+        $results = [];
+
+        foreach ($products as $p) {
+            $primaryImage = $p->imageproducts()->where('is_primary', true)->first()
+                ?? $p->imageproducts()->first();
+            $imageUrl = $primaryImage ? asset('storage/'.$primaryImage->image_path) : null;
+
+            $results[] = [
+                'id' => $p->id,
+                'type' => 'main',
+                'name' => $p->name,
+                'sku' => $p->barcode ?? 'N/A',
+                'price' => (float) $p->price,
+                'image' => $imageUrl,
+            ];
+        }
+
+        // Search active variants
+        $variants = ProductVariant::with(['product', 'color', 'size'])
+            ->where('status', 'active')
+            ->where(function ($q) use ($query) {
+                $q->where('sku', 'like', "%{$query}%")
+                    ->orWhereHas('product', function ($pq) use ($query) {
+                        $pq->where('name', 'like', "%{$query}%");
+                    });
+            })
+            ->limit(15)
+            ->get();
+
+        foreach ($variants as $v) {
+            $variantName = $v->product?->name;
+            $color = $v->color?->name;
+            $size = $v->size?->name;
+            $parts = array_filter([$color, $size]);
+            $nameSuffix = $parts ? ' ('.implode(' / ', $parts).')' : '';
+            $fullName = $variantName.$nameSuffix;
+
+            $imageUrl = $v->image_path ? asset('storage/'.$v->image_path) : null;
+            if (! $imageUrl && $v->product) {
+                $primaryImage = $v->product->imageproducts()->where('is_primary', true)->first()
+                    ?? $v->product->imageproducts()->first();
+                $imageUrl = $primaryImage ? asset('storage/'.$primaryImage->image_path) : null;
+            }
+
+            $results[] = [
+                'id' => $v->id,
+                'type' => 'variant',
+                'name' => $fullName,
+                'sku' => $v->sku,
+                'price' => (float) $v->price,
+                'image' => $imageUrl,
+            ];
+        }
+
+        return response()->json($results);
     }
 }

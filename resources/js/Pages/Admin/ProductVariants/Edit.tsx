@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Gift } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -276,7 +276,13 @@ export default function Edit({ product, variant, colors, sizes }: Props) {
                 )}
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
+                <Link href={route('product-variants.gift-items', [product.id, variant.id])}>
+                  <Button type="button" variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50 cursor-pointer">
+                    <Gift className="w-4 h-4 mr-2" />
+                    Manage Gift Items
+                  </Button>
+                </Link>
                 <Button type="submit" disabled={processing}>
                   {processing ? 'Updating...' : 'Update Variant'}
                 </Button>

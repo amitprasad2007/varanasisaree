@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, ArrowLeft, Images } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Images, Gift } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
@@ -164,6 +164,11 @@ export default function Index({ product, variants }: Props) {
                     <Link href={route('product-variant-images.index', variant.id)}>
                       <Button variant="outline" size="sm" title="View Images" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
                         <Images className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Link href={route('product-variants.gift-items', [product.id, variant.id])}>
+                      <Button variant="outline" size="sm" title="Gift Items" className="cursor-pointer hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-gray-850">
+                        <Gift className="w-4 h-4" />
                       </Button>
                     </Link>
                     <Link href={route('product-variants.edit', [product.id, variant.id])}>
