@@ -227,6 +227,7 @@ class CartController extends Controller
                 'id' => $item->product_id,
                 'cart_id' => $item->id,
                 'variant_id' => $item->product_variant_id,
+                'actual_pirce_item' => (int) round($basePrice * $item->quantity),
                 'name' => $item->product->name ?? '',
                 'slug' => $item->product->slug ?? '',
                 'category' => $item->product->category->id ?? '',
@@ -323,10 +324,12 @@ class CartController extends Controller
         $total = ($subtotal + $tax + $shipping);
 
         $formattedItems = $cartItems->map(function ($item) {
+            $basePrice = (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0));
             return [
                 'cart_id' => $item->id,
                 'id' => $item->product_id,
                 'variant_id' => $item->product_variant_id,
+                'actual_pirce_item' => (int) round($basePrice * $item->quantity),
                 'name' => $item->product->name,
                 'price' => $item->price,
                 'originalPrice' => (float) ($item->product_variant_id ? ($item->productVariant->price ?? 0) : ($item->product->price ?? 0)),
